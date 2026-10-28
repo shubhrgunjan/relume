@@ -24,8 +24,10 @@ export function declsOf(v: Record<string, string | number>): Record<string, stri
     if (['transform', 'x', 'y', 'scale', 'rotate', 'width', 'height'].includes(k)) continue;
     out[kebab(k)] = String(val);
   }
-  if (v.width !== undefined) out.width = `${v.width}px`;
-  if (v.height !== undefined) out.height = `${v.height}px`;
+  // numbers from tracked boxes need a unit; keyframe strings ("50px") already carry one
+  const len = (x: string | number) => (typeof x === 'number' || /^-?[\d.]+$/.test(String(x)) ? `${x}px` : String(x));
+  if (v.width !== undefined) out.width = len(v.width);
+  if (v.height !== undefined) out.height = len(v.height);
   return out;
 }
 

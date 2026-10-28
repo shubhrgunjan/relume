@@ -315,7 +315,9 @@ export function inferTypography(ev: Evidence) {
       const intercept = mobile - slope * vwM;
       // stepped (breakpoint) if tablet equals one end; fluid if tablet sits on the line
       const onLine = !isNaN(tablet) && home.tablet && Math.abs(intercept + slope * home.tablet.viewport[0] - tablet) < 1.2;
-      const css = onLine ? `clamp(${mobile / 16}rem, ${r1(intercept / 16 * 100) / 100}rem + ${r1(slope * 100 * 100) / 100}vw, ${desktop / 16}rem)` : `${mobile}px → ${desktop}px at breakpoints`;
+      // clamp() needs min ≤ max even when text grows on small screens
+      const lo = Math.min(mobile, desktop), hi = Math.max(mobile, desktop);
+      const css = onLine ? `clamp(${lo / 16}rem, ${r1(intercept / 16 * 100) / 100}rem + ${r1(slope * 100 * 100) / 100}vw, ${hi / 16}rem)` : `${mobile}px → ${desktop}px at breakpoints`;
       s.fluid = { mobile, tablet: isNaN(tablet) ? mobile : tablet, desktop, css };
     }
   }

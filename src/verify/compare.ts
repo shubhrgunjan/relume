@@ -67,7 +67,9 @@ export function compareDna(src: DNA, cand: DNA): Report {
   for (const s of cand.typography.styles) {
     tTot += s.share;
     const famOk = srcFam.has(s.family.toLowerCase()) || [...srcFam].some((f) => s.family.toLowerCase().startsWith(f));
-    const match = src.typography.styles.find((x) => Math.abs(x.size - s.size) <= 1 && Math.abs(x.weight - s.weight) <= 60);
+    // the closest source style, not the first one within tolerance: 15px/300 body must not be judged as 16px/300
+    const match = src.typography.styles.filter((x) => Math.abs(x.size - s.size) <= 1 && Math.abs(x.weight - s.weight) <= 60)
+      .sort((a, b) => (Math.abs(a.size - s.size) * 10 + Math.abs(a.weight - s.weight) / 10 + Math.abs(a.lineHeightRatio - s.lineHeightRatio) * 20) - (Math.abs(b.size - s.size) * 10 + Math.abs(b.weight - s.weight) / 10 + Math.abs(b.lineHeightRatio - s.lineHeightRatio) * 20))[0];
     const lhOk = match && (s.lineHeight === 'normal' || match.lineHeight === 'normal' || Math.abs(match.lineHeightRatio - s.lineHeightRatio) <= 0.08);
     const lsOk = match && Math.abs(match.letterSpacingEm - s.letterSpacingEm) <= 0.012;
     if (famOk && match && lhOk && lsOk) { tOn += s.share; continue; }

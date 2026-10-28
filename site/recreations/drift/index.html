@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drift — physics for every swipe</title>
+<meta name="description" content="Drift is an open-source, physics-based carousel and gesture library for the web.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;900&family=Inter:wght@700&family=Anton:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/motion.css">
+<style>
+  /* lenis runtime basics */
+  html.lenis, html.lenis body { height: auto; }
+  .lenis.lenis-smooth { scroll-behavior: auto !important; }
+  .lenis.lenis-stopped { overflow: hidden; }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; background: var(--color-background); color: var(--color-text); overflow-x: hidden; }
+  h1, h2, h3, h4, p, ul, figure { margin: 0; padding: 0; }
+  ul { list-style: none; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; }
+  /* measured content width is 1360px inside 40px gutters */
+  .container { max-width: calc(var(--container) + 2 * var(--gutter-desktop)); }
+  @media (max-width: 800px) { .container { max-width: none; } }
+
+  /* hover underline used by link-3 / link-4 (measured ::after scaleX 0 → 1) */
+  .link-3, .link-4 { position: relative; display: inline-block; }
+  .link-3::after, .link-4::after { content: ""; position: absolute; left: 0; bottom: -4px; width: 100%; height: 1px; background: var(--color-text); transform: scaleX(0); transform-origin: right; transition: transform 600ms var(--ease-1); }
+  .link-3:hover::after, .link-4:hover::after { transform: scaleX(1); transform-origin: left; }
+
+  /* ---------- intro curtain ---------- */
+  .curtain { position: fixed; inset: 0; z-index: 50; background: var(--color-surface); overflow: hidden; pointer-events: none; }
+  .curtain__inner { position: absolute; inset: 0; display: grid; place-items: center; }
+  .curtain__mark { display: flex; color: var(--color-text-secondary); }
+  .clip { display: inline-block; overflow: clip; vertical-align: top; }
+  .clip > * { display: inline-block; }
+  /* hero intro waits for the curtain (1500ms), letters keep their 75ms stagger */
+  .hero { --stagger: 75ms; --hold: calc(var(--duration-1500) + var(--duration-300)); }
+  .hero [data-intro] { animation-delay: calc(var(--hold) + var(--i, 0) * var(--stagger)); }
+
+  /* ---------- header ---------- */
+  .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 40; height: 56px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 40px; gap: 24px; font: 400 16px/normal var(--font-anton); color: var(--color-text); background: var(--color-surface-3); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: color 600ms var(--ease-1); }
+  .nav ul { display: flex; gap: 24px; }
+  .nav ul:last-child { justify-content: flex-end; }
+  .nav__logo { justify-self: center; width: 40px; padding: 6px; justify-content: center; color: var(--color-background); }
+  .nav__logo svg { width: 28px; height: 28px; }
+  @media (max-width: 800px) { .nav { padding: 0 var(--gutter-tablet); } .nav ul.nav__right { display: none; } .nav { grid-template-columns: 1fr auto; } }
+  @media (max-width: 640px) { .nav { padding: 0 var(--gutter-mobile); } .nav ul li:nth-child(n+3) { display: none; } }
+
+  /* ---------- hero ---------- */
+  .hero { position: relative; isolation: isolate; min-height: 100svh; display: flex; flex-direction: column; padding-top: 72px; padding-bottom: 20px; overflow: hidden; }
+  .hero__sky { position: absolute; inset: 0; z-index: -1; background: radial-gradient(120% 70% at 30% 110%, var(--color-surface), transparent 70%); }
+  .hero__sky canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .wordmark { width: 100%; position: relative; }
+  .wordmark__inner { display: inline-flex; white-space: nowrap; transform-origin: 0 0; color: var(--color-text-secondary); }
+  .wordmark__inner .clip { padding-top: 8px; }
+  .hero__sub { text-align: right; margin-top: 12px; }
+  .hero__foot { margin-top: auto; display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; align-items: end; padding-top: 40px; }
+  .hero__scroll { grid-column: 1 / span 2; }
+  .hero__by { grid-column: 3 / span 4; }
+  .hero__by a { text-decoration: underline; }
+  .hero__ctas { grid-column: 7 / span 6; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 800px) { .hero__scroll, .hero__by, .hero__ctas { grid-column: 1 / -1; } .hero__ctas { grid-template-columns: 1fr; gap: 12px; } }
+
+  /* pink CTA: black icon tile + pink label (button-secondary-2 skeleton) */
+  .cta { padding: 0; overflow: hidden; width: 100%; gap: 0; line-height: 1.129; }
+  .cta__icon { width: 48px; height: 48px; flex: none; display: grid; place-items: center; color: var(--color-text); background: var(--color-background); border-radius: 12px; }
+  .cta__icon svg { width: 22px; height: 22px; }
+  .cta__label { flex: 1; align-self: stretch; display: grid; place-items: center; background: var(--color-text-secondary); color: var(--color-background); transition: opacity 600ms var(--ease-1); }
+  .cta:hover .cta__label { opacity: 0.8; }
+  .cta--wide { max-width: 322px; }
+
+  /* ---------- statement ---------- */
+  .statement { margin-top: 320px; }
+  .statement p { max-width: 1100px; }
+  .statement .muted { color: var(--color-gray-600); }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 96px; border-top: 1px solid var(--color-gray-600); padding-top: 24px; }
+  .stats dt { color: var(--color-gray-600); margin-bottom: 12px; }
+  .stats dd { margin: 0; }
+  @media (max-width: 800px) { .stats { grid-template-columns: 1fr 1fr; } .statement { margin-top: 184px; } }
+
+  /* ---------- demo strip ---------- */
+  .demo { margin-top: 320px; }
+  .demo__head { display: flex; justify-content: space-between; align-items: end; gap: 24px; flex-wrap: wrap; margin-bottom: 40px; }
+  .demo__hint { display: flex; gap: 8px; align-items: center; color: var(--color-gray-600); }
+  .strip { overflow: hidden; cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+  .strip.is-dragging { cursor: grabbing; }
+  .strip__track { display: flex; gap: 24px; width: max-content; will-change: transform; padding-left: 40px; }
+  .slide { width: 437px; flex: none; }
+  .slide__art { position: relative; aspect-ratio: 1; background: var(--color-surface); border: 1px solid var(--color-gray-600); overflow: hidden; transition: border-color 300ms var(--ease-1); }
+  .slide:hover .slide__art { border-color: var(--color-text); }
+  .slide__art svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .slide__meta { display: flex; justify-content: space-between; margin-top: 16px; }
+  .slide__meta span:last-child { color: var(--color-gray-600); }
+  @media (max-width: 800px) { .slide { width: 253px; } .strip__track { padding-left: var(--gutter-tablet); } }
+
+  /* ---------- features ---------- */
+  .features { margin-top: 320px; }
+  .headline-lines { display: flex; flex-direction: column; }
+  .features__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 64px; }
+  .feature { position: relative; aspect-ratio: 1; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; cursor: pointer; }
+  .feature:hover { translate: 0 -8px; border-color: var(--color-text-secondary); }
+  .feature__art { position: absolute; right: 24px; top: 24px; width: 40%; aspect-ratio: 1; }
+  .feature__art svg { width: 100%; height: 100%; }
+  .feature h3 { position: relative; }
+  .feature p { position: relative; max-width: 85%; color: var(--color-background); }
+  .feature__num { position: relative; }
+  .features__grid .feature:nth-child(2) { margin-top: 96px; }
+  .features__grid .feature:nth-child(3) { margin-top: 192px; }
+  @media (max-width: 800px) { .features__grid { grid-template-columns: 1fr; } .features__grid .feature:nth-child(n) { margin-top: 0; } .feature p { max-width: 70%; } }
+
+  /* ---------- install ---------- */
+  .install { margin-top: 320px; display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; align-items: start; }
+  .install__copy { grid-column: 1 / span 5; }
+  .install__copy .text-body { margin-top: 24px; color: var(--color-gray-600); max-width: 420px; }
+  .install__code { grid-column: 7 / span 6; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .code { position: relative; background: var(--color-surface); border: 1px solid var(--color-gray-600); padding: 24px; font: 400 16px/1.331 var(--font-sans); color: var(--color-text); overflow-x: auto; }
+  .code pre, .code code { margin: 0; font: inherit; }
+  .code pre { white-space: pre; }
+  .code .k { color: var(--color-text-secondary); }
+  .code .c { color: var(--color-gray-600); }
+  .code__cmd { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px dashed var(--color-gray-600); }
+  .code__cmd code::before { content: "$ "; color: var(--color-gray-600); }
+  @media (max-width: 800px) { .install__copy, .install__code { grid-column: 1 / -1; } .install { margin-top: 184px; } }
+
+  /* ---------- showcase ---------- */
+  .showcase { margin-top: 320px; }
+  .showcase__head { display: flex; justify-content: space-between; align-items: end; gap: 24px; flex-wrap: wrap; margin-bottom: 40px; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .filters .input-4 { height: 32px; width: 207px; }
+  .filters .input-4::placeholder { color: var(--color-gray-600); }
+  .grid12 { display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; row-gap: 40px; }
+  .tile { grid-column: span 3; display: block; }
+  .tile--lg { grid-column: span 6; }
+  .tile--md { grid-column: span 4; }
+  .tile__art { position: relative; aspect-ratio: 4 / 3; border-radius: 4px; overflow: hidden; background: var(--color-surface); outline: 1px solid var(--color-surface); }
+  .tile--lg .tile__art { aspect-ratio: 4 / 3; }
+  .tile__art > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .tile__veil { position: absolute; inset: 0; background: var(--color-background); opacity: 0; transition: opacity 600ms var(--ease-1); }
+  .tile:hover .tile__veil { opacity: 0.33; }
+  .tile__go { position: absolute; right: 16px; bottom: 16px; width: 40px; height: 40px; border: 2px solid var(--color-text-secondary); border-radius: 4px; display: grid; place-items: center; color: var(--color-text-secondary); background: var(--color-surface-4); backdrop-filter: blur(10px); }
+  .tile__go svg { width: 14px; height: 14px; transition: scale 600ms var(--ease-1); }
+  .tile:hover .tile__go svg { scale: 1.3; }
+  .tile__badge { position: absolute; left: 16px; bottom: 16px; }
+  .tile__name { display: block; margin-top: 12px; }
+  .tile:hover .link-2 { color: var(--color-text-secondary); }
+  .tile:hover .link { color: var(--color-text-secondary); }
+  .more { display: flex; justify-content: center; margin-top: 64px; }
+  .more .cta { width: 207px; }
+  @media (max-width: 800px) { .tile, .tile--lg, .tile--md { grid-column: span 6; } }
+  @media (max-width: 640px) { .tile, .tile--lg, .tile--md { grid-column: 1 / -1; } }
+
+  /* ---------- footer ---------- */
+  .footer { margin-top: 320px; padding-top: 60px; padding-bottom: 20px; }
+  .footer__top { display: flex; flex-direction: column; }
+  .footer .pink { color: var(--color-text-secondary); }
+  .footer__news { display: flex; gap: 12px; margin-top: 48px; max-width: 540px; flex-wrap: wrap; }
+  .footer__news .input { height: 48px; flex: 1; min-width: 220px; }
+  .footer__news .button-secondary-4 { border: 0; }
+  .footer__news p { flex-basis: 100%; color: var(--color-gray-600); }
+  .footer__mid { display: flex; justify-content: space-between; align-items: end; gap: 40px; margin-top: 240px; flex-wrap: wrap; }
+  .footer__mid .text-display { text-align: right; margin-left: auto; }
+  .footer__bar { display: flex; justify-content: space-between; align-items: center; margin-top: 96px; }
+  .footer__bar ul { display: flex; gap: 32px; }
+  @media (max-width: 800px) { .footer { margin-top: 184px; } .footer__mid { margin-top: 96px; } .footer__bar ul { gap: 16px; } }
+</style>
+<script type="importmap">{"imports":{"lenis":"https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.mjs"}}</script>
+<script type="module" src="assets/motion.js"></script>
+</head>
+<body>
+
+<!-- intro curtain: wordmark rises letter by letter, then the curtain wipes up -->
+<div class="curtain" data-intro="intro-translate-3" aria-hidden="true">
+  <div class="curtain__inner" data-intro="intro-translate-6">
+    <div class="curtain__mark text-h1">
+      <span class="clip"><span data-intro="intro-translate-8">D</span></span><span class="clip"><span data-intro="intro-translate-7">R</span></span><span class="clip"><span data-intro="intro-translate-9">I</span></span><span class="clip"><span data-intro="intro-translate-11">F</span></span><span class="clip"><span data-intro="intro-translate-10">T</span></span>
+    </div>
+  </div>
+</div>
+
+<header class="nav navbar">
+  <ul>
+    <li><a class="link-4" href="#demo">Playground</a></li>
+    <li><a class="link-4" href="#features">Physics</a></li>
+    <li><a class="link-4" href="#showcase">Showcase</a></li>
+  </ul>
+  <a class="button-secondary-3 nav__logo" href="#top" aria-label="Drift home">
+    <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M9 5h5.5a9 9 0 0 1 0 18H9z"/><path d="M3 10h4M1 14h6M3 18h4"/></svg>
+  </a>
+  <ul class="nav__right">
+    <li><a class="link-4" href="#install">Docs</a></li>
+    <li><a class="link-4" href="#footer">Sponsor</a></li>
+  </ul>
+</header>
+
+<main id="top">
+  <!-- hero -->
+  <section class="hero container">
+    <div class="hero__sky" aria-hidden="true"><canvas id="sky"></canvas></div>
+    <h1 class="wordmark" aria-label="Drift">
+      <span class="wordmark__inner text-h1" aria-hidden="true">
+        <span class="clip"><span data-intro="intro-translate-8" style="--i:1">D</span></span><span class="clip"><span data-intro="intro-translate-7" style="--i:2">R</span></span><span class="clip"><span data-intro="intro-translate-9" style="--i:3">I</span></span><span class="clip"><span data-intro="intro-translate-11" style="--i:4">F</span></span><span class="clip"><span data-intro="intro-translate-10" style="--i:5">T</span></span>
+      </span>
+    </h1>
+    <div class="hero__sub"><span class="clip"><h2 class="text-display-bold" data-intro="intro-translate-2">Physics carousel</h2></span></div>
+
+    <div class="hero__foot">
+      <div class="hero__scroll text-title-regular">
+        <span class="clip"><p data-intro="intro-translate-2">Drag</p></span><br>
+        <span class="clip"><p data-intro="intro-translate-2">to explore</p></span>
+      </div>
+      <div class="hero__by text-micro">
+        <span class="clip"><p data-intro="intro-translate-2">The gesture library with momentum</p></span><br>
+        <span class="clip"><p data-intro="intro-translate-2">by <a href="#footer">drift collective</a></p></span>
+      </div>
+      <div class="hero__ctas">
+        <span class="clip" style="display:block"><a class="button-secondary-2 cta" href="#install" data-intro="intro-translate-5" style="display:flex">
+          <span class="cta__icon" data-intro="intro-fade-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg></span>
+          <span class="cta__label" data-intro="intro-fade-1" style="--i:1">Documentation</span>
+        </a></span>
+        <span class="clip" style="display:block"><a class="button-secondary-2 cta" href="#demo" data-intro="intro-translate-5" style="display:flex">
+          <span class="cta__icon" data-intro="intro-fade-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 18L18 6M8 6h10v10"/></svg></span>
+          <span class="cta__label" data-intro="intro-fade-1" style="--i:2">Playground</span>
+        </a></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- statement -->
+  <section class="statement section container">
+    <p class="text-display-medium" data-reveal="reveal-fade-23">Drift is a free, open-source carousel engine that gives every swipe real mass, momentum and spring <span class="muted">— so sliders on the web finally feel like something you can hold.</span></p>
+    <dl class="stats">
+      <div data-reveal="reveal-fade-15"><dt class="text-micro">Gzipped</dt><dd class="text-display-regular">4.1KB</dd></div>
+      <div data-reveal="reveal-fade-15"><dt class="text-micro">Dependencies</dt><dd class="text-display-regular">0</dd></div>
+      <div data-reveal="reveal-fade-15"><dt class="text-micro">Frame budget</dt><dd class="text-display-regular">0.2MS</dd></div>
+      <div data-reveal="reveal-fade-15"><dt class="text-micro">Licence</dt><dd class="text-display-regular">MIT</dd></div>
+    </dl>
+  </section>
+
+  <!-- demo strip -->
+  <section class="demo section" id="demo">
+    <div class="container demo__head">
+      <h2 class="text-display headline-lines">
+        <span class="clip"><span data-reveal="reveal-translate-19">Throw it.</span></span>
+        <span class="clip"><span data-reveal="reveal-translate-19">It drifts.</span></span>
+      </h2>
+      <p class="demo__hint text-micro"><span class="button-primary">Live</span> Grab the row and fling it</p>
+    </div>
+    <div class="strip" id="strip" aria-label="Draggable demo carousel">
+      <div class="strip__track" id="track">
+        <figure class="slide" data-reveal="reveal-fade-15">
+          <div class="slide__art"><svg viewBox="0 0 400 400" aria-hidden="true">
+            <g fill="none" stroke="var(--color-gray-600)"><path d="M40 300 C 140 300, 200 120, 360 100"/><path d="M40 320 C 150 320, 210 150, 360 140" stroke-dasharray="4 6"/></g>
+            <circle cx="300" cy="108" r="22" fill="var(--color-text-secondary)"/>
+            <g fill="var(--color-text)"><circle cx="90" cy="296" r="4" opacity=".2"/><circle cx="150" cy="270" r="5" opacity=".35"/><circle cx="200" cy="215" r="6" opacity=".55"/><circle cx="250" cy="150" r="7" opacity=".8"/></g>
+          </svg></div>
+          <figcaption class="slide__meta text-micro"><span>01 — Momentum</span><span>v = Δx / Δt</span></figcaption>
+        </figure>
+        <figure class="slide" data-reveal="reveal-fade-15">
+          <div class="slide__art"><svg viewBox="0 0 400 400" aria-hidden="true">
+            <path d="M200 40 v40 l-40 14 l80 28 l-80 28 l80 28 l-80 28 l80 28 l-40 14 v40" fill="none" stroke="var(--color-text)" stroke-width="2"/>
+            <rect x="160" y="300" width="80" height="60" fill="var(--color-text-secondary)"/>
+            <path d="M120 40 h160" stroke="var(--color-gray-600)"/>
+          </svg></div>
+          <figcaption class="slide__meta text-micro"><span>02 — Spring</span><span>k 170 · c 26</span></figcaption>
+        </figure>
+        <figure class="slide" data-reveal="reveal-fade-15">
+          <div class="slide__art"><svg viewBox="0 0 400 400" aria-hidden="true">
+            <g fill="none" stroke="var(--color-gray-600)"><rect x="40" y="140" width="96" height="120"/><rect x="152" y="140" width="96" height="120"/><rect x="264" y="140" width="96" height="120"/></g>
+            <rect x="152" y="140" width="96" height="120" fill="var(--color-text-secondary)"/>
+            <path d="M200 100 v20 M200 280 v20" stroke="var(--color-text)" stroke-width="2"/>
+          </svg></div>
+          <figcaption class="slide__meta text-micro"><span>03 — Snap</span><span>nearest · 0.5</span></figcaption>
+        </figure>
+        <figure class="slide" data-reveal="reveal-fade-15">
+          <div class="slide__art"><svg viewBox="0 0 400 400" aria-hidden="true">
+            <g fill="var(--color-text)"><rect x="60" y="180" width="200" height="40"/></g>
+            <rect x="260" y="180" width="80" height="40" fill="none" stroke="var(--color-text-secondary)" stroke-dasharray="6 6"/>
+            <path d="M60 250 h280" stroke="var(--color-gray-600)"/><path d="M340 160 v80" stroke="var(--color-text-secondary)" stroke-width="2"/>
+          </svg></div>
+          <figcaption class="slide__meta text-micro"><span>04 — Rubber band</span><span>0.55 × overshoot</span></figcaption>
+        </figure>
+        <figure class="slide" data-reveal="reveal-fade-15">
+          <div class="slide__art"><svg viewBox="0 0 400 400" aria-hidden="true">
+            <circle cx="200" cy="200" r="120" fill="none" stroke="var(--color-gray-600)"/>
+            <circle cx="200" cy="200" r="80" fill="none" stroke="var(--color-gray-600)" stroke-dasharray="3 7"/>
+            <circle cx="320" cy="200" r="14" fill="var(--color-text-secondary)"/>
+            <path d="M200 200 L320 200" stroke="var(--color-text)"/>
+          </svg></div>
+          <figcaption class="slide__meta text-micro"><span>05 — Infinite loop</span><span>wrap: true</span></figcaption>
+        </figure>
+        <figure class="slide" data-reveal="reveal-fade-15">
+          <div class="slide__art"><svg viewBox="0 0 400 400" aria-hidden="true">
+            <path d="M40 120 Q 120 120 160 220 T 360 300" fill="none" stroke="var(--color-text)" stroke-width="2"/>
+            <path d="M40 120 h320 M40 300 h320" stroke="var(--color-gray-600)" stroke-dasharray="2 6"/>
+            <circle cx="360" cy="300" r="8" fill="var(--color-text-secondary)"/>
+          </svg></div>
+          <figcaption class="slide__meta text-micro"><span>06 — Friction</span><span>μ 0.92 / frame</span></figcaption>
+        </figure>
+        <figure class="slide" data-reveal="reveal-fade-15">
+          <div class="slide__art"><svg viewBox="0 0 400 400" aria-hidden="true">
+            <g fill="none" stroke="var(--color-gray-600)"><rect x="60" y="80" width="280" height="240"/></g>
+            <rect x="100" y="120" width="200" height="160" fill="var(--color-text)" opacity=".12"/>
+            <rect x="140" y="160" width="120" height="80" fill="var(--color-text-secondary)"/>
+          </svg></div>
+          <figcaption class="slide__meta text-micro"><span>07 — Parallax layers</span><span>depth 0 → 1</span></figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- features -->
+  <section class="features section container" id="features">
+    <h2 class="text-display headline-lines">
+      <span class="clip"><span data-reveal="reveal-translate-19">Why</span></span>
+      <span class="clip"><span data-reveal="reveal-translate-19">real physics?</span></span>
+    </h2>
+    <div class="features__grid">
+      <article class="card feature" data-reveal="reveal-tint-24">
+        <span class="feature__num text-title-regular">01</span>
+        <div class="feature__art" data-reveal="reveal-fade-20"><svg viewBox="0 0 200 200" aria-hidden="true"><circle cx="130" cy="130" r="70" fill="var(--color-text-secondary)"/><path d="M0 130 h60" stroke="var(--color-background)" stroke-width="3"/><path d="M10 110 h40 M20 150 h30" stroke="var(--color-background)" stroke-width="2"/></svg></div>
+        <div>
+          <h3 class="text-display-bold">Momentum<br>you can feel</h3>
+          <p class="text-small" style="margin-top:12px">Velocity is sampled from the pointer and handed to an integrator, not a timeline.</p>
+        </div>
+      </article>
+      <article class="card feature" data-reveal="reveal-tint-24">
+        <span class="feature__num text-title-regular">02</span>
+        <div class="feature__art" data-reveal="reveal-fade-20"><svg viewBox="0 0 200 200" aria-hidden="true"><path d="M100 0 v30 l-30 12 l60 24 l-60 24 l60 24 l-30 12 v20" fill="none" stroke="var(--color-background)" stroke-width="4"/><rect x="60" y="146" width="80" height="54" fill="var(--color-text-secondary)"/></svg></div>
+        <div>
+          <h3 class="text-display-bold">Springs,<br>not easings</h3>
+          <p class="text-small" style="margin-top:12px">Interrupt any motion mid-flight and it carries on from where your finger left it.</p>
+        </div>
+      </article>
+      <article class="card feature" data-reveal="reveal-tint-24">
+        <span class="feature__num text-title-regular">03</span>
+        <div class="feature__art" data-reveal="reveal-fade-20"><svg viewBox="0 0 200 200" aria-hidden="true"><rect x="40" y="40" width="160" height="160" fill="var(--color-text-secondary)"/><rect x="80" y="80" width="120" height="120" fill="var(--color-background)"/><rect x="120" y="120" width="80" height="80" fill="var(--color-text-secondary)"/></svg></div>
+        <div>
+          <h3 class="text-display-bold">Native<br>scroll stays</h3>
+          <p class="text-small" style="margin-top:12px">Sticky, scroll-snap fallbacks and screen readers keep working. Drift only moves what you ask.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- install -->
+  <section class="install section container" id="install">
+    <div class="install__copy">
+      <h2 class="text-display-regular headline-lines">
+        <span class="clip"><span data-reveal="reveal-translate-19">One import.</span></span>
+        <span class="clip"><span data-reveal="reveal-translate-19">Real weight.</span></span>
+      </h2>
+      <p class="text-body">Point Drift at any row of elements. It measures them, listens to pointer, wheel and keys, and runs a single spring per track on requestAnimationFrame.</p>
+    </div>
+    <div class="install__code" data-reveal="reveal-fade-23">
+      <div class="tabs" role="tablist">
+        <button class="button-secondary-5" role="tab" aria-selected="true" data-pm="npm i @drift-ui/core">npm</button>
+        <button class="button-secondary" role="tab" aria-selected="false" data-pm="pnpm add @drift-ui/core">pnpm</button>
+        <button class="button-secondary" role="tab" aria-selected="false" data-pm="yarn add @drift-ui/core">yarn</button>
+        <button class="button-secondary" role="tab" aria-selected="false" data-pm="bun add @drift-ui/core">bun</button>
+      </div>
+      <div class="code">
+        <div class="code__cmd"><code id="cmd">npm i @drift-ui/core</code><button class="button-secondary" id="copy" type="button">Copy</button></div>
+<pre><span class="k">import</span> { Drift } <span class="k">from</span> '@drift-ui/core'
+
+<span class="c">// any element with children becomes a track</span>
+<span class="k">const</span> drift = <span class="k">new</span> Drift('.gallery', {
+  mass: 1,
+  stiffness: 170,
+  damping: 26,
+  friction: 0.92,
+  snap: 'nearest',
+  loop: true,
+})
+
+drift.on('settle', ({ index }) =&gt; console.log(index))</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- showcase -->
+  <section class="showcase section container" id="showcase">
+    <div class="showcase__head">
+      <h2 class="text-display headline-lines">
+        <span class="clip"><span data-reveal="reveal-translate-19">Drift</span></span>
+        <span class="clip"><span data-reveal="reveal-translate-19">in the wild</span></span>
+      </h2>
+      <div class="filters">
+        <input class="input-4" type="search" placeholder="Search" aria-label="Search projects">
+        <button class="button-secondary-5" type="button">All</button>
+        <button class="button-secondary" type="button">Commerce</button>
+        <button class="button-secondary" type="button">Editorial</button>
+        <button class="button-secondary" type="button">Portfolio</button>
+        <button class="button-secondary" type="button">Event</button>
+      </div>
+    </div>
+
+    <div class="grid12">
+      <a class="tile tile--lg" href="#showcase" data-reveal="reveal-fade-15">
+        <div class="tile__art"><svg viewBox="0 0 600 450" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <rect width="600" height="450" fill="var(--color-text)"/>
+          <g fill="var(--color-background)"><rect x="40" y="60" width="160" height="220"/><rect x="220" y="60" width="160" height="220" opacity=".85"/><rect x="400" y="60" width="160" height="220" opacity=".7"/></g>
+          <text x="40" y="380" font-family="Anton" font-size="72" fill="var(--color-background)">HALYARD ATLAS</text>
+        </svg><span class="tile__veil" data-reveal="reveal-fade-out-17"></span><span class="tile__badge button-primary">Featured</span><span class="tile__go" data-reveal="reveal-scale-14" style="--i:0"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 12L12 2M4 2h8v8"/></svg></span></div>
+        <span class="tile__name link-2" data-reveal="reveal-tint-16">Halyard Atlas</span><span class="link">Northbound Studio</span>
+      </a>
+      <a class="tile tile--lg" href="#showcase" data-reveal="reveal-fade-15">
+        <div class="tile__art"><svg viewBox="0 0 600 450" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <rect width="600" height="450" fill="var(--color-surface)"/>
+          <g fill="none" stroke="var(--color-gray-600)"><circle cx="300" cy="225" r="60"/><circle cx="300" cy="225" r="110"/><circle cx="300" cy="225" r="160"/><circle cx="300" cy="225" r="210"/></g>
+          <circle cx="300" cy="225" r="36" fill="var(--color-text-secondary)"/>
+          <text x="32" y="56" font-family="Roboto" font-weight="900" font-size="18" fill="var(--color-text)">KILN RECORDS — VOL. 04</text>
+        </svg><span class="tile__veil" data-reveal="reveal-fade-out-17"></span><span class="tile__go" data-reveal="reveal-scale-14" style="--i:1"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 12L12 2M4 2h8v8"/></svg></span></div>
+        <span class="tile__name link-2" data-reveal="reveal-tint-16">Kiln Records</span><span class="link">Oda &amp; Marsh</span>
+      </a>
+
+      <a class="tile tile--md" href="#showcase" data-reveal="reveal-fade-15">
+        <div class="tile__art"><svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <rect width="400" height="300" fill="var(--color-text-secondary)"/>
+          <text x="24" y="190" font-family="Anton" font-size="150" fill="var(--color-background)">ORBIT</text>
+        </svg><span class="tile__veil" data-reveal="reveal-fade-out-17"></span><span class="tile__badge button-primary">Featured</span><span class="tile__go" data-reveal="reveal-scale-14" style="--i:0"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 12L12 2M4 2h8v8"/></svg></span></div>
+        <span class="tile__name link-2" data-reveal="reveal-tint-16">Orbit Index</span><span class="link">Fieldwork Collective</span>
+      </a>
+      <a class="tile tile--md" href="#showcase" data-reveal="reveal-fade-15">
+        <div class="tile__art"><svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <rect width="400" height="300" fill="var(--color-surface)"/>
+          <g stroke="var(--color-text)" stroke-width="1"><path d="M0 200 Q100 170 200 200 T400 200"/><path d="M0 220 Q100 190 200 220 T400 220" opacity=".6"/><path d="M0 240 Q100 210 200 240 T400 240" opacity=".35"/></g>
+          <circle cx="300" cy="90" r="30" fill="var(--color-text)"/>
+        </svg><span class="tile__veil" data-reveal="reveal-fade-out-17"></span><span class="tile__go" data-reveal="reveal-scale-14" style="--i:1"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 12L12 2M4 2h8v8"/></svg></span></div>
+        <span class="tile__name link-2">Low Tide Festival</span><span class="link">Saltmarsh</span>
+      </a>
+      <a class="tile tile--md" href="#showcase" data-reveal="reveal-fade-15">
+        <div class="tile__art"><svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <rect width="400" height="300" fill="var(--color-text)"/>
+          <g fill="var(--color-gray-600)"><rect x="24" y="24" width="110" height="140"/><rect x="146" y="24" width="110" height="140"/><rect x="268" y="24" width="110" height="140"/></g>
+          <path d="M24 200 h200 M24 220 h140 M24 240 h170" stroke="var(--color-background)" stroke-width="6"/>
+        </svg><span class="tile__veil" data-reveal="reveal-fade-out-17"></span><span class="tile__go" data-reveal="reveal-scale-14" style="--i:2"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 12L12 2M4 2h8v8"/></svg></span></div>
+        <span class="tile__name link-2">Paper Engine</span><span class="link">Grain Office</span>
+      </a>
+
+      <a class="tile" href="#showcase" data-reveal="reveal-fade-15">
+        <div class="tile__art"><svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <rect width="400" height="300" fill="var(--color-surface)"/>
+          <path d="M40 240 L200 60 L360 240 Z" fill="none" stroke="var(--color-text)" stroke-width="2"/>
+          <path d="M200 60 v180" stroke="var(--color-text-secondary)" stroke-width="2"/>
+        </svg><span class="tile__veil" data-reveal="reveal-fade-out-17"></span><span class="tile__go" data-reveal="reveal-scale-14" style="--i:0"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 12L12 2M4 2h8v8"/></svg></span></div>
+        <span class="tile__name link-2">Vela Motors</span><span class="link">Hard Light</span>
+      </a>
+      <a class="tile" href="#showcase" data-reveal="reveal-fade-15">
+        <div class="tile__art"><svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <rect width="400" height="300" fill="var(--color-text)"/>
+          <text x="20" y="200" font-family="Inter" font-weight="700" font-size="110" fill="var(--color-background)">FN.</text>
+        </svg><span class="tile__veil" data-reveal="reveal-fade-out-17"></span><span class="tile__go" data-reveal="reveal-scale-14" style="--i:1"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 12L12 2M4 2h8v8"/></svg></span></div>
+        <span class="tile__name link-2">Fieldnotes Journal</span><span class="link">Pell &amp; Co.</span>
+      </a>
+      <a class="tile" href="#showcase" data-reveal="reveal-fade-15">
+        <div class="tile__art"><svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <rect width="400" height="300" fill="var(--color-surface)"/>
+          <g fill="var(--color-text)"><circle cx="80" cy="150" r="6"/><circle cx="140" cy="150" r="10"/><circle cx="210" cy="150" r="16"/><circle cx="300" cy="150" r="26"/></g>
+        </svg><span class="tile__veil" data-reveal="reveal-fade-out-17"></span><span class="tile__go" data-reveal="reveal-scale-14" style="--i:2"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 12L12 2M4 2h8v8"/></svg></span></div>
+        <span class="tile__name link-2">Marrow Type Foundry</span><span class="link">Marrow</span>
+      </a>
+      <a class="tile" href="#showcase" data-reveal="reveal-fade-15">
+        <div class="tile__art"><svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <rect width="400" height="300" fill="var(--color-gray-600)"/>
+          <rect x="120" y="60" width="160" height="180" fill="var(--color-surface)"/>
+          <rect x="150" y="90" width="100" height="120" fill="var(--color-text-secondary)"/>
+        </svg><span class="tile__veil" data-reveal="reveal-fade-out-17"></span><span class="tile__go" data-reveal="reveal-scale-14" style="--i:3"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 12L12 2M4 2h8v8"/></svg></span></div>
+        <span class="tile__name link-2">Quarry Gallery</span><span class="link">Slab Studio</span>
+      </a>
+    </div>
+    <div class="more"><a class="button-secondary-2 cta" href="#showcase" data-reveal="reveal-fade-23" style="display:flex"><span class="cta__label">Load more</span></a></div>
+  </section>
+</main>
+
+<footer class="footer container" id="footer">
+  <div class="footer__top text-display">
+    <span class="clip"><span data-reveal="reveal-translate-19">Drift is</span></span>
+    <span class="clip"><span class="pink" data-reveal="reveal-translate-19">open source</span></span>
+  </div>
+  <form class="footer__news" onsubmit="event.preventDefault()">
+    <input class="input" type="email" placeholder="Enter your email" aria-label="Email">
+    <button class="button-secondary-4" type="submit">Subscribe</button>
+    <p class="text-micro-regular-2">Release notes and new physics recipes, once a month. Nothing else.</p>
+  </form>
+  <div class="footer__mid">
+    <a class="button-secondary-2 cta cta--wide" href="#footer" style="display:flex">
+      <span class="cta__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span>
+      <span class="cta__label">Back the project</span>
+    </a>
+    <div class="text-display">
+      <span class="clip"><span data-reveal="reveal-translate-19">Made for</span></span><br>
+      <span class="clip"><span data-reveal="reveal-translate-19">your thumbs</span></span>
+    </div>
+  </div>
+  <div class="footer__bar">
+    <ul>
+      <li><a class="link-3" href="#footer">GitHub</a></li>
+      <li><a class="link-3" href="#footer">Discord</a></li>
+      <li><a class="link-3" href="#footer">Bluesky</a></li>
+      <li><a class="link-3" href="#footer">Mail</a></li>
+    </ul>
+    <a class="link-3" href="#footer">Privacy</a>
+  </div>
+</footer>
+
+<script type="module">
+
+  // fit the hero wordmark to the container width (type stays the 160px h1 style; the box is scaled)
+  const wm = document.querySelector('.wordmark'), wmi = wm.querySelector('.wordmark__inner');
+  function fit() {
+    wmi.style.transform = 'none';
+    const w = wmi.scrollWidth, h = wmi.offsetHeight;
+    const maxH = Math.max(160, innerHeight - 290);
+    const s = Math.min(wm.clientWidth / w, maxH / h);
+    wmi.style.transform = `scale(${s})`;
+    wm.style.height = `${h * s}px`;
+  }
+  fit(); document.fonts.ready.then(fit); addEventListener('resize', fit);
+
+  // drifting dust in the hero sky
+  const cv = document.getElementById('sky'), cx = cv.getContext('2d');
+  const pink = getComputedStyle(document.documentElement).getPropertyValue('--color-text-secondary').trim();
+  let dots = [];
+  function size() { cv.width = cv.offsetWidth * devicePixelRatio; cv.height = cv.offsetHeight * devicePixelRatio; dots = Array.from({ length: 90 }, () => ({ x: Math.random() * cv.width, y: Math.random() * cv.height, r: (Math.random() * 1.4 + 0.4) * devicePixelRatio, v: Math.random() * 0.25 + 0.05, a: Math.random() * 0.6 + 0.2 })); }
+  size(); addEventListener('resize', size);
+  (function sky() { cx.clearRect(0, 0, cv.width, cv.height); cx.fillStyle = pink; for (const d of dots) { d.y -= d.v; d.x += Math.sin(d.y / 90) * 0.15; if (d.y < 0) d.y = cv.height; cx.globalAlpha = d.a; cx.beginPath(); cx.arc(d.x, d.y, d.r, 0, 7); cx.fill(); } requestAnimationFrame(sky); })();
+
+  // the demo strip: drag with momentum, friction, infinite wrap, idle drift
+  const strip = document.getElementById('strip'), track = document.getElementById('track');
+  track.append(...[...track.children].map((n) => { const c = n.cloneNode(true); c.setAttribute('aria-hidden', 'true'); return c; }));
+  let x = 0, v = 0, drag = false, lastX = 0, lastT = 0, idle = -0.6;
+  const half = () => track.scrollWidth / 2;
+  strip.addEventListener('pointerdown', (e) => { drag = true; v = 0; lastX = e.clientX; lastT = performance.now(); strip.classList.add('is-dragging'); strip.setPointerCapture(e.pointerId); });
+  strip.addEventListener('pointermove', (e) => { if (!drag) return; const now = performance.now(), dx = e.clientX - lastX; x += dx; v = dx / Math.max(1, now - lastT) * 16; lastX = e.clientX; lastT = now; });
+  const end = () => { drag = false; strip.classList.remove('is-dragging'); idle = v < 0 ? -0.6 : 0.6; };
+  strip.addEventListener('pointerup', end); strip.addEventListener('pointercancel', end);
+  (function step() {
+    if (!drag) { v *= 0.95; if (Math.abs(v) < Math.abs(idle)) v += (idle - v) * 0.05; x += v; }
+    const W = half(); if (W) { if (x <= -W) x += W; if (x > 0) x -= W; }
+    track.style.transform = `translate3d(${x}px,0,0)`;
+    requestAnimationFrame(step);
+  })();
+
+  // install tabs + copy
+  const cmd = document.getElementById('cmd');
+  document.querySelectorAll('[data-pm]').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-pm]').forEach((o) => { o.className = 'button-secondary'; o.setAttribute('aria-selected', 'false'); });
+    b.className = 'button-secondary-5'; b.setAttribute('aria-selected', 'true'); cmd.textContent = b.dataset.pm;
+  }));
+  document.getElementById('copy').addEventListener('click', (e) => { navigator.clipboard?.writeText(cmd.textContent); e.target.textContent = 'Copied'; setTimeout(() => (e.target.textContent = 'Copy'), 1200); });
+</script>
+</body>
+</html>

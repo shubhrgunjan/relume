@@ -25,7 +25,7 @@ export function initReveals(root = document) {
 // npm i lenis
 import Lenis from 'lenis';
 export function initSmoothScroll() {
-  const lenis = new Lenis({ lerp: 0.14, wheelMultiplier: 1, smoothWheel: true });
+  const lenis = new Lenis({ lerp: 0.115, wheelMultiplier: 1, smoothWheel: true });
   const raf = (t) => { lenis.raf(t); requestAnimationFrame(raf); };
   requestAnimationFrame(raf);
   return lenis;

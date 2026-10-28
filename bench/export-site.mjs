@@ -30,8 +30,9 @@ function firstPage(dir) {
 function video(src, dst, seconds = 48) {
   execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', src, '-t', String(seconds), '-vf', 'scale=960:-2,fps=30', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '30', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-an', dst]);
 }
-function shot(src, dst) {
-  execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', src, '-vf', 'crop=iw:min(ih\\,iw*0.625):0:0,scale=960:-2', '-q:v', '5', dst]);
+// the hero still comes from the recording a few seconds after load, before the hover pass can leave a menu open
+function shot(webm, at, dst) {
+  execFileSync('ffmpeg', ['-v', 'error', '-y', '-ss', String(at), '-i', webm, '-frames:v', '1', '-vf', 'scale=960:-2', '-q:v', '4', dst]);
 }
 
 // marks are page-clock ms; the recording starts when the page is created, a beat before navigation, so align on
@@ -79,9 +80,9 @@ function annotations(pageDir) {
   const out = [];
   const head = vis.filter((r) => r.chars > 3).sort((a, b) => px(b.s.fontSize) - px(a.s.fontSize))[0];
   if (head) out.push({ kind: 'headline', box: head.box, label: `${px(head.s.fontSize)}px / ${head.s.fontWeight} · ${(px(head.s.letterSpacing) / px(head.s.fontSize)).toFixed(3)}em` });
-  const btn = vis.filter((r) => /^(a|button)$/.test(r.tag) && r.box[3] >= 24 && r.box[3] <= 64 && r.box[2] < 320 && r.s.backgroundColor !== 'rgba(0, 0, 0, 0)' && r.box[1] > 60)
+  const btn = vis.filter((r) => /^(a|button)$/.test(r.tag) && r.box[3] >= 24 && r.box[3] <= 64 && r.box[2] >= 56 && r.box[2] < 320 && r.s.backgroundColor !== 'rgba(0, 0, 0, 0)' && r.box[1] > 60)
     .sort((a, b) => b.box[2] * b.box[3] - a.box[2] * a.box[3])[0];
-  if (btn) out.push({ kind: 'action', box: btn.box, label: `${btn.s.backgroundColor.replace(/\s/g, '')} · r ${btn.s.borderTopLeftRadius} · ${btn.s.transitionDuration}` });
+  if (btn) out.push({ kind: 'action', box: btn.box, label: `${btn.s.backgroundColor.replace(/\s/g, '')} · r ${btn.s.borderTopLeftRadius}${parseFloat(btn.s.transitionDuration) ? ` · ${parseFloat(btn.s.transitionDuration) * 1000}ms` : ''}` });
   const nav = vis.filter((r) => /^(header|nav)$/.test(r.tag) && r.box[1] < 40 && r.box[2] > vw * 0.5)[0];
   if (nav) out.push({ kind: 'nav', box: nav.box, label: `${nav.box[3]}px · ${nav.s.backdropFilter !== 'none' ? nav.s.backdropFilter : nav.s.backgroundColor.replace(/\s/g, '')}` });
   const body = vis.filter((r) => r.chars > 40 && px(r.s.fontSize) <= 22 && r !== head).sort((a, b) => a.box[1] - b.box[1])[0];
@@ -98,8 +99,9 @@ for (const spec of pairs) {
   const report = JSON.parse(readFileSync(join(checkDir, 'report.json'), 'utf8'));
   video(join(src.dir, 'motion.webm'), join(out, 'media', `${id}-source.mp4`));
   video(join(rec.dir, 'motion.webm'), join(out, 'media', `${id}-recreation.mp4`));
-  shot(join(src.dir, 'shot-desktop.jpg'), join(out, 'media', `${id}-source.jpg`));
-  shot(join(rec.dir, 'shot-desktop.jpg'), join(out, 'media', `${id}-recreation.jpg`));
+  const sm = marks(join(src.dir, 'motion.json.gz')), rm = marks(join(rec.dir, 'motion.json.gz'));
+  shot(join(src.dir, 'motion.webm'), Math.min(sm.loadedAt + 3.2, (sm.phases[1]?.t ?? 9) - 0.3), join(out, 'media', `${id}-source.jpg`));
+  shot(join(rec.dir, 'motion.webm'), Math.min(rm.loadedAt + 3.2, (rm.phases[1]?.t ?? 9) - 0.3), join(out, 'media', `${id}-recreation.jpg`));
   result.push({
     id, slug, recreationPath: urlPath,
     source: { ...summary(JSON.parse(readFileSync(join(CAT, slug, 'dna.json'), 'utf8'))), page: src.url, marks: marks(join(src.dir, 'motion.json.gz')), annotations: annotations(src.dir) },

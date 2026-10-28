@@ -2,646 +2,386 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>relume — the feel of any site, measured</title>
-<meta name="description" content="relume measures a live website's design language — colour, type, spacing, components and motion down to the curve — and compiles it into a skill your coding agent builds with.">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>relume</title>
+<meta name="description" content="relume measures a live website's design language, down to the curve of every animation, and compiles it into a skill your coding agent builds new sites with.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..800&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Doto:wght@400..900&family=Martian+Mono:wdth,wght@75..112.5,300..600&display=swap" rel="stylesheet">
 <style>
+/* One ink film strip, after the Figma anthem film: real sites dissolve into measurement and back into new sites.
+   Copy always sits on solid ground; pixels and motion live around it, never under it. */
 :root {
-  --ink: #141115;
-  --ink-2: #1c181d;
-  --ink-3: #2a252b;
-  --paper: #f0f0f0;
-  --chip: #8c8496;
-  --lime: #c4f46e;
-  --volt: #c0f63c;
-  --forest: #4a7a56;
-  --lilac: #f4dcf8;
-  --orchid: #f0b8f8;
-  --plum: #9c78a8;
-  --salmon: #ee9070;
-  --sky: #3fa0e8;
-  --sun: #f5e14a;
-  --mint: #5df07a;
+  color-scheme: dark;
+  --ink: #141115; --ink-2: #1c181d; --ink-3: #2b262c; --line: #3a343c;
+  --paper: #f2f0f3; --mute: #bdb6c2; --dim: #8f8794; --chip: #8c8496;
+  --lime: #c4f46e; --volt: #c0f63c; --forest: #4a7a56; --lilac: #f4dcf8; --plum: #9c78a8; --salmon: #ee9070; --sky: #3fa0e8; --sun: #f5e14a;
   --ease-out: cubic-bezier(0.19, 1, 0.22, 1);
-  --ease-snap: cubic-bezier(0.7, 0, 0.2, 1);
-  --sans: "Geist", ui-sans-serif, system-ui, sans-serif;
-  --mono: "Geist Mono", ui-monospace, monospace;
-  --gutter: clamp(16px, 4vw, 56px);
+  --display: "Bricolage Grotesque", "Arial Narrow", ui-sans-serif, system-ui, sans-serif;
+  --mono: "Martian Mono", ui-monospace, Menlo, monospace;
+  --pixel: "Doto", "Martian Mono", ui-monospace, monospace;
+  --side: max(clamp(16px, 4vw, 56px), env(safe-area-inset-left, 0px));
 }
-* { box-sizing: border-box; margin: 0; }
-html { background: var(--ink); color: var(--paper); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
-body { overflow-x: hidden; }
+* { box-sizing: border-box; }
+html { background: var(--ink); }
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+body { margin: 0; background: var(--ink); color: var(--paper); font: 400 17px/1.55 var(--display); font-variation-settings: "opsz" 14; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
 ::selection { background: var(--volt); color: var(--ink); }
 a { color: inherit; }
+:focus-visible { outline: 2px solid var(--volt); outline-offset: 3px; }
 canvas { display: block; image-rendering: pixelated; }
-
-/* ---------- shared pieces ---------- */
-.chip { font: 500 12px/1.35 var(--mono); background: var(--paper); color: var(--ink); padding: 1px 6px 2px; white-space: pre; display: inline-block; }
-.chip.dim { background: var(--chip); color: var(--ink); }
-.chip.ghost { background: transparent; color: var(--paper); outline: 1px solid rgb(240 240 240 / 0.35); }
-.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: 0.04em; text-transform: uppercase; color: rgb(240 240 240 / 0.55); }
-.echo { position: relative; font: 600 clamp(64px, 11vw, 168px)/0.8 var(--sans); letter-spacing: -0.06em; font-variant-numeric: tabular-nums; color: var(--paper); }
-.echo span { position: absolute; inset: 0; color: var(--paper); -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; }
-.echo b { position: relative; font-weight: inherit; -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; }
+h1, h2, h3, p { margin: 0; }
+h1, h2, h3 { text-wrap: balance; }
+.pad { padding-inline: var(--side); }
+.disp { font-family: var(--display); font-stretch: 76%; font-weight: 750; letter-spacing: -0.035em; font-variation-settings: "opsz" 96; }
+.eyebrow { font: 500 12px/1.2 var(--mono); font-stretch: 87.5%; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); }
+.chip { font: 500 12.5px/1.4 var(--mono); font-stretch: 87.5%; background: var(--paper); color: var(--ink); padding: 3px 8px 4px; white-space: nowrap; display: inline-block; }
+.chip.dim { background: var(--chip); }
+.chip.ghost { background: transparent; color: var(--paper); box-shadow: inset 0 0 0 1px var(--line); }
+.btn { display: inline-flex; align-items: center; gap: 10px; height: 48px; padding: 0 20px; font: 600 14px/1 var(--mono); font-stretch: 87.5%; text-decoration: none; border: 0; cursor: pointer; transition: transform 300ms var(--ease-out), background-color 160ms steps(2), box-shadow 160ms steps(2); }
+.btn.solid { background: var(--volt); color: var(--ink); }
+.btn.solid:hover { background: var(--lime); transform: translateY(-2px); }
+.btn.line { color: var(--paper); background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
+.btn.line:hover { box-shadow: inset 0 0 0 1px var(--paper); transform: translateY(-2px); }
+.btn i { font-style: normal; transition: transform 300ms var(--ease-out); }
+.btn:hover i { transform: translateX(4px); }
+.echo { position: relative; display: inline-block; font: 900 clamp(64px, 9vw, 140px)/0.78 var(--pixel); color: var(--paper); font-variant-numeric: tabular-nums; }
+.echo span { position: absolute; left: 0; top: 0; color: transparent; -webkit-text-stroke: 1.5px var(--line); }
+.echo b { position: relative; font-weight: inherit; }
 .pin { position: relative; }
 .pin > .stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
-.grain { position: fixed; inset: 0; pointer-events: none; z-index: 50; opacity: 0.07; mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+[data-wipe] { clip-path: inset(0 100% 0 0); transition: clip-path 900ms steps(10, end); }
+[data-wipe].in { clip-path: inset(0 0 0 0); }
+[data-rise] { opacity: 0; transform: translateY(24px); transition: opacity 700ms var(--ease-out), transform 1000ms var(--ease-out); transition-delay: calc(var(--i, 0) * 80ms); }
+[data-rise].in { opacity: 1; transform: none; }
 
-/* ---------- nav ---------- */
-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between; padding: 18px var(--gutter); mix-blend-mode: difference; }
-.mark { display: flex; align-items: center; gap: 10px; font: 600 18px/1 var(--sans); letter-spacing: -0.03em; text-decoration: none; color: #fff; }
+/* nav */
+nav.top { position: fixed; z-index: 60; top: env(safe-area-inset-top, 0px); left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding-block: 14px; }
+nav.top::before { content: ""; position: absolute; inset: 0; background: rgb(20 17 21 / 0.72); backdrop-filter: blur(14px); opacity: 0; transition: opacity 300ms steps(3); }
+nav.top.scrolled::before { opacity: 1; }
+.mark { position: relative; display: flex; align-items: center; gap: 10px; font: 750 22px/1 var(--display); font-stretch: 76%; letter-spacing: -0.03em; text-decoration: none; }
 .mark i { display: grid; grid-template-columns: 8px 8px; gap: 2px; }
-.mark i u { width: 8px; height: 8px; background: #fff; }
-.mark i u:nth-child(1), .mark i u:nth-child(4) { border-radius: 50%; }
-nav .links { display: flex; gap: 22px; font: 500 13px/1 var(--mono); }
-nav .links a { text-decoration: none; color: #fff; opacity: 0.8; }
-nav .links a:hover { opacity: 1; }
-@media (max-width: 640px) { nav .links a:not(:last-child) { display: none; } }
+.mark i u { width: 8px; height: 8px; background: var(--volt); transition: transform 400ms var(--ease-out); }
+.mark i u:nth-child(1) { border-radius: 50%; background: var(--salmon); } .mark i u:nth-child(3) { background: var(--sky); } .mark i u:nth-child(4) { border-radius: 50%; background: var(--plum); }
+.mark:hover i u:nth-child(1) { transform: translate(-2px, -2px); } .mark:hover i u:nth-child(4) { transform: translate(2px, 2px); }
+nav.top .links { position: relative; display: flex; gap: 6px; }
+nav.top .links a { font: 500 13px/1 var(--mono); font-stretch: 87.5%; text-decoration: none; padding: 10px 12px; color: var(--mute); transition: color 160ms steps(2), background-color 160ms steps(2); }
+nav.top .links a:hover { color: var(--ink); background: var(--paper); }
+@media (max-width: 720px) { nav.top .links a:not(:last-child) { display: none; } }
 
-/* ---------- 1. hero: a site resolving out of pixels ---------- */
-#hero { height: 260vh; }
-#hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-.hero-copy { position: absolute; left: var(--gutter); bottom: clamp(28px, 7vh, 72px); max-width: min(1240px, 80vw); z-index: 2; }
-.hero-copy h1 { font: 600 clamp(42px, 7vw, 116px)/0.9 var(--sans); letter-spacing: -0.055em; text-shadow: 0 0 24px var(--ink), 0 0 2px var(--ink); }
-.hero-copy h1 .line { display: block; overflow: hidden; }
-.hero-copy h1 .line > span { display: inline-block; clip-path: inset(0 100% 0 0); animation: wipe 900ms steps(9, end) forwards; }
-.hero-copy h1 .line:nth-child(2) > span { animation-delay: 380ms; color: var(--volt); }
-@keyframes wipe { to { clip-path: inset(0 0 0 0); } }
-.hero-copy p { margin-top: 22px; max-width: 520px; font: 400 clamp(15px, 1.25vw, 18px)/1.5 var(--sans); color: rgb(240 240 240 / 0.72); opacity: 0; animation: rise 1100ms var(--ease-out) 900ms forwards; }
-@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-.hero-count { position: absolute; right: var(--gutter); bottom: clamp(28px, 7vh, 72px); z-index: 2; text-align: right; }
-.hero-count .eyebrow { display: block; margin-bottom: 14px; }
-.hero-chips { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
-.hero-chips .chip { position: absolute; opacity: 0; transform: translateY(4px); transition: opacity 120ms steps(2), transform 500ms var(--ease-out); }
-.hero-chips .chip.on { opacity: 1; transform: none; }
-.scroll-cue { position: absolute; left: 50%; top: 22px; transform: translateX(-50%); z-index: 2; }
+/* 1 hero */
+#hero { height: 330vh; }
+.hero-grid { position: absolute; inset: 0; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(24px, 4vw, 64px); align-items: center; padding-top: 72px; padding-bottom: 32px; }
+.hero-copy { display: grid; gap: 26px; align-content: center; }
+.hero-copy h1 { font-size: clamp(52px, 7.6vw, 132px); line-height: 0.84; }
+.hero-copy h1 span { display: block; }
+.hero-copy h1 .v { color: var(--volt); }
+.hero-copy p { font-size: clamp(17px, 1.35vw, 20px); color: var(--mute); max-width: 34ch; }
+.hero-copy .ctas { display: flex; gap: 10px; flex-wrap: wrap; }
+.hero-copy .h-line > span { display: inline-block; animation: wipe 900ms steps(9, end) both; }
+.hero-copy .h-line.v > span { animation-delay: 380ms; }
+@keyframes wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+.hero-copy p, .hero-copy .ctas { animation: rise 1100ms var(--ease-out) both 800ms; }
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } }
+.browser { position: relative; width: 100%; background: var(--ink-2); box-shadow: 0 0 0 1px var(--line), 0 40px 120px -40px rgb(0 0 0 / 0.8); }
+.browser .bar { height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 12px; background: #2e292f; }
+.browser .dots { display: flex; gap: 6px; } .browser .dots i { width: 9px; height: 9px; background: var(--line); }
+.browser .url { flex: 1; min-width: 0; height: 22px; display: flex; align-items: center; gap: 8px; padding: 0 10px; background: var(--ink); font: 500 12px/1 var(--mono); font-stretch: 87.5%; color: var(--mute); overflow: hidden; white-space: nowrap; }
+.browser .url b { color: var(--paper); font-weight: 500; }
+.browser .url em { font-style: normal; color: var(--volt); }
+.browser .view { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: #000; }
+.browser .view img, .browser .view canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.annot { position: absolute; inset: 0; pointer-events: none; transition: opacity 300ms steps(3); }
+.annot .box { position: absolute; box-shadow: inset 0 0 0 1.5px var(--volt); transition: left 900ms var(--ease-out), top 900ms var(--ease-out), width 900ms var(--ease-out), height 900ms var(--ease-out); }
+.annot .box span { position: absolute; left: -1.5px; bottom: 100%; margin-bottom: 4px; font: 500 11.5px/1.3 var(--mono); font-stretch: 87.5%; background: var(--volt); color: var(--ink); padding: 2px 6px 3px; white-space: nowrap; }
+.annot .box.k-body span { bottom: auto; top: 100%; margin: 4px 0 0; }
+.annot .box.k-nav { box-shadow: inset 0 -1.5px 0 var(--volt); } .annot .box.k-nav span { left: auto; right: 8px; bottom: auto; top: 100%; margin: 4px 0 0; }
+.hero-state { position: absolute; left: 12px; bottom: 12px; }
+.hero-score { position: absolute; right: 14px; bottom: 12px; text-align: right; opacity: 0; transition: opacity 240ms steps(3); display: grid; justify-items: end; gap: 6px; }
+.hero-score.on { opacity: 1; }
+.hero-score b { font: 900 64px/0.8 var(--pixel); color: var(--volt); background: var(--ink); padding: 8px 10px 4px; }
+.hero-score span { font: 500 11.5px/1.3 var(--mono); font-stretch: 87.5%; background: var(--ink); padding: 3px 6px; }
+@media (max-width: 900px) { #hero { height: 260vh; } .hero-grid { grid-template-columns: minmax(0, 1fr); align-content: start; gap: 28px; padding-top: 84px; } .hero-copy h1 { font-size: clamp(46px, 12.5vw, 84px); } .annot .box span { font-size: 9px; } .hero-score b { font-size: 40px; } }
 
-/* ---------- 2. tunnel: the pipeline as nested windows ---------- */
-#tunnel { height: 420vh; background: var(--ink); }
-.tunnel-vp { position: absolute; inset: 0; perspective: 900px; }
-.win { position: absolute; left: 50%; top: 50%; width: min(78vw, 1040px); aspect-ratio: 16 / 10; margin-left: calc(min(78vw, 1040px) / -2); margin-top: calc(min(78vw, 1040px) * -0.3125);
-  background: #4a454c; border: 1px solid #6c6670; transform-origin: 50% 50%; will-change: transform, opacity; }
-.win .bar { height: 26px; display: flex; align-items: center; gap: 10px; padding: 0 8px; background: #6c6670; color: #e9e6ea; font: 500 12px/1 var(--mono); }
-.win .bar::before { content: ""; width: 10px; height: 10px; border: 1px solid #e9e6ea; }
-.win .bar em { flex: 1; height: 7px; background: repeating-linear-gradient(to bottom, #e9e6ea 0 1px, transparent 1px 3px); }
-.win .bar strong { font-weight: 500; }
-.win .bar em:last-child { flex: 1; }
-.win .body { position: absolute; inset: 26px 0 0; background: var(--ink-2); overflow: hidden; }
-.win .body .chip { position: absolute; }
-.tunnel-copy { position: absolute; left: var(--gutter); top: 50%; transform: translateY(-50%); z-index: 5; width: min(360px, 40vw); }
-.tunnel-copy .step { position: absolute; top: 0; left: 0; background: rgb(20 17 21 / 0.9); padding: 16px 18px 18px; outline: 1px solid #2a252b; opacity: 0; transform: translateY(10px); transition: opacity 160ms steps(3), transform 700ms var(--ease-out); }
-.tunnel-copy .step.on { opacity: 1; transform: none; }
-.tunnel-copy h3 { font: 600 clamp(28px, 3.4vw, 48px)/0.95 var(--sans); letter-spacing: -0.045em; margin: 14px 0 12px; }
-.tunnel-copy p { font: 400 15px/1.55 var(--sans); color: rgb(240 240 240 / 0.7); }
-.tunnel-num { position: absolute; right: var(--gutter); bottom: 6vh; z-index: 5; }
-.tunnel-title { position: absolute; left: var(--gutter); top: 13vh; z-index: 5; }
-@media (max-width: 760px) {
-  .hero-count { display: none; }
-  .hero-copy { max-width: none; right: var(--gutter); }
-  .tunnel-num { bottom: auto; top: 11vh; }
-  .tunnel-num .echo { font-size: 64px; }
-  .tunnel-copy { top: auto; bottom: 22vh; transform: none; width: calc(100vw - 2 * var(--gutter)); }
-  .tunnel-copy .step { background: rgb(20 17 21 / 0.86); padding: 14px; }
-}
+/* 2 tunnel */
+#tunnel { height: 420vh; }
+.tunnel-vp { position: absolute; inset: 0; z-index: 1; }
+.win { --w: min(72vw, 980px); position: absolute; left: 50%; top: 54%; width: var(--w); height: calc(var(--w) * 0.58); margin: calc(var(--w) * -0.29) 0 0 calc(var(--w) / -2); background: #3d383f; box-shadow: 0 0 0 1px #6c6670; will-change: transform, opacity; }
+.win .wbar { height: 30px; display: flex; align-items: center; gap: 10px; padding: 0 10px; background: #6c6670; color: #ece9ee; font: 500 12.5px/1 var(--mono); font-stretch: 87.5%; }
+.win .wbar::before { content: ""; width: 10px; height: 10px; box-shadow: inset 0 0 0 1px #ece9ee; flex: none; }
+.win .wbar em { flex: 1; height: 7px; background: repeating-linear-gradient(to bottom, #ece9ee 0 1px, transparent 1px 3px); }
+.win .body { position: absolute; inset: 30px 0 0; background: var(--ink-2); display: grid; grid-template-columns: 1.2fr 1fr; overflow: hidden; }
+.win pre { margin: 0; padding: 26px 24px; font: 400 clamp(10px, 1.1vw, 15px)/1.7 var(--mono); font-stretch: 87.5%; color: #dcd7df; white-space: pre; overflow: hidden; }
+.win pre i { font-style: normal; color: var(--volt); } .win pre u { text-decoration: none; color: var(--dim); }
+.win canvas { width: 100%; height: 100%; }
+.tunnel-head { position: absolute; z-index: 5; left: var(--side); top: 12vh; display: grid; gap: 12px; transition: opacity 240ms steps(3); background: var(--ink); padding: 0 16px 14px 0; }
+.tunnel-head h2 { font-size: clamp(40px, 5vw, 80px); line-height: 0.88; max-width: 10ch; }
+.tunnel-head.gone { opacity: 0; }
+.steps { position: absolute; z-index: 5; left: var(--side); bottom: 7vh; width: min(420px, calc(100vw - 2 * var(--side))); }
+.step { position: absolute; left: 0; bottom: 0; width: 100%; display: grid; gap: 10px; padding: 20px 22px 22px; background: var(--ink); box-shadow: 0 0 0 1px var(--line); opacity: 0; transform: translateY(12px); transition: opacity 160ms steps(3), transform 800ms var(--ease-out); }
+.step.on { opacity: 1; transform: none; }
+.step h3 { font-size: clamp(30px, 3vw, 44px); line-height: 0.95; }
+.step p { color: var(--mute); font-size: 16px; }
+.tunnel-num { position: absolute; z-index: 5; right: var(--side); bottom: 6vh; }
+@media (max-width: 760px) { .win .body { grid-template-columns: 1fr; } .win canvas { display: none; } .tunnel-num { display: none; } }
 
-/* ---------- 3. DNA deck ---------- */
-#dna { height: 360vh; background: var(--ink); }
-.deck { position: absolute; inset: 0; perspective: 1400px; perspective-origin: 70% 50%; }
-.card { position: absolute; left: 50%; top: 50%; width: min(420px, 74vw); height: min(560px, 64vh); margin: calc(min(560px, 64vh) / -2) 0 0 calc(min(420px, 74vw) / -2);
-  padding: 22px; color: var(--ink); will-change: transform; transform-style: preserve-3d; display: flex; flex-direction: column; gap: 14px; overflow: hidden; }
-.card h4 { font: 600 30px/0.95 var(--sans); letter-spacing: -0.04em; }
-.card .src { font: 500 11px/1.3 var(--mono); opacity: 0.7; }
-.card .fill { flex: 1; position: relative; }
-.card.c-color { background: var(--paper); }
-.card.c-type { background: var(--lilac); }
-.card.c-shape { background: var(--sky); }
-.card.c-motion { background: var(--lime); }
-.card.c-scroll { background: var(--salmon); }
-.card.c-skill { background: var(--forest); color: var(--paper); }
-.sw-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-.sw-grid div { aspect-ratio: 1; display: flex; align-items: flex-end; padding: 6px; font: 500 10px/1.2 var(--mono); border: 1px solid rgb(20 17 21 / 0.15); }
-.type-spec { font-family: "Geist", sans-serif; }
-.type-spec .big { font-size: 64px; font-weight: 510; letter-spacing: -0.022em; line-height: 1; }
-.type-spec dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin-top: 14px; font: 500 12px/1.4 var(--mono); }
-.radius-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
-.radius-row div { width: 64px; height: 64px; background: var(--ink); color: var(--paper); font: 500 10px/1 var(--mono); display: flex; align-items: flex-end; padding: 6px; }
-.card svg { width: 100%; height: 100%; overflow: visible; }
-.card pre { font: 500 11.5px/1.45 var(--mono); white-space: pre-wrap; }
-.dna-copy { position: absolute; left: var(--gutter); top: 14vh; z-index: 5; max-width: 440px; }
-.dna-copy h2 { font: 600 clamp(36px, 5.2vw, 80px)/0.92 var(--sans); letter-spacing: -0.05em; margin-top: 14px; }
-.dna-copy p { margin-top: 16px; font: 400 15px/1.55 var(--sans); color: rgb(240 240 240 / 0.7); max-width: 380px; }
+/* 3 catalogue */
+#catalog { position: relative; padding-block: 16vh 12vh; }
+.sec-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr); gap: 32px; align-items: end; margin-bottom: 56px; }
+.sec-head h2 { font-size: clamp(48px, 7vw, 120px); line-height: 0.86; }
+.sec-head p { color: var(--mute); max-width: 44ch; font-size: 18px; }
+@media (max-width: 860px) { .sec-head { grid-template-columns: minmax(0, 1fr); } }
+.pairs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+@media (max-width: 960px) { .pairs { grid-template-columns: minmax(0, 1fr); } }
+.pair { background: var(--ink-2); box-shadow: 0 0 0 1px var(--line); display: flex; flex-direction: column; min-width: 0; transition: opacity 700ms var(--ease-out), transform 700ms var(--ease-out), box-shadow 200ms steps(2); }
+.pair:hover { box-shadow: 0 0 0 1px var(--mute); }
+.pair .split { position: relative; aspect-ratio: 16 / 10; overflow: hidden; cursor: ew-resize; background: #000; touch-action: pan-y; }
+.pair .split img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; user-select: none; -webkit-user-drag: none; }
+.pair .split .rec { clip-path: inset(0 0 0 var(--cut, 50%)); }
+.pair .split .handle { position: absolute; top: 0; bottom: 0; left: var(--cut, 50%); width: 2px; margin-left: -1px; background: var(--volt); }
+.pair .split .handle::after { content: "⟷"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 34px; height: 34px; display: grid; place-items: center; background: var(--volt); color: var(--ink); font: 600 14px/1 var(--mono); }
+.pair .split .tag { position: absolute; top: 10px; font: 500 12px/1 var(--mono); font-stretch: 87.5%; padding: 5px 8px; background: var(--ink); color: var(--paper); }
+.pair .split .tag.l { left: 10px; } .pair .split .tag.r { right: 10px; background: var(--volt); color: var(--ink); }
+.pair .meta { display: grid; gap: 18px; padding: 20px 20px 22px; }
+.pair .title { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; }
+.pair h3 { font: 750 30px/0.95 var(--display); font-stretch: 76%; letter-spacing: -0.03em; }
+.pair h3 small { display: block; margin-top: 8px; font: 500 12.5px/1.4 var(--mono); font-stretch: 87.5%; letter-spacing: 0; color: var(--dim); }
+.pair .score { text-align: right; flex: none; }
+.pair .score b { display: block; font: 900 52px/0.8 var(--pixel); color: var(--volt); }
+.pair .score span { font: 500 11px/1.4 var(--mono); font-stretch: 87.5%; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; }
+.pair .dims { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.pair .dims div { display: grid; gap: 5px; font: 500 10.5px/1.2 var(--mono); font-stretch: 75%; color: var(--dim); }
+.pair .dims i { height: 28px; background: var(--ink-3); position: relative; }
+.pair .dims i::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: var(--v); background: var(--c, var(--volt)); }
+.pair .row { display: flex; gap: 10px; flex-wrap: wrap; }
+.pair.pending .split { cursor: default; display: grid; place-items: center; background: var(--ink-3); }
+.pair.pending .score b { color: var(--dim); }
 
-/* ---------- 4. catalogue burst ---------- */
-#burst { height: 260vh; }
+/* compare viewer */
+dialog.cmp { width: min(1500px, 100vw); max-width: 100vw; height: min(940px, 100svh); max-height: 100svh; margin: auto; padding: 0; border: 0; background: var(--ink); color: var(--paper); box-shadow: 0 0 0 1px var(--line); overflow: hidden; }
+dialog.cmp::backdrop { background: rgb(10 8 11 / 0.82); backdrop-filter: blur(6px); }
+.cmp-in { height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+.cmp-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 18px; box-shadow: 0 1px 0 var(--line); flex-wrap: wrap; }
+.cmp-top h3 { font: 750 26px/1 var(--display); font-stretch: 76%; letter-spacing: -0.03em; }
+.cmp-top .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.cmp-top .btn { height: 36px; padding: 0 14px; }
+.tabs { display: flex; box-shadow: inset 0 0 0 1px var(--line); }
+.tabs button { font: 500 12.5px/1 var(--mono); font-stretch: 87.5%; padding: 11px 14px; background: none; color: var(--mute); border: 0; cursor: pointer; }
+.tabs button[aria-pressed="true"] { background: var(--paper); color: var(--ink); }
+.cmp-body { display: grid; grid-template-columns: minmax(0, 1fr) 370px; min-height: 0; }
+.stage2 { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: var(--line); min-height: 0; }
+.pane { position: relative; background: #000; display: grid; grid-template-rows: auto minmax(0, 1fr); min-width: 0; min-height: 0; }
+.pane .ph { display: flex; justify-content: space-between; gap: 10px; padding: 9px 10px; background: var(--ink-2); font: 500 12px/1.2 var(--mono); font-stretch: 87.5%; color: var(--mute); }
+.pane .ph b { color: var(--paper); font-weight: 500; }
+.pane video, .pane iframe { width: 100%; height: 100%; min-height: 0; object-fit: contain; border: 0; background: #000; display: block; }
+.pane iframe { background: #fff; }
+.controls { display: flex; align-items: center; gap: 14px; padding: 12px 18px; box-shadow: 0 -1px 0 var(--line); }
+.controls > button { font: 600 13px/1 var(--mono); font-stretch: 87.5%; height: 36px; padding: 0 16px; background: var(--volt); color: var(--ink); border: 0; cursor: pointer; }
+.timeline { position: relative; flex: 1; height: 38px; }
+.timeline input { position: absolute; inset: 0; width: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.timeline .track { position: absolute; left: 0; right: 0; top: 24px; height: 4px; background: var(--ink-3); }
+.timeline .fillb { position: absolute; left: 0; top: 24px; height: 4px; background: var(--volt); }
+.timeline .phm { position: absolute; top: 0; font: 500 10.5px/1 var(--mono); font-stretch: 75%; color: var(--mute); padding-left: 4px; border-left: 1px solid var(--dim); height: 22px; white-space: nowrap; }
+.controls .t { font: 500 12.5px/1 var(--mono); font-stretch: 87.5%; color: var(--mute); width: 48px; text-align: right; font-variant-numeric: tabular-nums; }
+.side { overflow-y: auto; padding: 20px; display: grid; gap: 24px; align-content: start; box-shadow: -1px 0 0 var(--line); }
+.side h4 { margin: 0 0 10px; font: 500 12px/1.2 var(--mono); font-stretch: 87.5%; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); }
+.side .big { display: flex; align-items: baseline; gap: 12px; }
+.side .big b { font: 900 72px/0.8 var(--pixel); color: var(--volt); }
+.side .big span { color: var(--mute); font-size: 15px; }
+.bars { display: grid; gap: 8px; }
+.bars div { display: grid; grid-template-columns: 70px minmax(0, 1fr) 34px; gap: 10px; align-items: center; font: 500 12.5px/1 var(--mono); font-stretch: 87.5%; font-variant-numeric: tabular-nums; }
+.bars i { height: 8px; background: var(--ink-3); position: relative; } .bars i::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--v); background: var(--c, var(--volt)); }
+.diff { display: grid; grid-template-columns: 76px minmax(0, 1fr) minmax(0, 1fr); gap: 9px 12px; font: 400 12.5px/1.45 var(--mono); font-stretch: 87.5%; }
+.diff .h { color: var(--dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+.diff .k { color: var(--dim); } .diff div { min-width: 0; overflow-wrap: anywhere; }
+.diff .sw { display: flex; height: 18px; box-shadow: 0 0 0 1px var(--line); } .diff .sw i { flex: 1; }
+.finds { display: grid; gap: 12px; font-size: 15px; color: var(--mute); }
+.finds div b { display: block; font: 500 11px/1.4 var(--mono); font-stretch: 87.5%; color: var(--salmon); text-transform: uppercase; letter-spacing: 0.06em; }
+@media (max-width: 980px) { .cmp-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) 42%; } .side { box-shadow: 0 -1px 0 var(--line); } }
+@media (max-width: 640px) { .stage2 { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; } }
+
+/* 4 burst */
+#burst { height: 200vh; }
 #burst canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-.burst-copy { position: absolute; inset: auto var(--gutter) 9vh; z-index: 2; display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; flex-wrap: wrap; }
-.burst-copy h2 { font: 600 clamp(40px, 6.4vw, 104px)/0.9 var(--sans); letter-spacing: -0.055em; max-width: 900px; text-shadow: 0 0 40px var(--ink); }
-.burst-copy .entries { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
-.burst-chips { position: absolute; left: var(--gutter); top: 16vh; z-index: 2; display: flex; flex-direction: column; gap: 4px; }
+.burst-line { position: absolute; z-index: 2; left: var(--side); bottom: 8vh; background: var(--ink); padding: 18px 22px 22px; box-shadow: 0 0 0 1px var(--line); max-width: min(760px, calc(100vw - 2 * var(--side))); display: grid; gap: 10px; }
+.burst-line h2 { font-size: clamp(40px, 5.6vw, 92px); line-height: 0.86; }
 
-/* ---------- 5. check: lilac, the chain ---------- */
-#check { height: 320vh; background: var(--lilac); color: var(--ink); }
+/* 5 DNA deck */
+#dna { height: 320vh; }
+.dna-copy { position: absolute; z-index: 5; left: var(--side); top: 13vh; max-width: 400px; display: grid; gap: 14px; }
+.dna-copy h2 { font-size: clamp(48px, 6vw, 100px); line-height: 0.86; }
+.dna-copy p { color: var(--mute); }
+.deck { position: absolute; inset: 0; perspective: 1500px; perspective-origin: 60% 50%; }
+.card { --cw: min(400px, 78vw); --ch: min(540px, 64vh, 100svh - 300px); position: absolute; left: 50%; top: 50%; width: var(--cw); height: var(--ch); margin: calc(var(--ch) / -2) 0 0 calc(var(--cw) / -2); padding: 24px; color: var(--ink); will-change: transform; display: flex; flex-direction: column; gap: 16px; overflow: hidden; }
+.card h4 { margin: 0; font: 750 36px/0.9 var(--display); font-stretch: 76%; letter-spacing: -0.03em; }
+.card .src { font: 500 12px/1.4 var(--mono); font-stretch: 87.5%; opacity: 0.75; margin-top: 6px; }
+.card .fill { flex: 1; min-height: 0; } .card svg { width: 100%; height: 100%; overflow: visible; }
+.card pre { margin: 0; font: 500 12px/1.55 var(--mono); font-stretch: 87.5%; white-space: pre-wrap; }
+.c-color { background: var(--paper); } .c-type { background: var(--lilac); } .c-motion { background: var(--lime); } .c-scroll { background: var(--salmon); } .c-skill { background: var(--forest); color: var(--paper); }
+.sw-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+.sw-grid div { aspect-ratio: 1; display: flex; align-items: flex-end; padding: 5px; font: 500 10px/1.15 var(--mono); font-stretch: 75%; box-shadow: inset 0 0 0 1px rgb(20 17 21 / 0.15); }
+.type-big { font: 510 76px/1 "Inter", ui-sans-serif, system-ui, sans-serif; letter-spacing: -0.022em; }
+.spec { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font: 500 12px/1.4 var(--mono); font-stretch: 87.5%; } .spec dt { opacity: 0.6; } .spec dd { margin: 0; }
+@media (max-width: 900px) { .dna-copy p { display: none; } }
+
+/* 6 check */
+#check { height: 280vh; background: var(--lilac); color: var(--ink); }
 #check .stage { background: var(--lilac); }
 #chain { position: absolute; inset: 0; width: 100%; height: 100%; }
-.check-copy { position: absolute; left: var(--gutter); top: 13vh; z-index: 3; max-width: 560px; }
-.check-copy h2 { font: 600 clamp(38px, 5.6vw, 92px)/0.92 var(--sans); letter-spacing: -0.05em; margin-top: 14px; }
+.check-copy { position: absolute; z-index: 3; left: var(--side); top: 13vh; max-width: 520px; display: grid; gap: 16px; }
+.check-copy h2 { font-size: clamp(48px, 6.4vw, 108px); line-height: 0.86; }
 .check-copy .eyebrow { color: rgb(20 17 21 / 0.6); }
-.check-copy p { margin-top: 16px; font: 400 15px/1.55 var(--sans); color: rgb(20 17 21 / 0.72); max-width: 440px; }
-.report { position: absolute; right: var(--gutter); bottom: 9vh; z-index: 3; width: min(440px, calc(100vw - 2 * var(--gutter))); background: var(--ink); color: var(--paper); padding: 18px 18px 14px; font: 500 12.5px/1.5 var(--mono); }
-.report .row { display: grid; grid-template-columns: 70px 1fr 34px; gap: 10px; align-items: center; height: 24px; }
-.report .bar { height: 10px; background: #2a252b; position: relative; overflow: hidden; }
-.report .bar i { position: absolute; inset: 0; transform-origin: 0 50%; transform: scaleX(0); background: var(--volt); }
-.report .bar i.warn { background: var(--salmon); }
-.report .fix { margin-top: 10px; padding-top: 10px; border-top: 1px solid #2a252b; color: rgb(240 240 240 / 0.7); }
-.report .fix b { color: var(--volt); font-weight: 500; }
-.report .head { display: flex; justify-content: space-between; margin-bottom: 10px; color: rgb(240 240 240 / 0.6); }
-@media (max-width: 760px) { .report { bottom: 4vh; } .check-copy { top: 10vh; } }
+.check-copy p { color: rgb(20 17 21 / 0.78); max-width: 40ch; font-size: 18px; background: var(--lilac); }
+.report { position: absolute; z-index: 3; right: var(--side); bottom: 7vh; width: min(460px, calc(100vw - 2 * var(--side))); background: var(--ink); color: var(--paper); padding: 20px; display: grid; gap: 14px; }
+.report .head { display: flex; justify-content: space-between; gap: 12px; font: 500 12px/1.3 var(--mono); font-stretch: 87.5%; color: var(--dim); }
+.report .total { display: flex; align-items: baseline; gap: 12px; } .report .total b { font: 900 64px/0.8 var(--pixel); color: var(--volt); } .report .total span { color: var(--mute); }
+.report .fix { font-size: 15px; color: var(--mute); padding-top: 12px; box-shadow: 0 -1px 0 var(--line); }
+.report .fix b { display: block; font: 500 11px/1.4 var(--mono); font-stretch: 87.5%; color: var(--salmon); text-transform: uppercase; letter-spacing: 0.06em; }
+.report .cal { font: 500 11.5px/1.4 var(--mono); font-stretch: 87.5%; color: var(--dim); }
+@media (max-width: 760px) { .check-copy p { display: none; } .report { bottom: 3vh; } }
 
-/* ---------- 6. kaleidoscope: same language, new page ---------- */
-#kaleido { height: 240vh; background: var(--lime); color: var(--ink); }
+/* 7 kaleidoscope + install */
+#kaleido { height: 180vh; background: var(--lime); }
+#kaleido .stage { background: var(--lime); }
 #kaleido canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-.k-copy { position: absolute; left: 50%; bottom: 8vh; transform: translateX(-50%); z-index: 2; text-align: center; width: min(820px, calc(100vw - 2 * var(--gutter))); }
-.k-copy h2 { font: 600 clamp(38px, 6vw, 100px)/0.9 var(--sans); letter-spacing: -0.055em; background: var(--lime); display: inline; box-decoration-break: clone; -webkit-box-decoration-break: clone; padding: 0 10px; }
-.k-copy p { margin: 18px auto 0; max-width: 520px; font: 500 15px/1.5 var(--sans); background: var(--ink); color: var(--paper); padding: 12px 16px; }
-
-/* ---------- 7. install ---------- */
-#install { min-height: 100vh; display: grid; place-items: center; padding: 18vh var(--gutter) 10vh; position: relative; }
-.install-inner { width: min(980px, 100%); }
-.install-inner h2 { font: 600 clamp(44px, 7.6vw, 128px)/0.88 var(--sans); letter-spacing: -0.06em; }
+.k-copy { position: absolute; z-index: 2; left: var(--side); right: var(--side); bottom: 7vh; display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.k-copy h2 { font-size: clamp(44px, 6.6vw, 112px); line-height: 0.86; background: var(--ink); color: var(--lime); padding: 16px 20px 20px; max-width: 12ch; }
+.k-copy p { max-width: 36ch; font-size: 18px; background: var(--paper); color: var(--ink); padding: 16px 18px; }
+#install { padding-block: 18vh 8vh; }
+.install-inner { max-width: 1120px; display: grid; gap: 30px; }
+.install-inner h2 { font-size: clamp(56px, 9vw, 160px); line-height: 0.84; }
 .install-inner h2 em { font-style: normal; color: var(--volt); }
-.cmd { margin-top: 40px; display: flex; align-items: stretch; flex-wrap: wrap; gap: 0; }
-.cmd code { flex: 1 1 520px; font: 500 clamp(12px, 1.25vw, 15px)/1.5 var(--mono); background: var(--paper); color: var(--ink); padding: 16px 18px; overflow-x: auto; white-space: nowrap; }
-.cmd button { font: 500 13px/1 var(--mono); background: var(--volt); color: var(--ink); border: 0; padding: 0 22px; cursor: pointer; min-height: 52px; transition: background 140ms steps(2); }
-.cmd button:hover { background: var(--lime); }
-.tools { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 6px; }
-#logo { width: min(320px, 60vw); height: min(320px, 60vw); margin: 10vh auto 0; }
-footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 28px var(--gutter); font: 500 12px/1.4 var(--mono); color: rgb(240 240 240 / 0.5); border-top: 1px solid #2a252b; }
+.cmd { display: flex; flex-wrap: wrap; }
+.cmd code { flex: 1 1 480px; min-width: 0; font: 500 clamp(12px, 1.2vw, 15px)/1.5 var(--mono); font-stretch: 87.5%; background: var(--paper); color: var(--ink); padding: 17px 18px; overflow-x: auto; white-space: nowrap; }
+.cmd .btn { height: auto; min-height: 54px; }
+.tools { display: flex; flex-wrap: wrap; gap: 6px; }
+#logo { width: min(260px, 56vw); height: min(260px, 56vw); margin: 10vh auto 0; }
+footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-block: 26px; font: 400 12.5px/1.5 var(--mono); font-stretch: 87.5%; color: var(--dim); box-shadow: 0 -1px 0 var(--line); }
+#trail { position: fixed; inset: 0; z-index: 55; pointer-events: none; width: 100%; height: 100%; }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-copy h1 .line > span, .hero-copy p { animation: none; clip-path: none; opacity: 1; }
-  #hero, #tunnel, #dna, #burst, #check, #kaleido { height: auto; }
-  .pin > .stage { position: relative; }
+  [data-wipe], [data-rise] { clip-path: none; opacity: 1; transform: none; transition: none; }
+  .hero-copy .h-line > span, .hero-copy p, .hero-copy .ctas { animation: none; }
+  #trail { display: none; }
 }
 </style>
 </head>
 <body>
-<div class="grain" aria-hidden="true"></div>
-
-<nav>
-  <a class="mark" href="#top" aria-label="relume"><i><u></u><u></u><u></u><u></u></i>relume</a>
-  <div class="links"><a href="#tunnel">How</a><a href="#dna">DNA</a><a href="#check">Check</a><a href="#install">Install</a></div>
+<canvas id="trail" aria-hidden="true"></canvas>
+<nav class="top pad" id="nav">
+  <a class="mark" href="#hero" aria-label="relume home"><i><u></u><u></u><u></u><u></u></i>relume</a>
+  <div class="links"><a href="#tunnel">Pipeline</a><a href="#catalog">Catalogue</a><a href="#check">Check</a><a href="#install">Install</a></div>
 </nav>
 
-<main id="top">
-  <!-- 1 -->
+<main>
   <section id="hero" class="pin">
     <div class="stage">
-      <canvas id="heroCanvas" aria-hidden="true"></canvas>
-      <div class="hero-chips" id="heroChips" aria-hidden="true"></div>
-      <div class="scroll-cue chip dim">scroll → measure</div>
-      <div class="hero-copy">
-        <h1><span class="line"><span>Every site has a feel.</span></span><span class="line"><span>relume measures it.</span></span></h1>
-        <p>Point it at any URL. It records every colour, type size, spacing step, curve and scroll response, frame by frame, and compiles them into a skill your coding agent builds with.</p>
-      </div>
-      <div class="hero-count" aria-hidden="true">
-        <span class="eyebrow">frames sampled</span>
-        <div class="echo" id="heroEcho"></div>
+      <div class="hero-grid pad">
+        <div class="hero-copy">
+          <h1 class="disp"><span class="h-line"><span>Every site has a feel.</span></span><span class="h-line v"><span>relume measures it.</span></span></h1>
+          <p>Point it at any URL. It measures the colour, type, spacing and every curve of motion, then compiles a skill your agent uses to build a new site that feels the same.</p>
+          <div class="ctas"><a class="btn solid" href="#catalog">See recreations <i>→</i></a><a class="btn line" href="#install">Install the MCP</a></div>
+        </div>
+        <div class="browser">
+          <div class="bar"><div class="dots"><i></i><i></i><i></i></div><div class="url" id="heroUrl"></div></div>
+          <div class="view">
+            <img id="heroA" alt="linear.app home page, as measured by relume" decoding="async">
+            <img id="heroB" alt="Tessera, a new product page built from the linear.app skill" decoding="async">
+            <canvas id="heroMask" aria-hidden="true"></canvas>
+            <div class="annot" id="annot" aria-hidden="true"></div>
+            <div class="hero-state" id="heroState"></div>
+            <div class="hero-score" id="heroScore"><b id="heroScoreN">00</b><span>check_style vs linear.app</span></div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- 2 -->
   <section id="tunnel" class="pin">
     <div class="stage">
-      <div class="tunnel-title"><span class="eyebrow">the pipeline</span></div>
+      <div class="tunnel-head" id="tunnelHead"><span class="eyebrow">the pipeline</span><h2 class="disp">Eight passes over a live site.</h2></div>
       <div class="tunnel-vp" id="tunnelVp"></div>
-      <div class="tunnel-copy" id="tunnelCopy"></div>
+      <div class="steps" id="steps"></div>
       <div class="tunnel-num" aria-hidden="true"><div class="echo" id="tunnelEcho"></div></div>
     </div>
   </section>
 
-  <!-- 3 -->
+  <section id="catalog" class="pad">
+    <div class="sec-head">
+      <div><span class="eyebrow">the catalogue</span><h2 class="disp" data-wipe>Famous sites, recreated.</h2></div>
+      <p data-rise>Each pair is a famous site and a new product site an agent built from relume's skill of it, then checked. Drag across a pair to compare, or open the live comparison: both were recorded by the same scripted visit, so load, scroll and hover line up second by second.</p>
+    </div>
+    <div class="pairs" id="pairs"></div>
+  </section>
+
+  <section id="burst" class="pin">
+    <div class="stage">
+      <canvas id="burstCanvas" aria-hidden="true"></canvas>
+      <div class="burst-line"><span class="eyebrow">every extraction stays</span><h2 class="disp">The catalogue grows each time you use it.</h2></div>
+    </div>
+  </section>
+
   <section id="dna" class="pin">
     <div class="stage">
-      <div class="dna-copy">
-        <span class="eyebrow">design dna · measured from linear.app, 28 oct 2026</span>
-        <h2>Facts, not vibes.</h2>
-        <p>Every value below was read from the live site, not guessed from a screenshot. Colours carry the source's own variable names. Springs stay exact. Fonts come with their licence and an open substitute.</p>
-      </div>
+      <div class="dna-copy"><span class="eyebrow">dna · linear.app</span><h2 class="disp">Facts, not vibes.</h2><p>Read from the live site, never guessed from a screenshot. Colours keep the source's variable names, springs stay exact, and fonts come with their licence.</p></div>
       <div class="deck" id="deck"></div>
     </div>
   </section>
 
-  <!-- 4 -->
-  <section id="burst" class="pin">
-    <div class="stage">
-      <canvas id="burstCanvas" aria-hidden="true"></canvas>
-      <div class="burst-chips" aria-hidden="true">
-        <span class="chip">motion.accelerate();</span>
-        <span class="chip dim">catalogue.push(entry)</span>
-        <span class="chip dim">checks.remember(report)</span>
-      </div>
-      <div class="burst-copy">
-        <h2>The catalogue grows every time you use it.</h2>
-        <div class="entries" id="entries"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 5 -->
   <section id="check" class="pin">
     <div class="stage">
       <canvas id="chain" aria-hidden="true"></canvas>
-      <div class="check-copy">
-        <span class="eyebrow">check_style</span>
-        <h2>Then it checks the agent's work.</h2>
-        <p>Your new page goes through the same pipeline. Its DNA is compared with the source's: palette, type, grid, radii, layout, and every recurring motion down to duration, curve, stagger and entry point. Fixes come back worst-first.</p>
-      </div>
-      <div class="report" id="report">
-        <div class="head"><span>new-pricing.html ⟶ linear.app · illustrative run</span><span id="overall">··</span></div>
-        <div id="rows"></div>
-        <div class="fix" id="fix"></div>
-      </div>
+      <div class="check-copy"><span class="eyebrow">check_style</span><h2 class="disp">Then it checks the agent's work.</h2><p>The new page goes through the same pipeline and its DNA is compared with the source's, down to each motion's duration, curve, stagger and entry point.</p></div>
+      <div class="report" id="report"></div>
     </div>
   </section>
 
-  <!-- 6 -->
   <section id="kaleido" class="pin">
     <div class="stage">
       <canvas id="kCanvas" aria-hidden="true"></canvas>
-      <div class="k-copy">
-        <h2>Same language. A page that never existed.</h2>
-        <p>Copying a site is easy and useless. relume transfers its grammar: the agent builds your product, with your words, and it moves like the reference.</p>
-      </div>
+      <div class="k-copy"><h2 class="disp">Same language. A page that never existed.</h2><p>Copying a site is easy and useless. relume transfers its grammar: your product, your words, moving like the reference.</p></div>
     </div>
   </section>
 
-  <!-- 7 -->
-  <section id="install">
+  <section id="install" class="pad">
     <div class="install-inner">
-      <span class="eyebrow">one line · <a href="/catalog">browse the catalogue</a></span>
-      <h2>Give your agent <em>taste</em> it can measure.</h2>
-      <div class="cmd"><code id="cmd">claude mcp add --transport http relume http://&lt;your-host&gt;:8790/api/mcp</code><button id="copy" type="button">copy</button></div>
-      <div class="tools">
-        <span class="chip">extract_site</span><span class="chip">get_skill</span><span class="chip">get_dna</span><span class="chip">see_reference</span><span class="chip dim">check_style</span><span class="chip dim">get_pitfalls</span><span class="chip ghost">search_catalog</span><span class="chip ghost">compare_entries</span>
-      </div>
-      <canvas id="logo" aria-hidden="true"></canvas>
+      <span class="eyebrow">one line</span>
+      <h2 class="disp" data-wipe>Give your agent <em>taste</em> it can measure.</h2>
+      <div class="cmd"><code id="cmd">claude mcp add --transport http relume http://agx-thor:8790/api/mcp</code><button class="btn solid" id="copy" type="button">copy</button></div>
+      <div class="tools"><span class="chip">extract_site</span><span class="chip">get_skill</span><span class="chip">get_dna</span><span class="chip">see_reference</span><span class="chip dim">check_style</span><span class="chip dim">get_pitfalls</span><span class="chip ghost">search_catalog</span><span class="chip ghost">compare_entries</span></div>
     </div>
+    <canvas id="logo" aria-hidden="true"></canvas>
   </section>
 </main>
-<footer><span>relume — builds use a site's language, never its logo, imagery or copy.</span><span>measured, not guessed.</span></footer>
+<footer class="pad"><span>relume · recreations use a site's language, never its logo, imagery or copy.</span><span>measured, not guessed.</span></footer>
 
-<script>
-(() => {
-  const C = { ink: '#141115', ink2: '#1c181d', paper: '#f0f0f0', lime: '#c4f46e', volt: '#c0f63c', forest: '#4a7a56', lilac: '#f4dcf8', orchid: '#f0b8f8', plum: '#9c78a8', salmon: '#ee9070', sky: '#3fa0e8', sun: '#f5e14a', mint: '#5df07a', chip: '#8c8496' };
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
-  const lerp = (a, b, t) => a + (b - a) * t;
-  const easeOut = (t) => 1 - Math.pow(1 - t, 4);
-  const BAYER = [0,48,12,60,3,51,15,63,32,16,44,28,35,19,47,31,8,56,4,52,11,59,7,55,40,24,36,20,43,27,39,23,2,50,14,62,1,49,13,61,34,18,46,30,33,17,45,29,10,58,6,54,9,57,5,53,42,26,38,22,41,25,37,21].map((v) => v / 64);
+<dialog class="cmp" id="cmp" aria-labelledby="cmpTitle">
+  <div class="cmp-in">
+    <div class="cmp-top">
+      <h3 id="cmpTitle"></h3>
+      <div class="row">
+        <div class="tabs" role="group" aria-label="View"><button type="button" data-mode="rec" aria-pressed="true">Synced recording</button><button type="button" data-mode="live" aria-pressed="false">Live recreation</button></div>
+        <a class="btn line" id="cmpOpenSrc" target="_blank" rel="noopener">Original ↗</a>
+        <a class="btn line" id="cmpOpenRec" target="_blank" rel="noopener">Recreation ↗</a>
+        <button class="btn line" id="cmpClose" type="button">Close</button>
+      </div>
+    </div>
+    <div class="cmp-body">
+      <div class="stage2">
+        <div class="pane"><div class="ph"><b id="paneA"></b><span>original · recorded by relume</span></div><video id="vidA" muted playsinline preload="auto"></video></div>
+        <div class="pane"><div class="ph"><b id="paneB"></b><span id="paneBNote">recreation · same visit</span></div><video id="vidB" muted playsinline preload="auto"></video><iframe id="liveB" title="Live recreation" hidden></iframe></div>
+      </div>
+      <aside class="side" id="side"></aside>
+    </div>
+    <div class="controls" id="controls">
+      <button type="button" id="play">Pause</button>
+      <div class="timeline"><div class="track"></div><div class="fillb" id="fillb"></div><div id="phmarks"></div><input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Scrub both recordings"></div>
+      <span class="t" id="tnow">0.0s</span>
+    </div>
+  </div>
+</dialog>
 
-  // real measurements from the relume catalogue (linear.app and lenis.darkroom.engineering, 28 Oct 2026)
-  const DATA = {
-    linear: {
-      colors: [['background', '#08090a'], ['surface', '#0f1011'], ['accent', '#5e69d1'], ['text', '#f7f8f8'], ['text-secondary', '#d0d6e0'], ['text-tertiary', '#8a8f98'], ['border', 'rgb(255 255 255 / .08)'], ['white-a4', 'rgb(255 255 255 / .04)']],
-      aliases: { background: '--color-bg-primary', surface: '--color-bg-level-1', 'text-tertiary': '--color-text-tertiary' },
-      radii: ['9999px', '9px', '8px', '4px'],
-      intro: { from: 'opacity 0 · blur(10px) · translateY(20%)', d: 1000, e: [0.25, 0.1, 0.25, 1], delay: 400, stagger: 34 },
-      hover: { d: 100, e: [0.25, 0.46, 0.45, 0.94] },
-    },
-    lenis: { trace: [[42, 0], [147, 0], [246, 53], [344, 78], [446, 89], [560, 96], [662, 98], [773, 99], [871, 100], [964, 100], [1100, 100]], settle: 548, t90: 309, lerp: 0.14 },
-  };
-
-  // ---------- frame loop with damped section progress (the page's own "feel": lerp 0.1 on progress, native scroll)
-  const sections = {};
-  const reg = (id, fn) => { const el = document.getElementById(id); sections[id] = { el, p: 0, target: 0, fn, vis: false }; };
-  let lastY = scrollY, vel = 0;
-  function measure() {
-    const vh = innerHeight;
-    for (const s of Object.values(sections)) {
-      const r = s.el.getBoundingClientRect();
-      const span = Math.max(1, r.height - vh);
-      s.target = clamp(-r.top / span);
-      s.vis = r.bottom > -vh * 0.2 && r.top < vh * 1.2;
-    }
-  }
-  let t0 = performance.now();
-  function frame(now) {
-    const t = (now - t0) / 1000;
-    vel = lerp(vel, scrollY - lastY, 0.15); lastY = scrollY;
-    measure();
-    for (const s of Object.values(sections)) {
-      s.p = reduce ? s.target : lerp(s.p, s.target, 0.12);
-      if (s.vis) s.fn(s.p, t);
-    }
-    requestAnimationFrame(frame);
-  }
-
-  // ---------- canvas helper: low-res pixel canvas scaled up
-  function pixelCanvas(id, cell) {
-    const cv = document.getElementById(id), ctx = cv.getContext('2d');
-    const st = { cv, ctx, w: 0, h: 0, cell };
-    const fit = () => { const r = cv.getBoundingClientRect(); st.w = Math.max(1, Math.round(r.width / st.cell)); st.h = Math.max(1, Math.round(r.height / st.cell)); cv.width = st.w; cv.height = st.h; };
-    fit(); addEventListener('resize', fit);
-    return st;
-  }
-
-  // ---------- noise
-  const hash = (x, y) => { const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return s - Math.floor(s); };
-  const vnoise = (x, y) => { const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi; const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf); return lerp(lerp(hash(xi, yi), hash(xi + 1, yi), u), lerp(hash(xi, yi + 1), hash(xi + 1, yi + 1), u), v); };
-  const fbm = (x, y) => vnoise(x, y) * 0.55 + vnoise(x * 2.1, y * 2.1) * 0.3 + vnoise(x * 4.3, y * 4.3) * 0.15;
-
-  // =====================================================================================================
-  // 1. HERO — a website (sky header, nav, headline bars, cards) resolving out of a dither, then breaking back
-  //    into a pixel mosaic with measurement dots, as the film turns the real into the digital.
-  const hero = pixelCanvas('heroCanvas', innerWidth < 700 ? 5 : 6);
-  const heroEcho = document.getElementById('heroEcho');
-  const chipsEl = document.getElementById('heroChips');
-  const HERO_CHIPS = [
-    ['crawl("linear.app")', 0.16, 0.2, 0.05], ['probe.track(el)', 0.62, 0.17, 0.12], ['getAnimations()', 0.7, 0.36, 0.2],
-    ['color: #5e69d1  /* --accent */', 0.2, 0.42, 0.28], ['ease: cubic-bezier(.25,.1,.25,1)', 0.5, 0.56, 0.36], ['lerp = 1000 / (60 · τ)', 0.26, 0.62, 0.46],
-    ['stagger: 34ms', 0.73, 0.5, 0.52], ['radius: 9px', 0.58, 0.28, 0.6],
-  ];
-  const heroChips = HERO_CHIPS.map(([txt, x, y, at], i) => { const c = document.createElement('span'); c.className = 'chip' + (i % 3 === 1 ? ' dim' : ''); c.textContent = txt; c.style.left = x * 100 + '%'; c.style.top = y * 100 + '%'; chipsEl.appendChild(c); return { c, at }; });
-  function siteColor(u, v, t) {
-    // a site in a window, kept clear of the headline: upper right on wide screens, upper band on phones
-    const wide = hero.w > hero.h;
-    const x0 = wide ? 0.4 : 0.05, x1 = wide ? 0.95 : 0.95, y0 = wide ? 0.1 : 0.09, y1 = wide ? 0.6 : 0.5;
-    if (u < x0 || u > x1 || v < y0 || v > y1) return null;
-    const lu = (u - x0) / (x1 - x0), lv = (v - y0) / (y1 - y0);
-    if (lv < 0.045) return lv < 0.04 && (lu < 0.02 || lu > 0.98) ? '#4a454c' : '#6c6670';               // title bar
-    if (lv < 0.52) {                                                                                     // sky hero
-      const n = fbm(lu * 5 + t * 0.06, lv * 7);
-      const cloud = n > 0.52;
-      if (lv > 0.12 && lv < 0.17 && lu > 0.06 && lu < 0.5) return '#f0f0f0';                             // headline bars
-      if (lv > 0.2 && lv < 0.245 && lu > 0.06 && lu < 0.38) return '#f0f0f0';
-      if (lv > 0.3 && lv < 0.36 && lu > 0.06 && lu < 0.17) return '#141115';                              // button
-      return cloud ? (n > 0.62 ? '#f0f0f0' : '#bcd8ee') : (lv < 0.26 ? '#2f7fd0' : '#3fa0e8');
-    }
-    // cards row
-    const cards = [[0.04, 0.33, '#c4f46e'], [0.355, 0.645, '#f4dcf8'], [0.67, 0.96, '#ee9070']];
-    for (const [a, b, col] of cards) if (lu > a && lu < b && lv > 0.58 && lv < 0.95) {
-      const cu = (lu - a) / (b - a), cv = (lv - 0.58) / 0.37;
-      if (cv > 0.72 && cv < 0.78 && cu > 0.08 && cu < 0.7) return '#141115';
-      if (cv > 0.84 && cv < 0.88 && cu > 0.08 && cu < 0.5) return '#4a454c';
-      const r = Math.hypot(cu - 0.5, cv - 0.36);
-      if (r < 0.2) return col === '#c4f46e' ? '#4a7a56' : col === '#f4dcf8' ? '#9c78a8' : '#141115';
-      return col;
-    }
-    return '#1c181d';
-  }
-  const rgbCache = {};
-  const rgb = (h) => rgbCache[h] || (rgbCache[h] = [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]);
-  let heroImg = null;
-  function drawHero(p, t) {
-    const { ctx, w, h } = hero;
-    if (!heroImg || heroImg.width !== w || heroImg.height !== h) heroImg = ctx.createImageData(w, h);
-    const d = heroImg.data;
-    // phase A (0..0.35): resolve from centre via ordered dither; phase B (0.45..1): break into a mosaic of
-    // coarse cells, the sky turns to measurement dots
-    const intro = clamp((t - 0.15) / 2.2);
-    const reveal = easeOut(intro) * 1.25;
-    const brk = clamp((p - 0.35) / 0.55);
-    const block = 1 + Math.floor(brk * 7);
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-      const bx = Math.floor(x / block) * block, by = Math.floor(y / block) * block;
-      const u = (bx + block / 2) / w, v = (by + block / 2) / h;
-      const dist = Math.hypot((u - (w > h ? 0.675 : 0.5)) * (w / h), v - (w > h ? 0.35 : 0.3));
-      const thr = BAYER[(y & 7) * 8 + (x & 7)];
-      let col = null;
-      if (reveal - dist * 1.1 > thr) col = siteColor(u, v, t);
-      if (col && brk > 0) {
-        // mosaic dissolve: cells drop out by dither as the break advances, a few become lime dots
-        const cellThr = BAYER[((by / block) & 7) * 8 + ((bx / block) & 7)];
-        if (cellThr < brk * 0.8 && hash(bx, by) > 0.5) col = null;
-        else if (hash(bx + 3, by + 7) < brk * 0.18) col = '#c0f63c';
-      }
-      const i = (y * w + x) * 4;
-      const c = rgb(col || '#141115');
-      d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255;
-    }
-    ctx.putImageData(heroImg, 0, 0);
-    const n = Math.min(60, Math.floor(intro * 24 + p * 60));
-    setEcho(heroEcho, String(n).padStart(2, '0'));
-    for (const c of heroChips) c.c.classList.toggle('on', p > c.at && p < 0.9);
-  }
-  function setEcho(el, txt) {
-    if (el.dataset.v === txt) return;
-    el.dataset.v = txt;
-    el.innerHTML = [5, 4, 3, 2, 1].map((k) => `<span style="transform:translate(${-k * 7}px, ${k * 6}px)">${txt}</span>`).join('') + `<b>${txt}</b>`;
-  }
-  reg('hero', drawHero);
-
-  // =====================================================================================================
-  // 2. TUNNEL — the pipeline as windows nested into the screen, flown through on scroll.
-  const STEPS = [
-    ['crawl.js', 'Crawl', 'Representative pages at desktop, tablet, mobile and dark. Cookie banners out of the way, lazy content in.', ['pages: 4', 'viewports: 1440 · 834 · 390']],
-    ['probe.js', 'Record', 'Injected before the page runs. Every element that moves is sampled every frame until it settles; every animation is logged with its exact keyframes.', ['probe.track(el)', 'getAnimations()']],
-    ['wheel.probe', 'Feel the scroll', 'One wheel notch, sampled per frame. Native or smoothed? How far, how fast, what lerp?', ['t90: 309ms', 'lerp ≈ 0.14 (lenis)']],
-    ['hover.pass', 'Touch everything', 'Every distinct button, link and card is hovered and focused. Before, during, and the transitions that carried it.', ['100ms cubic-bezier(.25,.46,.45,.94)', 'outline: 1px #5e69d1']],
-    ['tokens.ts', 'Infer the language', 'Colour roles weighted by painted area, type styles with fluid sizes, the spacing grid, radii, borders, shadows, layout rhythm.', ['--color-bg-level-1', 'clamp(.94rem, .73rem + .86vw, 1.5rem)']],
-    ['motion.ts', 'Name the motion', 'Intros, scroll reveals with entry points and stagger, scroll-linked moves, loops. Springs kept exact as linear().', ['stagger: 34ms', 'entry: 85% viewport']],
-    ['SKILL.md', 'Compile a skill', 'SKILL.md, tokens.css, a Tailwind theme, DTCG tokens, motion.css + motion.js, references and a lint script.', ['tokens.css', 'motion.js']],
-    ['check.ts', 'Check the work', 'The page your agent built is measured by the same pipeline and compared, dimension by dimension.', ['check_style(url)', 'fix first →']],
-  ];
-  const vp = document.getElementById('tunnelVp'), copyEl = document.getElementById('tunnelCopy'), tEcho = document.getElementById('tunnelEcho');
-  const wins = STEPS.map(([file, , , chips], i) => {
-    const w = document.createElement('div'); w.className = 'win';
-    w.innerHTML = `<div class="bar"><em></em><strong>${file}</strong><em></em></div><div class="body">${chips.map((c, k) => `<span class="chip${k ? ' dim' : ''}" style="left:${8 + k * 26 + (i % 3) * 6}%;top:${16 + k * 14 + (i % 2) * 8}%">${c}</span>`).join('')}<canvas width="48" height="30" style="position:absolute;right:6%;bottom:8%;width:34%;height:42%"></canvas></div>`;
-    vp.appendChild(w);
-    const s = document.createElement('div'); s.className = 'step';
-    s.innerHTML = `<span class="chip dim">${String(i + 1).padStart(2, '0')} / ${file}</span><h3>${STEPS[i][1]}</h3><p>${STEPS[i][2]}</p>`;
-    copyEl.appendChild(s);
-    // each window carries a little dithered "sample" of what that step sees
-    const cv = w.querySelector('canvas'), cx = cv.getContext('2d'), img = cx.createImageData(48, 30);
-    const pal = [[C.sky, C.paper], [C.lime, C.forest], [C.lilac, C.plum], [C.salmon, C.ink], [C.paper, C.chip], [C.volt, C.ink], [C.forest, C.lime], [C.orchid, C.ink]][i];
-    for (let y = 0; y < 30; y++) for (let x = 0; x < 48; x++) { const n = fbm(x / 9 + i * 3, y / 7); const c = rgb(n > 0.48 + BAYER[(y & 7) * 8 + (x & 7)] * 0.2 ? pal[0] : pal[1]); const k = (y * 48 + x) * 4; img.data[k] = c[0]; img.data[k + 1] = c[1]; img.data[k + 2] = c[2]; img.data[k + 3] = 255; }
-    cx.putImageData(img, 0, 0);
-    return { w, s };
-  });
-  function drawTunnel(p) {
-    const N = wins.length;
-    const cam = p * (N - 0.2);
-    // vanishing point drifts toward the upper-left, as in the film's run.js corridor
-    const vx = -6, vy = -4;
-    wins.forEach(({ w, s }, i) => {
-      const z = i - cam;
-      const scale = z > -0.95 ? 1 / (1 + z * 0.42) : 0;
-      const op = z < -0.55 ? clamp((z + 0.95) / 0.4) : z > 6 ? clamp(7 - z) : 1;
-      w.style.transform = `translate(${vx * z}vw, ${vy * z}vh) scale(${scale.toFixed(4)})`;
-      w.style.opacity = op.toFixed(3);
-      w.style.zIndex = String(100 - i);
-      s.classList.toggle('on', Math.round(cam) === i || (i === N - 1 && cam > N - 1.2));
-    });
-    setEcho(tEcho, String(Math.min(N, Math.round(cam) + 1)).padStart(2, '0'));
-  }
-  reg('tunnel', drawTunnel);
-
-  // =====================================================================================================
-  // 3. DNA — a deck of cards that fans out (the film's receding frames), each a real measurement.
-  const L = DATA.linear;
-  const bez = (b, steps = 48) => { let s = ''; for (let i = 0; i <= steps; i++) { const t = i / steps; const x = 3 * b[0] * t * (1 - t) ** 2 + 3 * b[2] * t * t * (1 - t) + t ** 3; const y = 3 * b[1] * t * (1 - t) ** 2 + 3 * b[3] * t * t * (1 - t) + t ** 3; s += `${i ? 'L' : 'M'}${(x * 100).toFixed(2)},${(100 - y * 100).toFixed(2)}`; } return s; };
-  const trace = DATA.lenis.trace.map(([ms, y], i) => `${i ? 'L' : 'M'}${(ms / 1100 * 100).toFixed(1)},${(100 - y).toFixed(1)}`).join('');
-  const CARDS = [
-    ['c-color', 'Colour', 'linear.app · 23 tokens, weighted by painted area', `<div class="sw-grid">${L.colors.map(([n, v]) => `<div style="background:${v};color:${/^#0|rgb\(255/.test(v) ? '#f0f0f0' : '#141115'}">${n}</div>`).join('')}</div><pre style="margin-top:12px">background ← ${L.aliases.background}\nsurface    ← ${L.aliases.surface}\naccent     ← focus ring, 1px solid, offset 2px</pre>`],
-    ['c-type', 'Type', 'display · 64px / 510 · −0.022em', `<div class="type-spec"><div class="big">Aa→</div><dl><dt>family</dt><dd>Inter (open)</dd><dt>mono</dt><dd>Berkeley Mono → JetBrains Mono</dd><dt>body</dt><dd>15px / 1.6</dd><dt>scale</dt><dd>mobile 38 → desktop 64px</dd><dt>fluid</dt><dd>clamp(.94rem, .73rem + .86vw, 1.5rem)</dd></dl></div>`],
-    ['c-shape', 'Shape', 'radii, borders, depth', `<div class="radius-row">${L.radii.map((r) => `<div style="border-radius:${r === '9999px' ? '32px' : r}">${r}</div>`).join('')}</div><pre style="margin-top:16px">border  1px solid rgb(255 255 255 / .08)  ×272\nshadow  rgba(0,0,0,.25) 0 2px 32px\nbackdrop blur(20px) on floating chrome</pre>`],
-    ['c-motion', 'Motion', 'hero intro · 9 lines', `<div class="fill"><svg viewBox="-4 -8 108 116" preserveAspectRatio="none"><path d="M0,100 L100,0" stroke="#4a7a56" stroke-dasharray="2 3" fill="none" vector-effect="non-scaling-stroke"/><path d="${bez(L.intro.e)}" stroke="#141115" stroke-width="3" fill="none" vector-effect="non-scaling-stroke"/></svg></div><pre>${L.intro.from} → rest\n${L.intro.d}ms cubic-bezier(.25,.1,.25,1)\ndelay ${L.intro.delay}ms · stagger ${L.intro.stagger}ms</pre>`],
-    ['c-scroll', 'Scroll feel', 'lenis.dev · one wheel notch', `<div class="fill"><svg viewBox="-4 -8 108 116" preserveAspectRatio="none"><path d="M0,100 L4,100 L4,0 L100,0" stroke="#141115" stroke-dasharray="2 3" fill="none" vector-effect="non-scaling-stroke"/><path d="${trace}" stroke="#141115" stroke-width="3" fill="none" vector-effect="non-scaling-stroke"/></svg></div><pre>native (linear.app): 100px in one frame\nsmoothed (lenis.dev): 90% in ${DATA.lenis.t90}ms, settles ${DATA.lenis.settle}ms\n→ new Lenis({ lerp: ${DATA.lenis.lerp} })</pre>`],
-    ['c-skill', 'The skill', 'linear-design-language/', `<pre>SKILL.md\nreferences/\n  tokens.md  components.md\n  motion.md  layout.md\nassets/\n  tokens.css   tailwind.css\n  tokens.json  (DTCG 2025.10)\n  motion.css   motion.js\n  DESIGN.md    reference/*.jpg\nscripts/\n  lint.mjs</pre>`],
-  ];
-  const deck = document.getElementById('deck');
-  const cards = CARDS.map(([cls, title, src, body]) => { const c = document.createElement('article'); c.className = 'card ' + cls; c.innerHTML = `<div><h4>${title}</h4><div class="src">${src}</div></div>${body}`; deck.appendChild(c); return c; });
-  function drawDeck(p) {
-    const n = cards.length, mobile = innerWidth < 760;
-    const fan = easeOut(clamp(p * 1.4));
-    const sweep = clamp((p - 0.25) / 0.75);
-    cards.forEach((c, i) => {
-      // stacked behind each other far right, then spread into a receding row the camera slides along
-      const k = i - sweep * (n - 1);
-      const x = mobile ? lerp(18, k * 62, fan) : lerp(26, 14 + k * 30, fan);
-      const z = mobile ? -Math.abs(k) * 140 : lerp(-i * 60, -Math.abs(k) * 260, fan);
-      const ry = mobile ? -k * 10 : lerp(-8, -k * 16 - 6, fan);
-      const y = mobile ? 14 : lerp(4, 6, fan);
-      c.style.transform = `translate3d(${x}vw, ${y}vh, ${z}px) rotateY(${ry}deg)`;
-      c.style.zIndex = String(100 - Math.round(Math.abs(k) * 10));
-      c.style.opacity = Math.abs(k) > 3.2 ? '0' : '1';
-    });
-  }
-  reg('dna', drawDeck);
-
-  // =====================================================================================================
-  // 4. BURST — the film's collage warp: tiles fly out of a vanishing point; scroll speed is motion.accelerate().
-  const burst = pixelCanvas('burstCanvas', 2);
-  const TILE_COLS = [C.sky, C.lime, C.lilac, C.salmon, C.sun, C.mint, C.plum, C.orchid, C.paper, C.forest, '#e8443a', '#2b2f9e'];
-  const tiles = Array.from({ length: 520 }, () => newTile(Math.random() * 6));
-  function newTile(z) { return { x: (Math.random() - 0.5) * 2.4, y: (Math.random() - 0.5) * 1.6, z: z ?? 6, w: 0.04 + Math.random() * 0.16, h: 0.03 + Math.random() * 0.12, c: TILE_COLS[(Math.random() * TILE_COLS.length) | 0], dith: Math.random() < 0.3 }; }
-  let lastBurst = 0;
-  function drawBurst(p, t) {
-    const { ctx, w, h } = burst;
-    const dt = Math.min(0.05, t - lastBurst || 0.016); lastBurst = t;
-    ctx.fillStyle = C.ink; ctx.fillRect(0, 0, w, h);
-    const speed = 0.35 + Math.min(4, Math.abs(vel) * 0.06) + p * 1.2;
-    const cx = w / 2, cy = h * 0.42, f = Math.min(w, h) * 0.55;
-    tiles.sort((a, b) => b.z - a.z);
-    for (const tl of tiles) {
-      tl.z -= dt * speed;
-      if (tl.z < 0.08) Object.assign(tl, newTile(6));
-      const sx = cx + (tl.x / tl.z) * f, sy = cy + (tl.y / tl.z) * f;
-      const sw = (tl.w / tl.z) * f, sh = (tl.h / tl.z) * f;
-      if (sx + sw < 0 || sx > w || sy + sh < 0 || sy > h) continue;
-      ctx.globalAlpha = clamp((6 - tl.z) / 1.5);
-      ctx.fillStyle = tl.c;
-      ctx.fillRect(sx | 0, sy | 0, Math.max(1, sw | 0), Math.max(1, sh | 0));
-      if (tl.dith && sw > 6) { ctx.fillStyle = C.ink; for (let yy = 0; yy < sh; yy += 3) for (let xx = (yy / 3) & 1 ? 1 : 0; xx < sw; xx += 3) ctx.fillRect((sx + xx) | 0, (sy + yy) | 0, 1, 1); }
-    }
-    ctx.globalAlpha = 1;
-  }
-  reg('burst', drawBurst);
-  const entries = document.getElementById('entries');
-  [['linear.app', 'dark · native scroll · 4 springs'], ['lenis.dev', 'dark · smooth · lerp 0.14'], ['stripe.com', 'light · native · accent 13%'], ['vercel.com', 'queued']].forEach(([n, s], i) => {
-    const e = document.createElement('span'); e.className = 'chip' + (i > 1 ? ' dim' : ''); e.textContent = `${n.padEnd(11)} ${s}`; entries.appendChild(e);
-  });
-
-  // =====================================================================================================
-  // 5. CHECK — the film's chain of rounded blocks crawling across lilac, growing; the report fills beside it.
-  const chain = document.getElementById('chain'), cctx = chain.getContext('2d');
-  const fitChain = () => { const r = chain.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio); chain.width = r.width * dpr; chain.height = r.height * dpr; cctx.setTransform(dpr, 0, 0, dpr, 0, 0); };
-  fitChain(); addEventListener('resize', fitChain);
-  // dimension weights and pass rule are relume's real ones; the scores shown are an illustration of one run
-  const DIMS = [['color', 96], ['type', 91], ['spacing', 88], ['shape', 100], ['layout', 85], ['motion', 72], ['feel', 90]];
-  const rowsEl = document.getElementById('rows'), fixEl = document.getElementById('fix'), overallEl = document.getElementById('overall');
-  const bars = DIMS.map(([n, v]) => { const r = document.createElement('div'); r.className = 'row'; r.innerHTML = `<span>${n}</span><span class="bar"><i class="${v < 85 ? 'warn' : ''}"></i></span><span>··</span>`; rowsEl.appendChild(r); return { i: r.querySelector('i'), num: r.lastElementChild, v }; });
-  function rr(x, y, w, h, r) { cctx.beginPath(); cctx.roundRect ? cctx.roundRect(x, y, w, h, r) : cctx.rect(x, y, w, h); }
-  function drawCheck(p, t) {
-    const W = chain.clientWidth, H = chain.clientHeight;
-    cctx.clearRect(0, 0, W, H);
-    const n = 14, head = clamp(p * 1.35);
-    for (let i = 0; i < n; i++) {
-      const k = head - i * 0.045;
-      if (k <= 0) continue;
-      const s = 0.25 + (1 - i / n) * 0.75;
-      const x = lerp(-0.05, 1.05, k) * W;
-      const y = H * (0.82 - 0.5 * k + Math.sin(k * 9 + t * 0.6) * 0.035);
-      const size = (20 + 120 * s * (0.35 + k)) * Math.min(1, W / 1200);
-      cctx.save(); cctx.translate(x, y); cctx.rotate(-0.42 + Math.sin(i + t * 0.5) * 0.05);
-      cctx.fillStyle = '#3fa0e8'; rr(-size / 2 - 4, -size * 0.38 - 4, size + 8, size * 0.76 + 8, size * 0.24); cctx.fill();
-      cctx.fillStyle = C.ink; rr(-size / 2, -size * 0.38, size, size * 0.76, size * 0.22); cctx.fill();
-      cctx.restore();
-    }
-    // the report fills in step-time as the chain passes
-    let sum = 0;
-    bars.forEach((b, i) => {
-      const k = clamp((p - 0.18 - i * 0.06) / 0.12);
-      const v = Math.round(b.v * k);
-      b.i.style.transform = `scaleX(${(v / 100).toFixed(3)})`;
-      b.num.textContent = k > 0 ? String(v) : '··';
-      sum += v;
-    });
-    const done = p > 0.72;
-    overallEl.textContent = done ? 'motion 72 < 85 · not yet' : '··';
-    fixEl.innerHTML = done ? '<b>fix first</b> [motion] hero intro 600ms ease — source runs 1000ms cubic-bezier(.25,.1,.25,1) with blur(10px), stagger 34ms<br>→ data-intro="intro-fade-blur-up-1"' : 'measuring candidate…';
-  }
-  reg('check', drawCheck);
-
-  // =====================================================================================================
-  // 6. KALEIDOSCOPE — an 8-fold pixel mandala on lime: one grammar, endlessly new arrangements.
-  const kal = pixelCanvas('kCanvas', innerWidth < 700 ? 7 : 9);
-  function drawKaleido(p, t) {
-    const { ctx, w, h } = kal;
-    ctx.fillStyle = C.lime; ctx.fillRect(0, 0, w, h);
-    const cx = (w - 1) / 2, cy = (h - 1) / 2.25;
-    const phase = p * 3 + t * 0.08;
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-      let dx = Math.abs(x - cx), dy = Math.abs(y - cy);
-      if (dy > dx) [dx, dy] = [dy, dx];                          // 8-fold symmetry
-      const r = Math.hypot(dx, dy), a = Math.atan2(dy, dx);
-      const ring = Math.floor(r / 2.2 - phase * 2);
-      const v = Math.sin(ring * 1.7 + a * 5 + phase) + Math.cos(dx * 0.55 - phase * 1.3) * Math.sin(dy * 0.55 + phase);
-      let col = null;
-      if (r < Math.min(w, h) * (0.18 + p * 0.5)) {
-        if (v > 1.1) col = C.ink; else if (v > 0.55) col = C.forest; else if (v < -1.2) col = C.lilac; else if (v < -0.8) col = C.paper;
-      }
-      if (col) { ctx.fillStyle = col; ctx.fillRect(x, y, 1, 1); }
-    }
-  }
-  reg('kaleido', drawKaleido);
-
-  // =====================================================================================================
-  // 7. LOGO — the mark assembles out of scattered pixels, as the film ends on the four shapes.
-  const lg = document.getElementById('logo'), lctx = lg.getContext('2d');
-  const LW = 48; lg.width = LW; lg.height = LW;
-  const shapes = [[C.salmon, 'c', 6, 6], [C.volt, 's', 26, 6], [C.sky, 's', 6, 26], [C.plum, 'c', 26, 26]];
-  const pts = [];
-  for (const [col, kind, ox, oy] of shapes) for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
-    if (kind === 'c' && Math.hypot(x - 7.5, y - 7.5) > 8) continue;
-    pts.push({ col, tx: ox + x, ty: oy + y, sx: Math.random() * LW, sy: Math.random() * LW + LW, d: Math.random() * 0.35 });
-  }
-  let logoP = 0;
-  const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) lg.dataset.go = '1'; }), { threshold: 0.4 });
-  io.observe(lg);
-  function drawLogo() {
-    if (lg.dataset.go) logoP = Math.min(1, logoP + 0.012);
-    lctx.clearRect(0, 0, LW, LW);
-    for (const q of pts) {
-      const k = easeOut(clamp((logoP - q.d) / 0.65));
-      lctx.fillStyle = q.col;
-      lctx.fillRect(Math.round(lerp(q.sx, q.tx, k)), Math.round(lerp(q.sy, q.ty, k)), 1, 1);
-    }
-    requestAnimationFrame(drawLogo);
-  }
-  drawLogo();
-
-  document.getElementById('copy').addEventListener('click', async (e) => {
-    try { await navigator.clipboard.writeText(document.getElementById('cmd').textContent); e.target.textContent = 'copied'; setTimeout(() => (e.target.textContent = 'copy'), 1400); } catch {}
-  });
-
-  requestAnimationFrame(frame);
-})();
-</script>
+<script type="module" src="app.js"></script>
 </body>
 </html>

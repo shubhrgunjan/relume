@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ledgerline — Revenue recognition and reconciliation for subscription businesses</title>
+<meta name="description" content="Ledgerline automates revenue recognition and reconciliation for subscription businesses, so finance teams close in days instead of weeks.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/motion.css">
+<script type="module" src="assets/motion.js"></script>
+<style>
+  /* the compiled clamp()s for 15px/14px body styles have min > max, so they resolve to 16px; pin the measured desktop sizes */
+  :root { --text-body: 0.9375rem; --text-label-regular: 0.9375rem; --text-body-regular: 0.875rem; --text-body-light-2: 0.875rem; }
+  /* 8px badges: measured micro line-height */
+  .badge-2, .badge-3, .badge-4 { line-height: 1.2; }
+  /* intro-tint-6 with a valid width (the generated keyframes say 50pxpx) */
+  @keyframes intro-tint-6-fixed {
+    from { background-color: transparent; border-color: var(--color-surface-2); width: 50px; }
+    to { background-color: var(--color-white-1000); border-color: var(--color-white-1000); width: 40px; }
+  }
+  [data-intro="intro-tint-6"] { animation-name: intro-tint-6-fixed; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--color-background); color: var(--color-text); overflow-x: hidden; }
+  a { text-decoration: none; }
+  p, h1, h2, h3, h4, ul { margin: 0; }
+  ul { padding: 0; list-style: none; }
+
+  .section { padding-block: var(--space-112); position: relative; }
+  @media (max-width: 939px) { .section { padding-block: var(--space-64); } }
+  .muted { color: var(--color-text-tertiary); }
+  .soft { color: var(--color-text-quaternary); }
+  .ink { color: var(--color-text); }
+  .accent-ink { color: var(--color-violet-400); }
+
+  /* ---------- nav (floating chrome: translucent fill + measured blur) ---------- */
+  .nav { position: sticky; top: 0; z-index: 50; background: var(--color-surface-4); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid transparent; }
+  [data-reveal="reveal-fade-down-50"].nav.is-in { transform: none; }
+  .nav-inner { display: flex; align-items: center; gap: var(--space-32); height: 64px; }
+  .brand { display: inline-flex; align-items: center; gap: var(--space-8); color: var(--color-text); }
+  .brand svg { display: block; }
+  .nav-links { display: flex; gap: var(--space-24); }
+  .nav-links .link-2:hover { color: var(--color-text-quaternary); }
+  .nav-right { margin-left: auto; display: flex; align-items: center; gap: var(--space-16); }
+  .chev { display: inline-block; margin-left: var(--space-4); }
+  @media (max-width: 939px) { .nav-links { display: none; } }
+
+  /* ---------- hero ---------- */
+  .hero { position: relative; padding-top: var(--space-64); padding-bottom: var(--space-112); overflow: hidden; background: var(--color-surface); }
+  .hero-band { position: absolute; left: -10%; right: -10%; top: 38%; height: 420px; transform: skewY(-12deg); transform-origin: 0 0;
+    background:
+      radial-gradient(40% 90% at 20% 60%, var(--color-accent), transparent 70%),
+      radial-gradient(35% 80% at 55% 40%, var(--color-pink-600), transparent 70%),
+      radial-gradient(35% 90% at 82% 55%, var(--color-amber-600), transparent 70%),
+      radial-gradient(30% 70% at 95% 30%, var(--color-yellow-900), transparent 70%),
+      linear-gradient(90deg, var(--color-blue-900), var(--color-accent) 30%, var(--color-pink-600) 60%, var(--color-yellow-800));
+    opacity: 0.85; }
+  .hero-grid { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-48); align-items: start; }
+  .hero-copy { padding-top: var(--space-48); }
+  .hero-copy .text-h1 { color: var(--color-text); max-width: 560px; }
+  .hero-copy .text-title-light { margin-top: var(--space-24); max-width: 480px; }
+  .hero-ctas { display: flex; align-items: center; gap: var(--space-24); margin-top: var(--space-32); }
+  .eyebrow { display: inline-flex; align-items: center; gap: var(--space-8); margin-bottom: var(--space-24); }
+  @media (max-width: 939px) { .hero-grid { grid-template-columns: 1fr; } .hero-copy { padding-top: var(--space-16); } }
+
+  /* product visual */
+  .stage { position: relative; min-height: 560px; }
+  .panel { position: absolute; background: var(--color-background); border-radius: var(--radius-1); box-shadow: var(--shadow-2); overflow: hidden; }
+  .panel-main { left: 0; right: 0; top: 0; }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; padding: var(--space-12) var(--space-16); border-bottom: var(--border-1); }
+  .dots { display: flex; gap: var(--space-4); }
+  .dots i { width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--color-surface-2); display: block; }
+  .panel-body { padding: var(--space-16); display: grid; grid-template-columns: 1.1fr 1fr; gap: var(--space-16); }
+  .kpi { padding: var(--space-12); border-radius: var(--radius-1); background: var(--color-surface); }
+  .ticker { height: 32px; overflow: hidden; position: relative; margin-top: var(--space-4); }
+  .ticker > div { height: 32px; display: flex; align-items: center; }
+  .chart { display: flex; align-items: flex-end; gap: var(--space-8); height: 96px; margin-top: var(--space-12); padding-bottom: var(--space-4); border-bottom: var(--border-1); }
+  .bar { flex: 1; border-radius: var(--radius-3) var(--radius-3) 0 0; transform-origin: 50% 100%; background: linear-gradient(180deg, var(--color-accent), var(--color-accent)); }
+  .bar.def { background: var(--color-blue-900); }
+  .legend { display: flex; gap: var(--space-12); margin-top: var(--space-8); }
+  .legend span::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: var(--radius-3); margin-right: var(--space-4); background: var(--color-accent); vertical-align: -1px; }
+  .legend span.def::before { background: var(--color-blue-900); }
+  .rows { display: grid; gap: 0; }
+  .row { position: relative; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: var(--space-8); padding: var(--space-8) 0; border-bottom: var(--border-1); }
+  .row:last-child { border-bottom: 0; }
+  .row-over { position: absolute; inset: 0; background: var(--color-background); display: grid; grid-template-columns: 1fr auto; align-items: center; gap: var(--space-8); }
+  .panel-schedule { right: -24px; top: 300px; width: 300px; padding: var(--space-16); }
+  .sched { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--space-2); margin-top: var(--space-12); }
+  .sched i { height: 24px; border-radius: var(--radius-3); background: var(--color-surface-2); display: block; }
+  .sched i.on { background: var(--color-accent); }
+  .sched i.now { background: var(--color-accent); }
+  .panel-match { left: -24px; top: 360px; width: 260px; padding: var(--space-16); }
+  .match-line { display: flex; align-items: center; justify-content: space-between; margin-top: var(--space-8); }
+  .toast { position: absolute; right: var(--space-16); top: 252px; display: inline-flex; align-items: center; gap: var(--space-8); padding: var(--space-8) var(--space-12); background: var(--color-text-secondary); color: var(--color-background); border-radius: var(--radius-1); box-shadow: var(--shadow-3); }
+  .toast b { width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--color-lime-700); display: block; }
+  @media (max-width: 939px) { .stage { min-height: 600px; } .panel-schedule { right: 0; } .panel-match { left: 0; } }
+
+  /* ---------- logos ---------- */
+  .logos { padding-block: var(--space-64); border-bottom: var(--border-1); }
+  .logo-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--space-24); align-items: center; margin-top: var(--space-24); }
+  .logo-row span { color: var(--color-indigo-400); text-align: center; }
+  @media (max-width: 939px) { .logo-row { grid-template-columns: repeat(3, 1fr); } }
+
+  /* ---------- features ---------- */
+  .feature { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-64); align-items: center; }
+  .feature.flip .feature-copy { order: 2; }
+  .feature-copy .text-h1-medium { margin-top: var(--space-12); }
+  .feature-copy .text-title-light { margin-top: var(--space-16); }
+  .checks { margin-top: var(--space-24); display: grid; gap: var(--space-8); }
+  .checks li { display: flex; gap: var(--space-12); align-items: baseline; }
+  .checks li::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--color-amber-600); opacity: 0.8; transform: translateY(-1px); }
+  .feature-copy .link-4 { display: inline-flex; margin-top: var(--space-24); }
+  .art { position: relative; border-radius: var(--radius-1); background: var(--color-surface); padding: var(--space-32); overflow: hidden; min-height: 360px; }
+  .art-glow { position: absolute; width: 520px; height: 520px; left: 50%; bottom: -320px; transform: translateX(-50%); border-radius: var(--radius-full);
+    background: radial-gradient(50% 50%, var(--color-yellow-800), var(--color-yellow-800-2) 30%, var(--color-blue-900) 55%, transparent 75%); opacity: 0.7; }
+  .art-glow.violet { background: radial-gradient(50% 50%, var(--color-accent), var(--color-pink-600) 33%, var(--color-surface-2) 66%, transparent 80%); opacity: 0.55; }
+  .art .card-7 { position: relative; padding: var(--space-16); }
+  .art .card-7 + .card-7 { margin-top: var(--space-16); }
+  .table { width: 100%; border-collapse: collapse; }
+  .table th, .table td { text-align: left; padding: var(--space-8) 0; border-bottom: var(--border-1); }
+  .table tr:last-child td { border-bottom: 0; }
+  .table td:last-child, .table th:last-child { text-align: right; }
+  .progress { height: 4px; border-radius: var(--radius-full); background: var(--color-surface-2); overflow: hidden; margin-top: var(--space-8); }
+  .progress i { display: block; height: 100%; background: var(--color-accent); transform-origin: 0 50%; }
+  @media (max-width: 939px) { .feature { grid-template-columns: 1fr; gap: var(--space-32); } .feature.flip .feature-copy { order: 0; } }
+
+  /* integration cards (hover choreography as measured) */
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-16); margin-top: var(--space-48); }
+  .tile { position: relative; display: block; border-radius: var(--radius-1); overflow: hidden; padding: var(--space-24); background: var(--color-background); border: var(--border-1); }
+  .tile .text-h2-medium { color: var(--color-text); }
+  .tile .text-body { margin-top: var(--space-8); color: var(--color-text-tertiary); }
+  .tile-strip { position: absolute; left: 50%; bottom: 0; width: 200%; height: 4px; transform: translateX(-50%) translateX(0px);
+    background: linear-gradient(90deg, var(--color-blue-900), var(--color-accent), var(--color-pink-600), var(--color-amber-600), var(--color-yellow-900), var(--color-blue-900)); }
+  .tile:hover .tile-strip { transform: translateX(-50%) translateX(-20%); }
+  .tile-arrow { position: absolute; top: var(--space-24); right: var(--space-24); width: 24px; height: 24px; border-radius: var(--radius-2); display: grid; place-items: center; background: var(--color-surface-2); color: var(--color-accent); opacity: 0; }
+  .tile:hover .tile-arrow { opacity: 1; }
+  .index-links { display: flex; flex-wrap: wrap; gap: var(--space-24); margin-top: var(--space-24); }
+  .chips { display: flex; flex-wrap: wrap; gap: var(--space-8); margin-top: var(--space-16); }
+  @media (max-width: 939px) { .grid-3 { grid-template-columns: 1fr; } }
+
+  /* ---------- metrics ---------- */
+  .metrics { background: var(--color-surface); overflow: hidden; }
+  .metrics .text-h2 { text-align: center; color: var(--color-text-quaternary); }
+  .metric-row { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); margin-top: var(--space-64); border-top: var(--border-1); border-bottom: var(--border-1); }
+  .metric { padding: var(--space-32) var(--space-16); text-align: center; }
+  .metric .text-body-light-2 { margin-top: var(--space-8); }
+  .metric.lead .text-display, .metric.lead .text-body-light-2 { color: var(--color-text); }
+  .metrics-glow { position: relative; height: 320px; margin-top: var(--space-32);
+    background: radial-gradient(102.83% 103.24% at 49.98% 104.51%, var(--color-yellow-800) 0px, var(--color-yellow-800-2) 16.73%, var(--color-blue-900) 33.03%, var(--color-blue-900-2) 43.38%, var(--color-surface) 59.16%); }
+  @media (max-width: 939px) { .metric-row { grid-template-columns: repeat(2, 1fr); } }
+
+  /* ---------- pricing ---------- */
+  .pricing-head { max-width: 640px; }
+  .pricing-head .text-title-light { margin-top: var(--space-16); }
+  .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-16); margin-top: var(--space-48); align-items: stretch; }
+  .tier { display: flex; flex-direction: column; padding: var(--space-32); border-radius: var(--radius-1); }
+  .tier.card-7 { border-radius: var(--radius-1); }
+  .tier .text-display { margin-top: var(--space-16); color: var(--color-text); }
+  .tier .per { margin-top: var(--space-4); }
+  .tier .text-body { margin-top: var(--space-16); }
+  .tier ul { margin-top: var(--space-24); display: grid; gap: var(--space-8); flex: 1; }
+  .tier li { display: flex; gap: var(--space-8); }
+  .tier li::before { content: "✓"; color: var(--color-accent); }
+  .tier .cta { margin-top: var(--space-32); }
+  .tier.dark { background: var(--color-text-secondary); color: var(--color-white-1000); box-shadow: var(--shadow-2); }
+  .tier.dark .text-h1-medium-2, .tier.dark .text-display { color: var(--color-background); }
+  .tier.dark .muted, .tier.dark .soft { color: var(--color-indigo-600); }
+  .tier.dark li::before { color: var(--color-blue-900); }
+  .tier.dark .button-primary:hover { background-color: var(--color-background); color: var(--color-text-secondary); }
+  .tier-top { display: flex; align-items: center; justify-content: space-between; }
+  .button-secondary:hover { background-color: var(--color-text-secondary); }
+  .button-outline:hover { background-color: var(--color-surface); }
+  @media (max-width: 939px) { .tiers { grid-template-columns: 1fr; } }
+
+  /* ---------- testimonial ---------- */
+  .quote { display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-64); align-items: end; }
+  .quote blockquote { margin: 0; color: var(--color-text); }
+  .who { display: flex; align-items: center; gap: var(--space-16); margin-top: var(--space-32); }
+  .avatar { width: 48px; height: 48px; border-radius: var(--radius-full); background: radial-gradient(circle, var(--color-accent), var(--color-pink-600) 33%, var(--color-surface-2) 66%); }
+  .quote-stats { display: grid; gap: var(--space-24); border-left: var(--border-1); padding-left: var(--space-32); }
+  .quote-stats .text-h1-medium-3 { color: var(--color-text); }
+  .round-btn { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: var(--radius-full); border: var(--border-2); color: var(--color-accent); margin-top: var(--space-24); }
+  @media (max-width: 939px) { .quote { grid-template-columns: 1fr; } .quote-stats { border-left: 0; padding-left: 0; } }
+
+  /* ---------- closing CTA + footer ---------- */
+  .closing { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: var(--space-48); padding-block: var(--space-64); border-top: var(--border-1); }
+  .closing .text-title-light { margin-top: var(--space-16); }
+  .closing .hero-ctas { margin-top: var(--space-24); }
+  .closing h3 { color: var(--color-text); }
+  .closing p.text-body { margin-top: var(--space-8); }
+  footer { background: var(--color-surface); padding-block: var(--space-64); }
+  .foot { display: grid; grid-template-columns: 1.4fr repeat(4, 1fr); gap: var(--space-32); }
+  .foot h4 { color: var(--color-text); margin-bottom: var(--space-12); }
+  .foot ul { display: grid; gap: var(--space-8); }
+  .foot .link:hover, .link:hover { color: var(--color-text); }
+  .legal { display: flex; justify-content: space-between; margin-top: var(--space-48); padding-top: var(--space-24); border-top: var(--border-1); }
+  .link-3:hover { color: var(--color-text-secondary); }
+  @media (max-width: 939px) { .closing { grid-template-columns: 1fr; } .foot { grid-template-columns: 1fr 1fr; } }
+
+  .callout { color: var(--color-accent); font: 425 15px/24px var(--font-sans); letter-spacing: 0.013em; }
+  .callout:hover { color: var(--color-violet-200); }
+</style>
+</head>
+<body>
+
+<!-- ================= NAV ================= -->
+<header class="nav" data-reveal="reveal-fade-down-50">
+  <div class="container nav-inner">
+    <a class="brand" href="#" aria-label="Ledgerline home">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="4" height="16" rx="2" fill="var(--color-accent)"/><rect x="10" y="8" width="4" height="12" rx="2" fill="var(--color-violet-600)"/><rect x="17" y="12" width="4" height="8" rx="2" fill="var(--color-amber-600)"/></svg>
+      <span class="text-h2-medium">Ledgerline</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a class="link-2" href="#recognition">Product<svg class="chev hover-transform-57" width="8" height="8" viewBox="0 0 8 8" aria-hidden="true"><path d="M1 3l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></a>
+      <a class="link-2" href="#reconcile">Solutions<svg class="chev" width="8" height="8" viewBox="0 0 8 8" aria-hidden="true"><path d="M1 3l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></a>
+      <a class="link-2" href="#integrations">Developers</a>
+      <a class="link-2" href="#customers">Customers</a>
+      <a class="link-2" href="#pricing">Pricing</a>
+    </nav>
+    <div class="nav-right">
+      <a class="link-4" href="#">Sign in ›</a>
+      <a class="button-primary" href="#pricing">Talk to sales ›</a>
+    </div>
+  </div>
+</header>
+
+<main>
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="hero-band" data-intro="intro-fade-9" aria-hidden="true"></div>
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow badge-5" data-intro="intro-fade-out-2" style="--i:0">ASC 606 &amp; IFRS 15, automated</span>
+      <h1 class="text-h1" data-intro="intro-fade-out-2" style="--i:1">Revenue that recognises itself. Books that close on time.</h1>
+      <p class="text-title-light muted" data-intro="intro-fade-out-2" style="--i:2">Ledgerline turns every invoice, plan change and refund into audit-ready revenue schedules, then reconciles each payout against your bank to the cent. Finance teams at subscription companies close in days, not weeks.</p>
+      <div class="hero-ctas" data-intro="intro-fade-out-2" style="--i:3">
+        <a class="button-primary" href="#pricing">Start a free trial ›</a>
+        <a class="link-4" href="#recognition">See how it works ›</a>
+      </div>
+    </div>
+
+    <div class="stage" aria-label="Ledgerline dashboard preview">
+      <div class="panel panel-main" data-intro="intro-fade-17" style="--i:0">
+        <div class="panel-head">
+          <div class="dots"><i></i><i></i><i></i></div>
+          <span class="text-caption soft">Revenue · October close</span>
+          <span class="badge-3">Live</span>
+        </div>
+        <div class="panel-body">
+          <div>
+            <div class="kpi">
+              <p class="text-micro soft">Recognised this month</p>
+              <div class="ticker">
+                <div class="text-h1-medium-3 ink" data-intro="intro-up-3">$1,284,310</div>
+                <div class="text-h1-medium-3 ink" data-intro="intro-up-3">$1,291,742</div>
+              </div>
+              <div class="chart" aria-hidden="true">
+                <div class="bar" data-intro="intro-fade-scale-4" style="--i:0;height:42%"></div>
+                <div class="bar def" data-intro="intro-fade-scale-4" style="--i:1;height:30%"></div>
+                <div class="bar" data-intro="intro-fade-scale-4" style="--i:2;height:56%"></div>
+                <div class="bar def" data-intro="intro-fade-scale-4" style="--i:3;height:36%"></div>
+                <div class="bar" data-intro="intro-fade-scale-4" style="--i:4;height:68%"></div>
+                <div class="bar def" data-intro="intro-fade-scale-4" style="--i:5;height:40%"></div>
+                <div class="bar" data-intro="intro-fade-scale-4" style="--i:6;height:84%"></div>
+                <div class="bar def" data-intro="intro-fade-scale-4" style="--i:7;height:44%"></div>
+                <div class="bar" data-intro="intro-fade-scale-4" style="--i:8;height:100%"></div>
+              </div>
+              <div class="legend text-micro-light soft"><span>Recognised</span><span class="def">Deferred</span></div>
+            </div>
+          </div>
+          <div class="rows">
+            <p class="text-micro soft">Payout matching</p>
+            <div class="row"><span class="text-micro-light ink">po_8KQ2 · Oct 24</span><span class="badge-3">Matched</span></div>
+            <div class="row"><span class="text-micro-light ink">po_8KP9 · Oct 23</span><span class="badge-3">Matched</span></div>
+            <div class="row">
+              <span class="text-micro-light ink">po_8KN1 · Oct 22</span><span class="badge-2">Pending</span>
+              <div class="row-over" data-intro="intro-down-wipe-10"><span class="text-micro-light ink">po_8KN1 · Oct 22</span><span class="badge-3">Matched</span></div>
+            </div>
+            <div class="row"><span class="text-micro-light ink">po_8KM6 · Oct 21</span><span class="badge-3">Matched</span></div>
+            <div class="row"><span class="text-micro-light ink">po_8KL3 · Oct 20</span><span class="badge-4">Review</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="toast" data-intro="intro-fade-8"><b></b><span class="text-micro">October ledger balanced</span></div>
+
+      <div class="panel panel-schedule" data-intro="intro-fade-13" style="--i:1">
+        <div class="tier-top"><span class="text-body-regular ink">Annual plan · Acme Seats</span><span class="badge-2">ASC 606</span></div>
+        <p class="text-micro-light soft" style="margin-top:var(--space-4)">$24,000 · straight-line over 12 months</p>
+        <div class="sched" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="now"></i><i></i><i></i></div>
+        <div class="match-line"><span class="text-micro soft">Recognised</span><span class="text-micro ink">$20,000</span></div>
+        <div class="match-line"><span class="text-micro soft">Deferred</span><span class="text-micro ink">$4,000</span></div>
+      </div>
+
+      <div class="panel panel-match" data-intro="intro-fade-13" style="--i:2">
+        <p class="text-micro soft">Bank deposit · First Harbor ••4410</p>
+        <p class="text-h1-medium-3 ink" style="margin-top:var(--space-4)">$48,912.07</p>
+        <div class="match-line"><span class="text-micro-light soft">412 charges − 9 refunds − fees</span><span class="badge-3">Δ $0.00</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LOGOS ================= -->
+<section class="logos">
+  <div class="container">
+    <p class="text-body soft" style="text-align:center">Finance teams at 900+ subscription companies close with Ledgerline</p>
+    <div class="logo-row">
+      <span class="text-h1-medium-3" data-reveal="reveal-fade-52">Northwind</span>
+      <span class="text-h1-medium-3" data-reveal="reveal-fade-52">Parcelry</span>
+      <span class="text-h1-medium-3" data-reveal="reveal-fade-52">kitebase</span>
+      <span class="text-h1-medium-3" data-reveal="reveal-fade-52">Orbitly</span>
+      <span class="text-h1-medium-3" data-reveal="reveal-fade-52">Hearthstack</span>
+      <span class="text-h1-medium-3" data-reveal="reveal-fade-52">Tallow&amp;Co</span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FEATURE 1 ================= -->
+<section class="section" id="recognition">
+  <div class="container feature">
+    <div class="feature-copy">
+      <span class="badge-5">Revenue recognition</span>
+      <h2 class="text-h1-medium">Schedules your auditors can read in one pass</h2>
+      <p class="text-title-light muted">Ledgerline reads contracts, invoices and usage straight from your billing system, splits them into performance obligations and builds a recognition schedule for each one. Upgrades, mid-cycle cancellations and credits re-plan automatically.</p>
+      <ul class="checks text-body muted">
+        <li>Standalone selling price allocation across bundles</li>
+        <li>Ratable, point-in-time and usage-based recognition</li>
+        <li>Full audit trail from journal entry back to invoice line</li>
+      </ul>
+      <a class="link-4" href="#">Explore recognition ›</a>
+    </div>
+    <div class="art" data-reveal="reveal-fade-52">
+      <div class="art-glow violet" aria-hidden="true"></div>
+      <div class="card-7">
+        <div class="tier-top"><span class="text-body-regular ink">Contract C-2291 · Pellucid Health</span><span class="badge-4">3 obligations</span></div>
+        <table class="table text-micro-light" style="margin-top:var(--space-12)">
+          <thead><tr class="text-micro soft"><th>Obligation</th><th>Method</th><th>Allocated</th></tr></thead>
+          <tbody class="ink">
+            <tr><td>Platform licence</td><td>Ratable · 24 mo</td><td>$186,400</td></tr>
+            <tr><td>Implementation</td><td>Milestones</td><td>$32,000</td></tr>
+            <tr><td>API usage</td><td>As consumed</td><td>$41,600</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card-7">
+        <div class="tier-top"><span class="text-micro soft">Recognised to date</span><span class="text-micro ink">61%</span></div>
+        <div class="progress"><i data-reveal="reveal-scale-53"></i></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FEATURE 2 ================= -->
+<section class="section" id="reconcile" style="background:var(--color-surface)">
+  <div class="container feature flip">
+    <div class="feature-copy">
+      <span class="badge-5">Reconciliation</span>
+      <h2 class="text-h1-medium">Every payout matched to the cent, every morning</h2>
+      <p class="text-title-light muted">Processor payouts arrive net of fees, refunds and disputes. Ledgerline unbundles each deposit into the charges behind it, matches it to your bank feed and flags only the exceptions a person needs to see.</p>
+      <ul class="checks text-body muted">
+        <li>Card processors, ACH, wallets and marketplaces in one view</li>
+        <li>Multi-currency with realised FX gain and loss</li>
+        <li>Exceptions routed to the right owner with context</li>
+      </ul>
+      <a class="link-4" href="#">See matching rules ›</a>
+    </div>
+    <div class="art" data-reveal="reveal-fade-52" style="background:var(--color-background)">
+      <div class="art-glow" aria-hidden="true"></div>
+      <div class="card-7">
+        <div class="tier-top"><span class="text-body-regular ink">Today's deposits</span><span class="badge">Auto-matched 98.6%</span></div>
+        <table class="table text-micro-light" style="margin-top:var(--space-12)">
+          <thead><tr class="text-micro soft"><th>Source</th><th>Bank</th><th>Status</th></tr></thead>
+          <tbody class="ink">
+            <tr><td>Card payouts · USD</td><td>$48,912.07</td><td><span class="badge-3">Matched</span></td></tr>
+            <tr><td>ACH debits · USD</td><td>$12,440.00</td><td><span class="badge-3">Matched</span></td></tr>
+            <tr><td>Wallet payouts · EUR</td><td>€9,318.52</td><td><span class="badge-3">Matched</span></td></tr>
+            <tr><td>Marketplace · GBP</td><td>£2,104.90</td><td><span class="badge-4">1 exception</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FEATURE 3 ================= -->
+<section class="section" id="close">
+  <div class="container feature">
+    <div class="feature-copy">
+      <span class="badge-5">Close management</span>
+      <h2 class="text-h1-medium">A close that runs on day two, not day twelve</h2>
+      <p class="text-title-light muted">Journal entries post to your general ledger as revenue is earned, so month-end becomes a review instead of a rebuild. Checklists, sign-offs and flux analysis live next to the numbers they explain.</p>
+      <a class="link-4" href="#">Plan your close ›</a>
+    </div>
+    <div class="art" data-reveal="reveal-fade-52">
+      <div class="art-glow violet" aria-hidden="true"></div>
+      <div class="card-7">
+        <div class="tier-top"><span class="text-body-regular ink">October close</span><span class="badge-3">Day 2 of 3</span></div>
+        <div class="rows" style="margin-top:var(--space-8)">
+          <div class="row"><span class="text-micro-light ink">Revenue journal posted to GL</span><span class="badge-3">Done</span></div>
+          <div class="row"><span class="text-micro-light ink">Deferred revenue roll-forward</span><span class="badge-3">Done</span></div>
+          <div class="row"><span class="text-micro-light ink">Payout reconciliation sign-off</span><span class="badge-3">Done</span></div>
+          <div class="row"><span class="text-micro-light ink">Flux review · ARR vs recognised</span><span class="badge-4">In review</span></div>
+          <div class="row"><span class="text-micro-light ink">Controller approval</span><span class="badge-2">Waiting</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FEATURE 4: INTEGRATIONS ================= -->
+<section class="section" id="integrations" style="background:var(--color-surface)">
+  <div class="container">
+    <div class="pricing-head">
+      <span class="badge-5">Integrations</span>
+      <h2 class="text-h1-medium" style="margin-top:var(--space-12)">Built for the stack you already run</h2>
+      <p class="text-title-light muted">Connect billing, payments, banks and your ERP in an afternoon. Ledgerline keeps them in agreement, and an open API lets your engineers extend every rule.</p>
+      <nav class="index-links" aria-label="Product areas">
+        <a class="link" href="#recognition" data-reveal="reveal-tint-46">Recognition</a>
+        <a class="link" href="#reconcile" data-reveal="reveal-tint-46">Reconciliation</a>
+        <a class="link" href="#close" data-reveal="reveal-tint-46">Close</a>
+        <a class="link" href="#integrations" data-reveal="reveal-tint-46">Reporting</a>
+        <a class="link" href="#integrations" data-reveal="reveal-tint-46">Revenue API</a>
+      </nav>
+    </div>
+    <div class="grid-3">
+      <a class="tile" href="#">
+        <div class="tile-arrow hover-fade-56" aria-hidden="true">›</div>
+        <h3 class="text-h2-medium">Billing systems</h3>
+        <p class="text-body">Plans, invoices, credits and usage sync every fifteen minutes.</p>
+        <div class="chips"><span class="badge">Subscriptions</span><span class="badge">Usage</span><span class="badge">Credits</span></div>
+        <div class="tile-strip hover-slide-60" aria-hidden="true"></div>
+      </a>
+      <a class="tile" href="#">
+        <div class="tile-arrow hover-fade-56" aria-hidden="true">›</div>
+        <h3 class="text-h2-medium">Banks &amp; processors</h3>
+        <p class="text-body">Direct feeds from 40+ banks and every major card processor.</p>
+        <div class="chips"><span class="badge">Bank feeds</span><span class="badge">Payouts</span><span class="badge">FX</span></div>
+        <div class="tile-strip hover-slide-60" aria-hidden="true"></div>
+      </a>
+      <a class="tile" href="#">
+        <div class="tile-arrow hover-fade-56" aria-hidden="true">›</div>
+        <h3 class="text-h2-medium">ERP &amp; general ledger</h3>
+        <p class="text-body">Summarised journals post to your ERP with full drill-down.</p>
+        <div class="chips"><span class="badge">Journals</span><span class="badge">Dimensions</span><span class="badge">API</span></div>
+        <div class="tile-strip hover-slide-60" aria-hidden="true"></div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= METRICS ================= -->
+<section class="section metrics" id="customers">
+  <div class="container">
+    <h2 class="text-h2">The ledger behind<br>modern subscription finance</h2>
+    <div class="metric-row">
+      <div class="metric lead"><p class="text-display">$41bn</p><p class="text-body-light-2">revenue recognised<br>through Ledgerline in 2026</p></div>
+      <div class="metric"><p class="text-display" data-intro="intro-tint-5">2.3 days</p><p class="text-body-light-2" data-intro="intro-tint-5">median month-end close<br>for customers</p></div>
+      <div class="metric"><p class="text-display" data-intro="intro-tint-5">98.6%</p><p class="text-body-light-2" data-intro="intro-tint-5">of payouts matched<br>without a human</p></div>
+      <div class="metric"><p class="text-display" data-intro="intro-tint-5">0</p><p class="text-body-light-2" data-intro="intro-tint-5">material weaknesses<br>at customer audits</p></div>
+    </div>
+  </div>
+  <div class="metrics-glow" aria-hidden="true"></div>
+</section>
+
+<!-- ================= PRICING ================= -->
+<section class="section" id="pricing">
+  <div class="container">
+    <div class="pricing-head">
+      <h2 class="text-display">Pricing that scales with your revenue, not your headcount</h2>
+      <p class="text-title-light muted">Every plan includes unlimited users, SOC 2 Type II controls and onboarding with a revenue accountant.</p>
+    </div>
+    <div class="tiers">
+      <div class="tier card-7" data-reveal="reveal-fade-52">
+        <div class="tier-top"><h3 class="text-h1-medium-2 ink">Starter</h3></div>
+        <p class="text-display">$490</p>
+        <p class="per text-body-light-2 soft">per month, billed annually · up to $5M ARR</p>
+        <p class="text-body muted">Automated recognition and payout matching for teams closing their first audited year.</p>
+        <ul class="text-body muted">
+          <li>ASC 606 &amp; IFRS 15 schedules</li>
+          <li>One billing system, two bank feeds</li>
+          <li>Monthly journal export</li>
+        </ul>
+        <div class="cta"><a class="button-outline" href="#">Start a free trial</a></div>
+      </div>
+      <div class="tier dark" data-reveal="reveal-fade-52">
+        <div class="tier-top"><h3 class="text-h1-medium-2">Growth</h3><span class="badge-2" style="color:var(--color-blue-900);border-color:var(--color-indigo-300-2)">Most popular</span></div>
+        <p class="text-display">$1,490</p>
+        <p class="per text-body-light-2 soft">per month, billed annually · up to $50M ARR</p>
+        <p class="text-body muted">Daily reconciliation, close management and multi-entity consolidation.</p>
+        <ul class="text-body muted">
+          <li>Everything in Starter</li>
+          <li>Unlimited processors and bank feeds</li>
+          <li>Close checklists and flux analysis</li>
+          <li>Multi-currency and multi-entity</li>
+        </ul>
+        <div class="cta"><a class="button-primary" href="#">Start a free trial ›</a></div>
+      </div>
+      <div class="tier card-7" data-reveal="reveal-fade-52">
+        <div class="tier-top"><h3 class="text-h1-medium-2 ink">Enterprise</h3></div>
+        <p class="text-display">Custom</p>
+        <p class="per text-body-light-2 soft">for public and pre-IPO companies</p>
+        <p class="text-body muted">SOX-ready controls, custom obligations and a dedicated revenue engineer.</p>
+        <ul class="text-body muted">
+          <li>Everything in Growth</li>
+          <li>SOX control evidence and SSO</li>
+          <li>Custom recognition rules via API</li>
+          <li>99.99% uptime SLA</li>
+        </ul>
+        <div class="cta"><a class="button-outline" href="#">Contact sales</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TESTIMONIAL ================= -->
+<section class="section" style="background:var(--color-surface)">
+  <div class="container quote">
+    <div>
+      <blockquote class="text-title-lg-light">“We used to spend the first nine days of every month rebuilding revenue in spreadsheets. With Ledgerline our close takes two, and our auditors stopped asking for the workbook.”</blockquote>
+      <div class="who">
+        <div class="avatar" aria-hidden="true"></div>
+        <div><p class="text-label-regular ink">Mara Okonkwo</p><p class="text-body-light-2 soft">VP Finance, Northwind Cloud</p></div>
+      </div>
+      <a class="callout hover-tint-55" href="#" style="display:inline-block;margin-top:var(--space-24)">Read the story ›</a>
+    </div>
+    <div class="quote-stats">
+      <div><p class="text-h1-medium-3">9 → 2 days</p><p class="text-body muted">month-end close</p></div>
+      <div><p class="text-h1-medium-3">14,000</p><p class="text-body muted">contracts on automated schedules</p></div>
+      <div><p class="text-h1-medium-3">$0</p><p class="text-body muted">unexplained variance at year-end</p></div>
+      <a class="round-btn" href="#" data-intro="intro-tint-6" aria-label="Next story">›</a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CLOSING CTA ================= -->
+<section class="container closing">
+  <div>
+    <h2 class="text-h1-medium-2 ink">Ready to close faster?</h2>
+    <p class="text-title-light muted">Connect your billing system and see last month's revenue recognised in under an hour.</p>
+    <div class="hero-ctas">
+      <a class="button-primary" href="#pricing">Start a free trial ›</a>
+      <a class="link-4" href="#">Talk to sales ›</a>
+    </div>
+  </div>
+  <div>
+    <h3 class="text-h2-medium">Migrate in a week</h3>
+    <p class="text-body muted">Bring historical contracts and opening balances; we rebuild prior periods and tie them out for you.</p>
+    <a class="link-4" href="#" style="display:inline-block;margin-top:var(--space-8)">Migration guide ›</a>
+  </div>
+  <div>
+    <h3 class="text-h2-medium">Read the API docs</h3>
+    <p class="text-body muted">Define custom obligations, post journals and subscribe to reconciliation events.</p>
+    <a class="link-4" href="#" style="display:inline-block;margin-top:var(--space-8)">API reference ›</a>
+  </div>
+</section>
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="container">
+    <div class="foot">
+      <div>
+        <a class="brand" href="#"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="4" height="16" rx="2" fill="var(--color-accent)"/><rect x="10" y="8" width="4" height="12" rx="2" fill="var(--color-violet-600)"/><rect x="17" y="12" width="4" height="8" rx="2" fill="var(--color-amber-600)"/></svg><span class="text-h2-medium">Ledgerline</span></a>
+        <p class="text-body-light-2 soft" style="margin-top:var(--space-12)">Revenue recognition and reconciliation for subscription businesses.</p>
+      </div>
+      <div><h4 class="text-label-regular">Product</h4><ul><li><a class="link" href="#">Recognition</a></li><li><a class="link" href="#">Reconciliation</a></li><li><a class="link" href="#">Close</a></li><li><a class="link" href="#">Reporting</a></li></ul></div>
+      <div><h4 class="text-label-regular">Solutions</h4><ul><li><a class="link" href="#">SaaS</a></li><li><a class="link" href="#">Usage-based</a></li><li><a class="link" href="#">Marketplaces</a></li><li><a class="link" href="#">Pre-IPO</a></li></ul></div>
+      <div><h4 class="text-label-regular">Developers</h4><ul><li><a class="link" href="#">API reference</a></li><li><a class="link" href="#">Webhooks</a></li><li><a class="link" href="#">Status</a></li><li><a class="link" href="#">Changelog</a></li></ul></div>
+      <div><h4 class="text-label-regular">Company</h4><ul><li><a class="link" href="#">About</a></li><li><a class="link" href="#">Customers</a></li><li><a class="link" href="#">Security</a></li><li><a class="link" href="#">Careers</a></li></ul></div>
+    </div>
+    <div class="legal">
+      <span class="text-caption soft">© 2026 Ledgerline, Inc. A fictional product.</span>
+      <span><a class="link-3" href="#">Privacy</a> · <a class="link-3" href="#">Terms</a> · <a class="link-3" href="#">English (US)</a></span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  /* stagger order for intros: --i steps of the 150ms motion token */
+  [data-intro="intro-fade-out-2"], [data-intro="intro-fade-17"], [data-intro="intro-fade-13"] { animation-delay: calc(var(--i, 0) * 150ms); }
+</style>
+</body>
+</html>

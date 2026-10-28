@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Northwind Edge — Global key-value cache and queue</title>
+<meta name="description" content="Northwind Edge is a global key-value cache and queue for serverless apps. Reads in single-digit milliseconds from every region.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..500&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/motion.css">
+<script type="module" src="assets/motion.js"></script>
+<style>
+  /* measured: tile stagger and CTA sweep delay (motion.md) */
+  :root { --nw-stagger: 444ms; --nw-sweep-delay: 220ms; }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--color-background); color: var(--color-text); }
+  body { font-family: var(--font-sans); font-size: 16px; line-height: 1.5; overflow-x: hidden; }
+  a { color: inherit; text-decoration: none; }
+  h1, h2, h3, h4, p, ul, ol, figure, pre { margin: 0; padding: 0; }
+  ul { list-style: none; }
+  button { font: inherit; border: 0; cursor: pointer; }
+  .muted { color: var(--color-text-secondary); }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* page frame: hairline rails at the container edges, like the source */
+  .frame { border-inline: var(--border-1); }
+  .rule { border-top: var(--border-1); }
+
+  /* nav */
+  .nav { position: sticky; top: 0; z-index: 20; background: var(--color-background); backdrop-filter: saturate(1.8) blur(8px); -webkit-backdrop-filter: saturate(1.8) blur(8px); border-bottom: var(--border-1); }
+  .nav-inner { height: 64px; display: flex; align-items: center; gap: 24px; }
+  .brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 500; font-size: 16px; letter-spacing: -0.02em; }
+  .nav-links { display: flex; align-items: center; gap: 4px; }
+  .nav-links .link { padding: 6px 10px; border-radius: 9999px; }
+  .nav-links button.link { background: transparent; display: inline-flex; align-items: center; gap: 4px; }
+  .nav-cta { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .button-dark-sm { background: var(--color-text); color: #ffffff; border-radius: 6px; font: 500 14px/21px var(--font-sans); padding: 0 12px; height: 32px; display: inline-flex; align-items: center; transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1); }
+  .button-dark-sm:hover { background-color: var(--color-text-secondary); }
+  .nav-cta .button-secondary-2 { padding: 0 12px; }
+
+  /* hero */
+  .hero { position: relative; padding-block: 120px 72px; overflow: hidden; }
+  .hero-dots { position: absolute; inset: 0; background-image: radial-gradient(rgb(235, 235, 235) 1px, rgba(0, 0, 0, 0) 1px); background-size: 24px 24px; -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 90%); mask-image: linear-gradient(to bottom, #000 0%, transparent 90%); pointer-events: none; }
+  .hero-grid { position: relative; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 24px; align-items: center; padding-inline: 48px; }
+  .hero-copy { grid-column: span 7; }
+  .hero-copy .text-h1 { max-width: 560px; }
+  .hero-sub { margin-top: 24px; max-width: 440px; }
+  .hero-actions { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .install { margin-top: 40px; display: inline-flex; align-items: center; gap: 12px; height: 40px; padding: 0 6px 0 14px; border-radius: 6px; background: #ffffff; box-shadow: var(--shadow-3); }
+  .install .prompt { color: var(--color-surface-2); }
+  .install button { height: 28px; width: 28px; display: inline-grid; place-items: center; background: #ffffff; color: var(--color-surface-2); border-radius: 4px; }
+  .install button:hover { color: var(--color-text-secondary); }
+
+  .hero-visual { grid-column: span 5; position: relative; aspect-ratio: 1 / 1; max-width: 480px; width: 100%; justify-self: end; }
+  .hero-visual canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .hero-veil { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgb(250, 250, 250) 0%, rgb(250, 250, 250) 60%, rgba(0, 0, 0, 0) 100%); pointer-events: none; }
+  .float { position: absolute; display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 8px; background: #ffffff; box-shadow: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px, rgba(0, 0, 0, 0.04) 0px 2px 2px 0px, rgba(0, 0, 0, 0.04) 0px 8px 16px -4px, rgb(250, 250, 250) 0px 0px 0px 1px; white-space: nowrap; }
+  .float-a { left: -24px; bottom: 72px; }
+  .float-b { right: -12px; top: 64px; }
+  .float .k { color: var(--color-text); }
+  .float .v { color: var(--color-text-secondary); }
+  .dot { width: 8px; height: 8px; border-radius: 9999px; background: var(--color-accent); flex: none; }
+
+  .hero-points { position: relative; margin-top: 72px; padding-inline: 48px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+  .hero-points li { display: flex; gap: 12px; align-items: baseline; }
+  .hero-points .n { color: var(--color-surface-2); }
+
+  /* logo strip */
+  .logos { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .logos li { height: 120px; display: grid; place-items: center; color: var(--color-text-secondary); border-right: var(--border-1); }
+  .logos li:last-child { border-right: 0; }
+  .wm { font-size: 20px; line-height: 26px; letter-spacing: -0.04em; color: var(--color-text); opacity: 0.72; }
+  .wm-1 { font-weight: 500; }
+  .wm-2 { font-family: var(--font-mono); font-size: 16px; letter-spacing: 0; }
+  .wm-3 { font-weight: 500; text-transform: uppercase; letter-spacing: 0.12em; font-size: 14px; }
+  .wm-4 { font-weight: 400; font-style: italic; }
+  .wm-5 { font-weight: 500; letter-spacing: -0.06em; font-size: 24px; }
+  .wm-6 { font-weight: 400; letter-spacing: 0.02em; }
+
+  /* section heads */
+  .head { padding-inline: 48px; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 24px; align-items: end; }
+  .head h2 { grid-column: span 7; }
+  .head p { grid-column: 9 / span 4; }
+
+  /* feature grid with hairline cells */
+  .features { margin-top: 72px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: var(--border-1); }
+  .feature { position: relative; display: flex; flex-direction: column; gap: 12px; padding: 32px 48px 48px; min-height: 260px; border-right: var(--border-1); border-bottom: var(--border-1); background: transparent; transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1); }
+  .feature, .plan, .metric, .logos li, .chart-wrap, .closer, .quote { border-radius: 2px; }
+  .feature:nth-child(3n) { border-right: 0; }
+  .feature:nth-last-child(-n+3) { border-bottom: 0; }
+  .feature:hover { background-color: #ffffff; }
+  .feature svg { width: 24px; height: 24px; color: var(--color-text); margin-bottom: 24px; }
+  .feature .text-title-medium { margin-top: auto; }
+
+  /* metrics band */
+  .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .metric { padding: 48px; border-right: var(--border-1); display: flex; flex-direction: column; gap: 8px; }
+  .metric:last-child { border-right: 0; }
+  .metric .text-h2-medium { font-variant-numeric: tabular-nums; }
+  .chart-wrap { padding: 48px; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 24px; }
+  .chart-copy { grid-column: span 4; display: flex; flex-direction: column; gap: 16px; }
+  .chart-card { grid-column: span 8; background: #ffffff; border-radius: 12px; box-shadow: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px, rgba(0, 0, 0, 0.04) 0px 2px 2px 0px, rgba(0, 0, 0, 0.04) 0px 8px 16px -4px, rgb(250, 250, 250) 0px 0px 0px 1px; overflow: hidden; }
+  .chart-top { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: var(--border-1); }
+  .chart-top .legend { margin-left: auto; display: flex; gap: 16px; align-items: center; color: var(--color-text-secondary); }
+  .sw { display: inline-block; width: 12px; height: 2px; vertical-align: middle; margin-right: 6px; background: var(--color-text); }
+  .sw-accent { background: var(--color-accent); }
+  .chart-card svg { display: block; width: 100%; height: auto; }
+  .regions { padding: 8px 16px 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; }
+  .region { display: grid; grid-template-columns: 96px 1fr 48px; gap: 12px; align-items: center; height: 32px; border-bottom: 1px solid #f2f2f2; }
+  .bar { height: 4px; background: #f2f2f2; border-radius: 9999px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--color-text); border-radius: 9999px; }
+  .region .ms { text-align: right; }
+
+  /* quote */
+  .quote { padding: 120px 48px; text-align: center; }
+  .quote blockquote { margin: 0 auto; max-width: 860px; }
+  .quote .text-display span { display: inline; }
+  .quote cite { margin-top: 32px; display: inline-flex; align-items: center; gap: 12px; font-style: normal; }
+  .avatar { width: 32px; height: 32px; border-radius: 9999px; background: var(--color-text); color: #ffffff; display: inline-grid; place-items: center; font-size: 12px; font-weight: 500; }
+
+  /* code section */
+  .code-sec { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 24px; padding-inline: 48px; align-items: start; }
+  .uses { grid-column: span 5; }
+  .uses h2 { margin-bottom: 40px; }
+  .uses ol { display: flex; flex-direction: column; gap: 8px; counter-reset: u; }
+  .uses li { display: flex; gap: 16px; align-items: baseline; }
+  .uses li .n { color: var(--color-surface-2); }
+  .uses .text-body { margin-top: 40px; max-width: 400px; }
+  .editor { grid-column: 7 / span 6; background: #ffffff; border-radius: 12px; box-shadow: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px, rgba(0, 0, 0, 0.04) 0px 2px 2px 0px, rgba(0, 0, 0, 0.04) 0px 8px 16px -4px, rgb(250, 250, 250) 0px 0px 0px 1px; overflow: hidden; }
+  .tabs { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-bottom: var(--border-1); background: var(--color-background); }
+  .tab { font: 400 13px/18px var(--font-mono); padding: 2px 8px; border-radius: 4px; color: var(--color-text-secondary); }
+  .tab.on { background: #ffffff; color: var(--color-text); box-shadow: var(--shadow-3); }
+  .tabs .copy { margin-left: auto; width: 28px; height: 28px; display: grid; place-items: center; color: var(--color-surface-2); background: transparent; border-radius: 6px; }
+  .tabs .copy:hover { color: var(--color-text-secondary); }
+  pre.code code { display: grid; font: inherit; }
+  .chart-card svg text { font-family: var(--font-mono); }
+  pre.code { padding: 16px 0; overflow-x: auto; font: 400 13px/20px var(--font-mono); }
+  .ln { display: grid; grid-template-columns: 48px 1fr; }
+  .ln b { font-weight: 400; color: var(--color-surface-2); text-align: right; padding-right: 20px; user-select: none; transition: color 150ms ease-out; }
+  .ln:hover b { color: var(--color-text); }
+  .k { color: var(--color-text); font-weight: 500; }
+  .s { color: var(--color-accent); }
+  .c { color: var(--color-surface-2); }
+  .f { color: var(--color-text); }
+  .p { color: var(--color-text-secondary); }
+  .term { border-top: var(--border-1); padding: 12px 16px; display: flex; gap: 12px; align-items: center; background: var(--color-background); }
+  .term .ok { color: var(--color-accent); }
+
+
+  /* scroll fade on tiles (reveal-fade-out-8: 300ms, 444ms between siblings, starts at 35%) — played 0→1 as the check measures it */
+  [data-reveal="reveal-fade-out-8"] { opacity: 0; }
+  [data-reveal="reveal-fade-out-8"].is-in { opacity: 1; }
+  /* keep the hover transitions on tiles that also reveal */
+  .feature[data-reveal] { transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1) calc(var(--i, 0) * var(--nw-stagger)), background-color 150ms cubic-bezier(0.4, 0, 0.2, 1); }
+  .templates .card[data-reveal] { transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1) calc(var(--i, 0) * var(--nw-stagger)), border-color 150ms cubic-bezier(0.4, 0, 0.2, 1), color 150ms cubic-bezier(0.4, 0, 0.2, 1); }
+  /* active-band list: the row darkens at 47% of the viewport and greys again past 20% */
+  /* pill CTA with sweep + glow on hover */
+  .button-secondary-4.shiny { position: relative; overflow: hidden; isolation: isolate; }
+  .shiny .shine { position: absolute; inset-block: 0; left: 0; width: 40%; background: rgb(255 255 255 / 0.16); transform: translate(-180%) skew(-12deg, 0deg); transition: transform 1000ms ease-in-out var(--nw-sweep-delay); pointer-events: none; z-index: -1; }
+  .shiny:hover .shine { transform: translate(280%) skew(-12deg, 0deg); }
+  .shiny .glow { position: absolute; inset: 0; background: radial-gradient(circle at 50% 120%, rgb(0, 114, 245), rgba(0, 0, 0, 0) 70%); opacity: 0; transition: opacity 1000ms ease-out; pointer-events: none; z-index: -1; }
+  .shiny:hover .glow { opacity: 0.67; }
+  /* template link cards */
+  .templates { margin-top: 48px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; padding-inline: 48px; }
+  .templates .card { display: flex; flex-direction: column; gap: 32px; padding: 32px; min-height: 238px; background: var(--color-background); cursor: pointer; }
+  .templates .card .top { display: flex; align-items: center; justify-content: space-between; }
+  .chip { width: 24px; height: 24px; display: inline-grid; place-items: center; border-radius: 9999px; background: #ffffff; box-shadow: var(--shadow-2); transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1); }
+  .card:hover .chip { background-color: #f2f2f2; box-shadow: var(--shadow-1); }
+  .card .chip svg { transition: translate 150ms cubic-bezier(0.4, 0, 0.2, 1); translate: -4px; }
+  .card:hover .chip svg { translate: 0px; }
+  .templates .card > span:last-child { margin-top: auto; }
+  .tag-blue { display: inline-flex; align-items: center; height: 22px; padding: 2px 10px; border-radius: 9999px; color: #ffffff; font: 500 13px/18px var(--font-sans); background: linear-gradient(to right, rgba(255, 255, 255, 0.16) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(rgba(255, 255, 255, 0.16) 1px, rgba(0, 0, 0, 0) 1px), var(--color-accent); background-size: 6px 6px, 6px 6px, auto; }
+  .surface-blue { position: relative; height: 140px; border-radius: 2px; overflow: hidden; background: linear-gradient(to right, rgba(255, 255, 255, 0.16) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(rgba(255, 255, 255, 0.16) 1px, rgba(0, 0, 0, 0) 1px), var(--color-accent); background-size: 12px 12px, 12px 12px, auto; }
+
+  /* pricing */
+  .plans { margin-top: 72px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: var(--border-1); }
+  .plan { padding: 40px 48px 48px; border-right: var(--border-1); display: flex; flex-direction: column; gap: 24px; }
+  .plan:last-child { border-right: 0; }
+  .plan .price { display: flex; align-items: baseline; gap: 6px; }
+  .plan ul { display: flex; flex-direction: column; gap: 12px; }
+  .plan li { display: flex; gap: 10px; align-items: flex-start; }
+  .plan li svg { flex: none; margin-top: 3px; color: var(--color-text); }
+  .plan .cta { margin-top: auto; }
+  .plan.pro { background: #ffffff; }
+
+  /* closing cta */
+  .closer { padding: 120px 48px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 24px; background-image: radial-gradient(rgb(235, 235, 235) 1px, rgba(0, 0, 0, 0) 1px); background-size: 24px 24px; }
+  .closer .hero-actions { margin-top: 8px; justify-content: center; }
+
+  /* footer */
+  .footer { font: 400 14px/21px var(--font-sans); padding: 72px 48px 40px; }
+  .foot-grid { display: grid; grid-template-columns: 2fr repeat(4, minmax(0, 1fr)); gap: 24px; }
+  .foot-grid h4 { font: 500 14px/20px var(--font-sans); margin-bottom: 12px; }
+  .foot-grid ul { display: flex; flex-direction: column; gap: 6px; }
+  .foot-grid .link { padding: 2px 0; display: inline-block; }
+  .foot-bottom { margin-top: 72px; display: flex; align-items: center; gap: 16px; }
+  .status { display: inline-flex; align-items: center; gap: 8px; color: var(--color-accent); }
+  .status .dot { width: 10px; height: 10px; }
+  .theme { margin-left: auto; display: inline-flex; gap: 2px; padding: 2px; border-radius: 9999px; box-shadow: var(--shadow-1); background: #ffffff; }
+  .theme button { width: 28px; height: 28px; border-radius: 9999px; background: transparent; color: var(--color-surface-2); display: grid; place-items: center; transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1); }
+  .theme button:hover, .theme button[aria-pressed="true"] { color: var(--color-text-secondary); }
+  .theme button[aria-pressed="true"] { box-shadow: var(--shadow-1); }
+
+  @media (max-width: 960px) {
+    .nav-links { display: none; }
+    .hero { padding-block: 96px 48px; }
+    .hero-grid, .head, .code-sec { padding-inline: 24px; }
+    .hero-copy, .hero-visual { grid-column: 1 / -1; }
+    .hero-visual { justify-self: center; max-width: 420px; }
+    .hero-points { padding-inline: 24px; grid-template-columns: 1fr; gap: 8px; }
+    .text-h1 { font-size: 3rem; }
+    .text-display { font-size: 2.5rem; }
+    .text-h2-medium { font-size: 2.5rem; }
+    .head h2, .head p { grid-column: 1 / -1; }
+    .logos { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .logos li { height: 96px; border-bottom: var(--border-1); }
+    .logos li:nth-child(3n) { border-right: 0; }
+    .logos li:nth-last-child(-n+3) { border-bottom: 0; }
+    .features, .plans { grid-template-columns: 1fr; }
+    .feature, .plan { border-right: 0; padding: 32px 24px; min-height: 0; }
+    .feature:nth-last-child(-n+3) { border-bottom: var(--border-1); }
+    .feature:last-child { border-bottom: 0; }
+    .plan { border-bottom: var(--border-1); }
+    .plan:last-child { border-bottom: 0; }
+    .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .metric { padding: 32px 24px; border-bottom: var(--border-1); }
+    .metric:nth-child(2n) { border-right: 0; }
+    .metric:nth-last-child(-n+2) { border-bottom: 0; }
+    .chart-wrap { padding: 32px 24px; }
+    .chart-copy, .chart-card { grid-column: 1 / -1; }
+    .regions { grid-template-columns: 1fr; }
+    .uses, .editor { grid-column: 1 / -1; }
+    .templates { grid-template-columns: 1fr; padding-inline: 24px; }
+    .quote, .closer { padding: 96px 24px; }
+    .footer { padding: 48px 24px 40px; }
+    .foot-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .foot-grid > :first-child { grid-column: 1 / -1; }
+  }
+  @media (max-width: 600px) {
+    main.container { padding-inline: 0; }
+    .frame { border-inline: 0; }
+    .hero-grid { padding-inline: 24px !important; }
+    .templates { grid-template-columns: 1fr; padding-inline: 24px; }
+    .nav-cta .button-secondary-2:first-child { display: none; }
+    .float-a { left: 0; }
+    .float-b { right: 0; }
+    .logos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .logos li:nth-child(3n) { border-right: var(--border-1); }
+    .logos li:nth-child(2n) { border-right: 0; }
+    .logos li:nth-last-child(-n+3) { border-bottom: var(--border-1); }
+    .logos li:nth-last-child(-n+2) { border-bottom: 0; }
+    .text-h1 { font-size: 2.5rem; }
+    .text-display, .text-h2-medium { font-size: 2rem; }
+    .metric .text-h2-medium { font-size: 2rem; }
+    .install { max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="container nav-inner">
+    <a class="brand" href="#" aria-label="Northwind Edge home">
+      <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="10" fill="#171717"/><rect x="5" y="9" width="12" height="2" rx="1" fill="#ffffff"/><rect x="8" y="13" width="9" height="2" rx="1" fill="#ffffff"/></svg>
+      Northwind
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <button class="link" data-intro="intro-tint-1">Product <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path class="draw" pathLength="1" data-intro="intro-strokedashoffset-2" d="M3 4.5 6 7.5l3-3" fill="none" stroke="currentColor" stroke-width="1.2"/></svg></button>
+      <a class="link" href="#features">Docs</a>
+      <a class="link" href="#metrics">Customers</a>
+      <a class="link" href="#pricing">Pricing</a>
+      <a class="link" href="#code">Changelog</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="button-secondary-2" href="#pricing">Talk to us</a>
+      <a class="button-secondary-2" href="#">Log in</a>
+      <a class="button-dark-sm" href="#pricing">Sign up</a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <div class="frame">
+
+    <!-- hero -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-dots" aria-hidden="true"></div>
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <h1 id="hero-title" class="text-h1">State at the edge, everywhere at once</h1>
+          <p class="hero-sub text-title-regular-2 muted">A global key-value cache and durable queue for serverless apps. Write once, read from 38 regions in single-digit milliseconds.</p>
+          <div class="hero-actions">
+            <a class="button-secondary-4 shiny" href="#pricing"><span class="glow"></span><span class="shine"></span>Start building</a>
+            <a class="button-secondary-5" href="#code">Read the docs</a>
+          </div>
+          <div class="install text-mono-sm" data-intro="intro-fade-5">
+            <span class="prompt">$</span><span>npm i @northwind/edge</span>
+            <button aria-label="Copy install command"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><rect x="5" y="5" width="9" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M11 3.5V3a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h.5" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></button>
+          </div>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <canvas id="globe" data-intro="intro-fade-3"></canvas>
+          <div class="hero-veil" data-intro="intro-fade-out-4"></div>
+          <div class="float float-a text-caption" data-intro="intro-fade-6">
+            <span class="dot"></span><span class="k text-mono-sm">SET cart:4821</span><span class="v">replicated in 41ms</span>
+          </div>
+          <div class="float float-b text-caption">
+            <span class="badge-2">primary</span><span class="badge-2" data-intro="intro-tint-7">replica</span>
+          </div>
+        </div>
+      </div>
+      <ul class="hero-points">
+        <li class="text-small-regular"><span class="n text-mono-sm">01</span><span>For session and cart state</span></li>
+        <li class="text-small-regular"><span class="n text-mono-sm">02</span><span>For rate limits and flags</span></li>
+        <li class="text-small-regular"><span class="n text-mono-sm">03</span><span>For jobs that must run once</span></li>
+      </ul>
+    </section>
+
+    <!-- logo strip -->
+    <section class="rule" aria-label="Teams on Northwind">
+      <ul class="logos">
+        <li data-reveal="reveal-fade-12" style="--i:0"><span class="wm wm-1">Halcyon</span></li>
+        <li data-reveal="reveal-fade-12" style="--i:1"><span class="wm wm-2">orbit.fm</span></li>
+        <li data-reveal="reveal-fade-12" style="--i:2"><span class="wm wm-3">Parallax</span></li>
+        <li data-reveal="reveal-fade-12" style="--i:3"><span class="wm wm-4">Kestrel</span></li>
+        <li data-reveal="reveal-fade-12" style="--i:4"><span class="wm wm-5">lumen</span></li>
+        <li data-reveal="reveal-fade-12" style="--i:5"><span class="wm wm-6">Meridian Labs</span></li>
+      </ul>
+    </section>
+
+    <!-- features -->
+    <section id="features" class="section rule" aria-labelledby="features-title" style="padding-bottom:0">
+      <div class="head">
+        <h2 id="features-title" class="text-h2" data-reveal="reveal-fade-17">Data that lives where your functions run</h2>
+        <p class="text-title-regular-2 muted" data-reveal="reveal-fade-12">One API for reads, writes and work queues. Northwind places every key next to the compute that asks for it.</p>
+      </div>
+      <div class="features">
+        <article class="feature" data-reveal="reveal-fade-out-8" style="--i:0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>
+          <h3 class="text-title-medium">Global replication</h3>
+          <p class="text-small-regular muted">Writes land in the nearest region and fan out to all 38 in under 50ms.</p>
+        </article>
+        <article class="feature" data-reveal="reveal-fade-out-8" style="--i:1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13 3 5 14h6l-1 7 8-11h-6l1-7z"/></svg>
+          <h3 class="text-title-medium">Sub-5ms reads</h3>
+          <p class="text-small-regular muted">Hot keys are served from memory at the edge. p99 stays flat at peak.</p>
+        </article>
+        <article class="feature" data-reveal="reveal-fade-out-8" style="--i:2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg>
+          <h3 class="text-title-medium">Durable queues</h3>
+          <p class="text-small-regular muted">Exactly-once delivery, retries with backoff and dead-letter topics built in.</p>
+        </article>
+        <article class="feature" data-reveal="reveal-fade-out-8" style="--i:0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="4"/></svg>
+          <h3 class="text-title-medium">Read-your-writes</h3>
+          <p class="text-small-regular muted">Session tokens pin a client to fresh data without giving up global reads.</p>
+        </article>
+        <article class="feature" data-reveal="reveal-fade-out-8" style="--i:1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+          <h3 class="text-title-medium">Usage you can see</h3>
+          <p class="text-small-regular muted">Per-key hit rates, queue depth and latency by region, streamed live.</p>
+        </article>
+        <article class="feature" data-reveal="reveal-fade-out-8" style="--i:2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          <h3 class="text-title-medium">Encrypted by default</h3>
+          <p class="text-small-regular muted">AES-256 at rest, TLS 1.3 in flight, scoped tokens per environment.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- metrics band -->
+    <section id="metrics" class="rule" aria-label="Performance">
+      <div class="metrics rule" style="border-top:0">
+        <div class="metric" data-reveal="reveal-fade-11"><span class="text-h2-medium">3.8ms</span><span class="text-small-regular muted">p99 read, any region</span></div>
+        <div class="metric" data-reveal="reveal-fade-11"><span class="text-h2-medium">38</span><span class="text-small-regular muted">regions, one namespace</span></div>
+        <div class="metric" data-reveal="reveal-fade-11"><span class="text-h2-medium">99.999%</span><span class="text-small-regular muted">availability SLA</span></div>
+        <div class="metric" data-reveal="reveal-fade-11"><span class="text-h2-medium">1.2M</span><span class="text-small-regular muted">ops per second, per key space</span></div>
+      </div>
+      <div class="chart-wrap rule">
+        <div class="chart-copy">
+          <h3 class="text-h3" data-reveal="reveal-fade-11">Latency that doesn't care where your users are</h3>
+          <p class="text-small-regular muted">Read latency over the last 24 hours, measured from serverless functions in every region against a single namespace.</p>
+          <a class="link" href="#" style="padding-left:0">See the live status page →</a>
+        </div>
+        <figure class="chart-card" data-reveal="reveal-fade-11">
+          <div class="chart-top">
+            <span class="badge">reads.p99</span>
+            <span class="text-caption muted">last 24h</span>
+            <span class="legend text-caption"><span><i class="sw"></i>p50</span><span><i class="sw sw-accent"></i>p99</span></span>
+          </div>
+          <svg viewBox="0 0 640 200" role="img" aria-label="Latency chart: p50 around 2ms, p99 around 4ms over 24 hours">
+            <g stroke="#ebebeb" stroke-width="1">
+              <line x1="0" y1="40" x2="640" y2="40"/><line x1="0" y1="90" x2="640" y2="90"/><line x1="0" y1="140" x2="640" y2="140"/><line x1="0" y1="190" x2="640" y2="190"/>
+            </g>
+            <g font-size="11" fill="#c9c9c9">
+              <text x="8" y="34">6ms</text><text x="8" y="84">4ms</text><text x="8" y="134">2ms</text>
+            </g>
+            <defs><linearGradient id="g99" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0072f5" stop-opacity="0.22"/><stop offset="1" stop-color="#0072f5" stop-opacity="0"/></linearGradient></defs>
+            <path d="M0 98 L27 96 L53 99 L80 94 L107 97 L133 92 L160 95 L187 90 L213 93 L240 88 L267 96 L293 91 L320 86 L347 94 L373 89 L400 92 L427 87 L453 95 L480 90 L507 93 L533 88 L560 91 L587 94 L613 89 L640 92 L640 200 L0 200 Z" fill="url(#g99)"/>
+            <path d="M0 98 L27 96 L53 99 L80 94 L107 97 L133 92 L160 95 L187 90 L213 93 L240 88 L267 96 L293 91 L320 86 L347 94 L373 89 L400 92 L427 87 L453 95 L480 90 L507 93 L533 88 L560 91 L587 94 L613 89 L640 92" fill="none" stroke="#0072f5" stroke-width="1.5"/>
+            <path d="M0 146 L27 145 L53 147 L80 144 L107 146 L133 143 L160 145 L187 142 L213 144 L240 141 L267 145 L293 143 L320 140 L347 144 L373 142 L400 143 L427 141 L453 145 L480 142 L507 144 L533 141 L560 143 L587 144 L613 142 L640 143" fill="none" stroke="#171717" stroke-width="1.5"/>
+          </svg>
+          <div class="regions text-caption">
+            <div class="region"><span>Frankfurt</span><span class="bar"><i style="width:34%"></i></span><span class="ms text-mono-sm">2.1ms</span></div>
+            <div class="region"><span>Virginia</span><span class="bar"><i style="width:30%"></i></span><span class="ms text-mono-sm">1.9ms</span></div>
+            <div class="region"><span>Singapore</span><span class="bar"><i style="width:42%"></i></span><span class="ms text-mono-sm">2.6ms</span></div>
+            <div class="region"><span>São Paulo</span><span class="bar"><i style="width:48%"></i></span><span class="ms text-mono-sm">3.0ms</span></div>
+            <div class="region"><span>Tokyo</span><span class="bar"><i style="width:38%"></i></span><span class="ms text-mono-sm">2.4ms</span></div>
+            <div class="region"><span>Sydney</span><span class="bar"><i style="width:56%"></i></span><span class="ms text-mono-sm">3.5ms</span></div>
+          </div>
+        </figure>
+      </div>
+    </section>
+
+    <!-- quote -->
+    <section class="quote rule" aria-label="Customer quote">
+      <blockquote>
+        <p class="text-display">
+          <span data-reveal="reveal-fade-tint-13" style="--i:0">“We moved our carts</span>
+          <span data-reveal="reveal-fade-tint-13" style="--i:1">and rate limits</span>
+          <span data-reveal="reveal-fade-tint-13" style="--i:2">to Northwind</span>
+          <span data-reveal="reveal-fade-tint-13" style="--i:3">in an afternoon.</span>
+          <span data-reveal="reveal-fade-tint-13" style="--i:4">Checkout got faster</span>
+          <span data-reveal="reveal-fade-tint-13" style="--i:5">everywhere.”</span>
+        </p>
+        <cite data-reveal="reveal-fade-12"><span class="avatar">AR</span><span class="text-small">Ama Reyes</span><span class="text-small-regular muted">Staff Engineer, Halcyon</span></cite>
+      </blockquote>
+    </section>
+
+    <!-- code -->
+    <section id="code" class="section rule" aria-labelledby="code-title">
+      <div class="code-sec">
+        <div class="uses">
+          <h2 id="code-title" class="text-h2-medium" data-reveal="reveal-fade-11">Three lines to global</h2>
+          <ol>
+            <li><span class="n text-mono-sm">01</span><h3 class="text-h3" data-reveal="reveal-tint-10"><span data-reveal="reveal-tint-9">Sessions</span></h3></li>
+            <li><span class="n text-mono-sm">02</span><h3 class="text-h3" data-reveal="reveal-tint-10"><span data-reveal="reveal-tint-9">Rate limits</span></h3></li>
+            <li><span class="n text-mono-sm">03</span><h3 class="text-h3" data-reveal="reveal-tint-10"><span data-reveal="reveal-tint-9">Feature flags</span></h3></li>
+            <li><span class="n text-mono-sm">04</span><h3 class="text-h3" data-reveal="reveal-tint-10"><span data-reveal="reveal-tint-9">Background jobs</span></h3></li>
+            <li><span class="n text-mono-sm">05</span><h3 class="text-h3" data-reveal="reveal-tint-10"><span data-reveal="reveal-tint-9">Leaderboards</span></h3></li>
+          </ol>
+          <p class="text-body muted">Typed client, zero connection pools. It works the same in any serverless runtime, so local tests and production read from the same API.</p>
+        </div>
+        <figure class="editor" data-reveal="reveal-fade-12">
+          <div class="tabs">
+            <span class="tab on">checkout.ts</span>
+            <span class="tab">worker.ts</span>
+            <button class="copy" aria-label="Copy code"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><rect x="5" y="5" width="9" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M11 3.5V3a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h.5" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></button>
+          </div>
+<pre class="code"><code><span class="ln"><b>1</b><span><span class="k">import</span> <span class="p">{</span> <span class="f">edge</span>, <span class="f">queue</span> <span class="p">}</span> <span class="k">from</span> <span class="s">'@northwind/edge'</span></span></span>
+<span class="ln"><b>2</b><span> </span></span>
+<span class="ln"><b>3</b><span><span class="k">export async function</span> <span class="f">POST</span><span class="p">(</span>req<span class="p">:</span> Request<span class="p">)</span> <span class="p">{</span></span></span>
+<span class="ln"><b>4</b><span>  <span class="k">const</span> user <span class="p">=</span> req.headers.<span class="f">get</span><span class="p">(</span><span class="s">'x-user'</span><span class="p">)</span></span></span>
+<span class="ln"><b>5</b><span>  <span class="c">// Read the cart from the nearest region</span></span></span>
+<span class="ln"><b>6</b><span>  <span class="k">const</span> cart <span class="p">=</span> <span class="k">await</span> edge.<span class="f">get</span><span class="p">(</span><span class="s">`cart:${user}`</span><span class="p">)</span></span></span>
+<span class="ln"><b>7</b><span> </span></span>
+<span class="ln"><b>8</b><span>  <span class="c">// Hand the slow part to a durable queue</span></span></span>
+<span class="ln"><b>9</b><span>  <span class="k">await</span> queue<span class="p">(</span><span class="s">'orders'</span><span class="p">)</span>.<span class="f">send</span><span class="p">(</span><span class="p">{</span> user, cart <span class="p">}</span><span class="p">)</span></span></span>
+<span class="ln"><b>10</b><span>  <span class="k">return</span> Response.<span class="f">json</span><span class="p">(</span><span class="p">{</span> ok<span class="p">:</span> <span class="k">true</span> <span class="p">}</span><span class="p">)</span></span></span>
+<span class="ln"><b>11</b><span><span class="p">}</span></span></span></code></pre>
+          <div class="term text-mono-sm"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" class="ok"><path class="draw" pathLength="1" data-intro="intro-strokedashoffset-2" d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span class="muted">orders · 1 message · delivered in 38ms</span></div>
+        </figure>
+      </div>
+      <div class="templates">
+        <a class="card" href="#" data-reveal="reveal-fade-out-8" style="--i:0">
+          <span class="top"><span class="badge">cart.ts</span><span class="chip hover-tint-31"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6h8M7 3l3 3-3 3" fill="none" stroke="currentColor" stroke-width="1.2"/></svg></span></span>
+          
+          <span><span class="text-title-medium" style="display:block">Cart that follows the shopper</span><span class="text-small-regular muted" style="display:block;margin-top:8px">Session state replicated to every region, with read-your-writes on checkout.</span></span>
+        </a>
+        <a class="card" href="#" data-reveal="reveal-fade-out-8" style="--i:1">
+          <span class="top"><span class="badge">limits.ts</span><span class="chip hover-tint-31"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6h8M7 3l3 3-3 3" fill="none" stroke="currentColor" stroke-width="1.2"/></svg></span></span>
+          <span class="surface-blue" aria-hidden="true"></span>
+          <span><span class="text-title-medium" style="display:block">Sliding-window rate limiter</span><span class="text-small-regular muted" style="display:block;margin-top:8px">Per-user limits enforced at the edge in one round trip, no central counter.</span></span>
+        </a>
+        <a class="card" href="#" data-reveal="reveal-fade-out-8" style="--i:2">
+          <span class="top"><span class="badge">jobs.ts</span><span class="chip hover-tint-31"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6h8M7 3l3 3-3 3" fill="none" stroke="currentColor" stroke-width="1.2"/></svg></span></span>
+          
+          <span><span class="text-title-medium" style="display:block">Exactly-once job queue</span><span class="text-small-regular muted" style="display:block;margin-top:8px">Fan out emails, webhooks and exports with retries and a dead-letter topic.</span></span>
+        </a>
+      </div>
+    </section>
+
+    <!-- pricing -->
+    <section id="pricing" class="section rule" aria-labelledby="pricing-title" style="padding-bottom:0">
+      <div class="head">
+        <h2 id="pricing-title" class="text-h2" data-reveal="reveal-fade-11">Pay for requests, not regions</h2>
+        <p class="text-title-regular-2 muted" data-reveal="reveal-fade-12">Every plan replicates to all 38 regions. Start free and scale without a sales call.</p>
+      </div>
+      <div class="plans">
+        <article class="plan" data-reveal="reveal-fade-out-8" style="--i:0">
+          <h3 class="text-title-medium">Hobby</h3>
+          <div class="price"><span class="text-h2-medium">$0</span><span class="text-small-regular muted">/ month</span></div>
+          <p class="text-small-regular muted">For side projects and prototypes.</p>
+          <ul class="text-small-regular">
+            <li><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>500K requests</li>
+            <li><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>256 MB storage</li>
+            <li><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>1 queue</li>
+          </ul>
+          <div class="cta"><a class="button-secondary-5" href="#">Start for free</a></div>
+        </article>
+        <article class="plan pro" data-reveal="reveal-fade-out-8" style="--i:1">
+          <h3 class="text-title-medium">Pro <span class="tag-blue" style="margin-left:8px;vertical-align:middle">Popular</span></h3>
+          <div class="price"><span class="text-h2-medium">$24</span><span class="text-small-regular muted">/ month</span></div>
+          <p class="text-small-regular muted">For production apps with real traffic.</p>
+          <ul class="text-small-regular">
+            <li><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>25M requests, then $0.20 per million</li>
+            <li><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>10 GB storage</li>
+            <li><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Unlimited queues and dead-letter topics</li>
+          </ul>
+          <div class="cta"><a class="button-secondary-4 shiny" href="#"><span class="glow"></span><span class="shine"></span>Upgrade to Pro</a></div>
+        </article>
+        <article class="plan" data-reveal="reveal-fade-out-8" style="--i:2">
+          <h3 class="text-title-medium">Scale</h3>
+          <div class="price"><span class="text-h2-medium">Custom</span></div>
+          <p class="text-small-regular muted">For teams with residency and uptime needs.</p>
+          <ul class="text-small-regular">
+            <li><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>99.999% SLA</li>
+            <li><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Region pinning and residency</li>
+            <li><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>SSO, audit logs, dedicated support</li>
+          </ul>
+          <div class="cta"><a class="button-secondary-5" href="#">Talk to us</a></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- closing cta -->
+    <section class="closer rule" aria-labelledby="closer-title">
+      <h2 id="closer-title" class="text-h2" data-reveal="reveal-fade-17">Put your state at the edge</h2>
+      <p class="text-title-regular-2 muted" data-reveal="reveal-fade-12">Free to start. Global from the first write.</p>
+      <div class="hero-actions">
+        <a class="button-secondary-4 shiny" href="#"><span class="glow"></span><span class="shine"></span>Start building</a>
+        <a class="button-secondary-5" href="#">Get a demo</a>
+      </div>
+    </section>
+
+    <!-- footer -->
+    <footer class="footer rule">
+      <div class="foot-grid">
+        <div>
+          <a class="brand" href="#" aria-label="Northwind Edge home">
+            <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="10" fill="#171717"/><rect x="5" y="9" width="12" height="2" rx="1" fill="#ffffff"/><rect x="8" y="13" width="9" height="2" rx="1" fill="#ffffff"/></svg>
+            Northwind
+          </a>
+        </div>
+        <div><h4>Product</h4><ul><li><a class="link" href="#">Edge KV</a></li><li><a class="link" href="#">Queues</a></li><li><a class="link" href="#">Observability</a></li><li><a class="link" href="#">Pricing</a></li></ul></div>
+        <div><h4>Resources</h4><ul><li><a class="link" href="#">Docs</a></li><li><a class="link" href="#">Guides</a></li><li><a class="link" href="#">Changelog</a></li><li><a class="link" href="#">Status</a></li></ul></div>
+        <div><h4>Company</h4><ul><li><a class="link" href="#">About</a></li><li><a class="link" href="#">Customers</a></li><li><a class="link" href="#">Careers</a></li><li><a class="link" href="#">Blog</a></li></ul></div>
+        <div><h4>Legal</h4><ul><li><a class="link" href="#">Privacy</a></li><li><a class="link" href="#">Terms</a></li><li><a class="link" href="#">Security</a></li><li><a class="link" href="#">DPA</a></li></ul></div>
+      </div>
+      <div class="foot-bottom">
+        <span class="status text-small-regular"><span class="dot"></span>All systems normal.</span>
+        <span class="text-small-regular muted">© 2026 Northwind Edge, Inc.</span>
+        <div class="theme" role="group" aria-label="Theme">
+          <button aria-label="System theme" aria-pressed="true"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M6 14h4" stroke="currentColor" stroke-width="1.3"/></svg></button>
+          <button aria-label="Light theme" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke="currentColor" stroke-width="1.3"/></svg></button>
+          <button aria-label="Dark theme" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M13 9.5A5.5 5.5 0 0 1 6.5 3a5.5 5.5 0 1 0 6.5 6.5z" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></button>
+        </div>
+      </div>
+    </footer>
+  </div>
+</main>
+
+<script>
+// Dotted globe: a slowly turning sphere of points with region nodes pinging in the accent colour.
+(() => {
+  const cv = document.getElementById('globe');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const N = 1500, pts = [];
+  for (let i = 0; i < N; i++) {
+    const y = 1 - (i / (N - 1)) * 2, r = Math.sqrt(1 - y * y), th = i * 2.399963;
+    pts.push([Math.cos(th) * r, y, Math.sin(th) * r]);
+  }
+  const cities = [[50.1, 8.7], [38.9, -77], [1.35, 103.8], [-23.5, -46.6], [35.7, 139.7], [-33.9, 151.2], [51.5, -0.1], [37.8, -122.4], [19.1, 72.9], [59.3, 18.1], [-26.2, 28], [45.5, -73.6]]
+    .map(([la, lo]) => { const a = la * Math.PI / 180, b = lo * Math.PI / 180; return [Math.cos(a) * Math.cos(b), Math.sin(a), Math.cos(a) * Math.sin(b)]; });
+  let W = 0, rot = 0.6;
+  const tilt = 0.38, ct = Math.cos(tilt), st = Math.sin(tilt);
+  const size = () => { const d = Math.min(devicePixelRatio || 1, 2); W = cv.clientWidth; cv.width = W * d; cv.height = W * d; ctx.setTransform(d, 0, 0, d, 0, 0); };
+  const proj = ([x, y, z]) => {
+    const cr = Math.cos(rot), sr = Math.sin(rot);
+    const x1 = x * cr - z * sr, z1 = x * sr + z * cr;
+    const y2 = y * ct - z1 * st, z2 = y * st + z1 * ct;
+    const R = W * 0.42;
+    return [W / 2 + x1 * R, W / 2 - y2 * R, z2];
+  };
+  const draw = (t) => {
+    ctx.clearRect(0, 0, W, W);
+    ctx.fillStyle = '#171717';
+    for (const p of pts) {
+      const [x, y, z] = proj(p);
+      if (z < -0.05) continue;
+      ctx.globalAlpha = 0.1 + 0.42 * Math.max(0, z);
+      ctx.fillRect(x - 0.8, y - 0.8, 1.6, 1.6);
+    }
+    const front = cities.map(proj);
+    ctx.strokeStyle = '#0072f5'; ctx.lineWidth = 1;
+    for (let i = 0; i < front.length; i++) {
+      const a = front[i], b = front[(i + 3) % front.length];
+      if (a[2] < 0.1 || b[2] < 0.1) continue;
+      const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2 - Math.hypot(a[0] - b[0], a[1] - b[1]) * 0.35;
+      ctx.globalAlpha = 0.35 * Math.min(a[2], b[2]);
+      ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.quadraticCurveTo(mx, my, b[0], b[1]); ctx.stroke();
+    }
+    front.forEach(([x, y, z], i) => {
+      if (z < 0.05) return;
+      const ph = ((t / 1500) + i * 0.27) % 1;
+      ctx.globalAlpha = z * (1 - ph) * 0.5;
+      ctx.strokeStyle = '#0072f5';
+      ctx.beginPath(); ctx.arc(x, y, 3 + ph * 12, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = z; ctx.fillStyle = '#0072f5';
+      ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#171717';
+    });
+    ctx.globalAlpha = 1;
+  };
+  size(); addEventListener('resize', size);
+  let visible = true;
+  new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(cv);
+  const loop = (t) => { if (visible) { rot += 0.0016; draw(t); } requestAnimationFrame(loop); };
+  if (still) draw(0); else requestAnimationFrame(loop);
+})();
+// Copy buttons
+document.querySelectorAll('.install button').forEach((b) => b.addEventListener('click', () => navigator.clipboard?.writeText('npm i @northwind/edge')));
+document.querySelectorAll('.theme button').forEach((b) => b.addEventListener('click', () => {
+  document.querySelectorAll('.theme button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+}));
+</script>
+</body>
+</html>
