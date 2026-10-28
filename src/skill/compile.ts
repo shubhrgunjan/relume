@@ -28,10 +28,10 @@ export function compileSkill(dna: DNA, entryDir: string) {
   const recipes = buildRecipes(dna.motion.patterns as any);
   const host = new URL(dna.source.url).hostname;
 
-  writeFileSync(join(out, 'assets', 'tokens.css'), tokensCss(dna));
-  writeFileSync(join(out, 'assets', 'tailwind.css'), tailwindCss(dna));
+  writeFileSync(join(out, 'assets', 'tokens.css'), safeCss(tokensCss(dna)));
+  writeFileSync(join(out, 'assets', 'tailwind.css'), safeCss(tailwindCss(dna)));
   writeFileSync(join(out, 'assets', 'tokens.json'), JSON.stringify(dtcg(dna), null, 2));
-  writeFileSync(join(out, 'assets', 'motion.css'), motionCss(dna, recipes));
+  writeFileSync(join(out, 'assets', 'motion.css'), safeCss(motionCss(dna, recipes)));
   writeFileSync(join(out, 'assets', 'motion.js'), motionJs(dna, recipes));
   writeFileSync(join(out, 'assets', 'DESIGN.md'), designMd(dna, host));
   writeFileSync(join(out, 'references', 'tokens.md'), tokensMd(dna));
@@ -50,6 +50,12 @@ export function compileSkill(dna: DNA, entryDir: string) {
   for (const c of dna.components) if (c.crop && existsSync(join(entryDir, c.crop))) copyFileSync(join(entryDir, c.crop), join(out, 'assets', 'reference', c.crop.split('/').pop()!));
   writeFileSync(join(out, 'SKILL.md'), skillMd(dna, name, host, recipes));
   return out;
+}
+
+/** A generated line with unbalanced brackets would silently disable every rule after it: drop it, say so. */
+function safeCss(css: string) {
+  const bal = (l: string) => [...l].reduce((d, c) => d + (c === '(' ? 1 : c === ')' ? -1 : 0), 0) === 0 && [...l].reduce((d, c) => d + (c === '{' ? 1 : c === '}' ? -1 : 0), 0) === 0;
+  return css.split('\n').map((l) => (l.trim().startsWith('/*') || l.includes('{') && l.includes('}') ? (bal(l) ? l : `/* relume: dropped a malformed generated rule (${l.length} chars) */`) : l)).join('\n');
 }
 
 // ------------------------------------------------------------------ SKILL.md

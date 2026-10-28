@@ -81,7 +81,7 @@
   --ease-6: ease-in-out;
   --ease-7: ease-in;
   --ease-8: cubic-bezier(0.3, 0.57, 0.07, 0.95);
-  --container: 1080px;
+  --container: 1440px; /* content 1392px, text edge at x 24 on a 1440px screen */
   --gutter-desktop: 24px;
   --gutter-tablet: 24px;
   --gutter-mobile: 24px;

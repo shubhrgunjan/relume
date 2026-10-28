@@ -12,576 +12,537 @@
 <link rel="stylesheet" href="assets/motion.css">
 <script type="module" src="assets/motion.js"></script>
 <style>
-  /* the compiled clamp()s for 15px/14px body styles have min > max, so they resolve to 16px; pin the measured desktop sizes */
-  :root { --text-body: 0.9375rem; --text-label-regular: 0.9375rem; --text-body-regular: 0.875rem; --text-body-light-2: 0.875rem; }
-  /* 8px badges: measured micro line-height */
-  .badge-2, .badge-3, .badge-4 { line-height: 1.2; }
-  /* intro-tint-6 with a valid width (the generated keyframes say 50pxpx) */
-  @keyframes intro-tint-6-fixed {
-    from { background-color: transparent; border-color: var(--color-surface-2); width: 50px; }
-    to { background-color: var(--color-white-1000); border-color: var(--color-white-1000); width: 40px; }
-  }
-  [data-intro="intro-tint-6"] { animation-name: intro-tint-6-fixed; }
   * { box-sizing: border-box; }
   html, body { margin: 0; }
   body { background: var(--color-background); color: var(--color-text); overflow-x: hidden; }
-  a { text-decoration: none; }
-  p, h1, h2, h3, h4, ul { margin: 0; }
+  a { text-decoration: none; color: inherit; }
+  p, h1, h2, h3, h4, ul, figure, blockquote { margin: 0; }
   ul { padding: 0; list-style: none; }
-
+  img { display: block; max-width: 100%; }
+  .ic { display: block; flex: none; }
+  .arr { display: inline-block; margin-left: var(--space-4); }
   .section { padding-block: var(--space-112); position: relative; }
   @media (max-width: 939px) { .section { padding-block: var(--space-64); } }
+  @media (max-width: 899px) { .container { padding-inline: var(--space-32); } }
+  .button-secondary { background: var(--color-accent); }
+  [data-reveal="reveal-tint-46"].callout { transition: color 150ms cubic-bezier(0.215, 0.61, 0.355, 1); }
+  .ink { color: var(--color-text); }
   .muted { color: var(--color-text-tertiary); }
   .soft { color: var(--color-text-quaternary); }
-  .ink { color: var(--color-text); }
-  .accent-ink { color: var(--color-violet-400); }
+  .violet { color: var(--color-accent); }
+  .rail { border-inline: 1px solid var(--color-border); }
+  .callout { color: var(--color-accent); font: 425 15px/24px var(--font-sans); letter-spacing: 0.013em; display: inline-flex; align-items: center; transition: color 300ms cubic-bezier(0.25, 1, 0.5, 1); }
+  .callout:hover { color: var(--color-violet-200); }
+  .btn-white { background: var(--color-background); color: var(--color-accent); border-radius: 4px; font: 400 16px/16px var(--font-sans); padding: 16px 24px; display: inline-flex; align-items: center; height: 48px; }
+  .row-actions { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+  .split-intro { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-64); align-items: start; }
+  @media (max-width: 899px) { .split-intro { grid-template-columns: 1fr; gap: var(--space-24); } }
+  .trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-32); }
+  @media (max-width: 899px) { .trio { grid-template-columns: 1fr; } }
+  .feat .fi { width: 40px; height: 40px; border: 1px solid var(--color-border); border-radius: 4px; display: grid; place-items: center; color: var(--color-accent); margin-bottom: var(--space-24); }
+  .feat p { margin-bottom: var(--space-12); }
 
-  /* ---------- nav (floating chrome: translucent fill + measured blur) ---------- */
-  .nav { position: sticky; top: 0; z-index: 50; background: var(--color-surface-4); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid transparent; }
-  [data-reveal="reveal-fade-down-50"].nav.is-in { transform: none; }
-  .nav-inner { display: flex; align-items: center; gap: var(--space-32); height: 64px; }
-  .brand { display: inline-flex; align-items: center; gap: var(--space-8); color: var(--color-text); }
-  .brand svg { display: block; }
+  /* ---------- header ---------- */
+  .site-head { position: relative; z-index: 20; height: 76px; }
+  .site-head nav { height: 76px; display: flex; align-items: center; gap: var(--space-32); }
+  [data-reveal="reveal-fade-down-50"].is-in { transform: none; }
+  .brand { display: inline-flex; align-items: center; gap: var(--space-8); color: var(--color-text); font: 500 20px/1 var(--font-sans); letter-spacing: -0.02em; }
   .nav-links { display: flex; gap: var(--space-24); }
-  .nav-links .link-2:hover { color: var(--color-text-quaternary); }
-  .nav-right { margin-left: auto; display: flex; align-items: center; gap: var(--space-16); }
-  .chev { display: inline-block; margin-left: var(--space-4); }
+  .nav-links a { display: inline-flex; align-items: center; gap: var(--space-4); }
+  .nav-right { margin-left: auto; display: flex; gap: var(--space-8); align-items: center; }
+  .btn-ghost { background: var(--color-surface-3); color: var(--color-text-secondary); border-radius: 9999px; font: 425 15px/24px var(--font-sans); padding: 4px 16px; height: 33px; display: inline-flex; align-items: center; }
   @media (max-width: 939px) { .nav-links { display: none; } }
 
   /* ---------- hero ---------- */
-  .hero { position: relative; padding-top: var(--space-64); padding-bottom: var(--space-112); overflow: hidden; background: var(--color-surface); }
-  .hero-band { position: absolute; left: -10%; right: -10%; top: 38%; height: 420px; transform: skewY(-12deg); transform-origin: 0 0;
-    background:
-      radial-gradient(40% 90% at 20% 60%, var(--color-accent), transparent 70%),
-      radial-gradient(35% 80% at 55% 40%, var(--color-pink-600), transparent 70%),
-      radial-gradient(35% 90% at 82% 55%, var(--color-amber-600), transparent 70%),
-      radial-gradient(30% 70% at 95% 30%, var(--color-yellow-900), transparent 70%),
-      linear-gradient(90deg, var(--color-blue-900), var(--color-accent) 30%, var(--color-pink-600) 60%, var(--color-yellow-800));
-    opacity: 0.85; }
-  .hero-grid { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-48); align-items: start; }
-  .hero-copy { padding-top: var(--space-48); }
-  .hero-copy .text-h1 { color: var(--color-text); max-width: 560px; }
-  .hero-copy .text-title-light { margin-top: var(--space-24); max-width: 480px; }
-  .hero-ctas { display: flex; align-items: center; gap: var(--space-24); margin-top: var(--space-32); }
-  .eyebrow { display: inline-flex; align-items: center; gap: var(--space-8); margin-bottom: var(--space-24); }
-  @media (max-width: 939px) { .hero-grid { grid-template-columns: 1fr; } .hero-copy { padding-top: var(--space-16); } }
+  .hero { position: relative; overflow: hidden; margin-top: -76px; padding-top: 188px; padding-bottom: var(--space-48); }
+  .hero canvas { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 150px); -webkit-mask-image: linear-gradient(180deg, var(--color-text) 70%, transparent); mask-image: linear-gradient(180deg, var(--color-text) 70%, transparent); }
+  .hero .container { position: relative; }
+  .hero-copy { max-width: 720px; }
+  .hero .pill { display: inline-flex; align-items: center; gap: var(--space-8); background: var(--color-surface-3); border-radius: 9999px; padding: 4px 12px 4px 4px; margin-bottom: var(--space-24); }
+  .hero .pill b { background: var(--color-accent); color: var(--color-background); border-radius: 9999px; padding: 2px 8px; font: 400 12px/16px var(--font-sans); }
+  .hero h1 { margin-bottom: var(--space-24); }
+  .hero .lede { max-width: 560px; margin-bottom: var(--space-32); }
+  .logo-strip { margin-top: 148px; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, var(--color-text) 8%, var(--color-text) 92%, transparent); mask-image: linear-gradient(90deg, transparent, var(--color-text) 8%, var(--color-text) 92%, transparent); }
+  .logo-strip ul { display: flex; gap: var(--space-64); width: max-content; color: var(--color-text-secondary); align-items: center; }
+  .logo-strip .mark { display: block; }
 
-  /* product visual */
-  .stage { position: relative; min-height: 560px; }
-  .panel { position: absolute; background: var(--color-background); border-radius: var(--radius-1); box-shadow: var(--shadow-2); overflow: hidden; }
-  .panel-main { left: 0; right: 0; top: 0; }
-  .panel-head { display: flex; align-items: center; justify-content: space-between; padding: var(--space-12) var(--space-16); border-bottom: var(--border-1); }
-  .dots { display: flex; gap: var(--space-4); }
-  .dots i { width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--color-surface-2); display: block; }
-  .panel-body { padding: var(--space-16); display: grid; grid-template-columns: 1.1fr 1fr; gap: var(--space-16); }
-  .kpi { padding: var(--space-12); border-radius: var(--radius-1); background: var(--color-surface); }
-  .ticker { height: 32px; overflow: hidden; position: relative; margin-top: var(--space-4); }
-  .ticker > div { height: 32px; display: flex; align-items: center; }
-  .chart { display: flex; align-items: flex-end; gap: var(--space-8); height: 96px; margin-top: var(--space-12); padding-bottom: var(--space-4); border-bottom: var(--border-1); }
-  .bar { flex: 1; border-radius: var(--radius-3) var(--radius-3) 0 0; transform-origin: 50% 100%; background: linear-gradient(180deg, var(--color-accent), var(--color-accent)); }
-  .bar.def { background: var(--color-blue-900); }
-  .legend { display: flex; gap: var(--space-12); margin-top: var(--space-8); }
-  .legend span::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: var(--radius-3); margin-right: var(--space-4); background: var(--color-accent); vertical-align: -1px; }
-  .legend span.def::before { background: var(--color-blue-900); }
-  .rows { display: grid; gap: 0; }
-  .row { position: relative; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: var(--space-8); padding: var(--space-8) 0; border-bottom: var(--border-1); }
-  .row:last-child { border-bottom: 0; }
-  .row-over { position: absolute; inset: 0; background: var(--color-background); display: grid; grid-template-columns: 1fr auto; align-items: center; gap: var(--space-8); }
-  .panel-schedule { right: -24px; top: 300px; width: 300px; padding: var(--space-16); }
-  .sched { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--space-2); margin-top: var(--space-12); }
-  .sched i { height: 24px; border-radius: var(--radius-3); background: var(--color-surface-2); display: block; }
-  .sched i.on { background: var(--color-accent); }
-  .sched i.now { background: var(--color-accent); }
-  .panel-match { left: -24px; top: 360px; width: 260px; padding: var(--space-16); }
-  .match-line { display: flex; align-items: center; justify-content: space-between; margin-top: var(--space-8); }
-  .toast { position: absolute; right: var(--space-16); top: 252px; display: inline-flex; align-items: center; gap: var(--space-8); padding: var(--space-8) var(--space-12); background: var(--color-text-secondary); color: var(--color-background); border-radius: var(--radius-1); box-shadow: var(--shadow-3); }
-  .toast b { width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--color-lime-700); display: block; }
-  @media (max-width: 939px) { .stage { min-height: 600px; } .panel-schedule { right: 0; } .panel-match { left: 0; } }
+  /* ---------- steps (content) ---------- */
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-32); margin-top: var(--space-64); border-top: 1px solid var(--color-border); }
+  .steps > li { padding-top: var(--space-24); position: relative; }
+  .steps > li::before { content: ""; position: absolute; top: -1px; left: 0; width: 48px; height: 1px; background: var(--color-accent); }
+  .steps .num { font: 400 14px/18px var(--font-sans); color: var(--color-accent); margin-bottom: var(--space-16); display: block; }
+  .steps h3 { margin-bottom: var(--space-8); }
+  .steps ul.sub { margin-top: var(--space-16); display: grid; gap: var(--space-4); }
+  @media (max-width: 899px) { .steps { grid-template-columns: 1fr 1fr; } }
 
-  /* ---------- logos ---------- */
-  .logos { padding-block: var(--space-64); border-bottom: var(--border-1); }
-  .logo-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--space-24); align-items: center; margin-top: var(--space-24); }
-  .logo-row span { color: var(--color-indigo-400); text-align: center; }
-  @media (max-width: 939px) { .logo-row { grid-template-columns: repeat(3, 1fr); } }
+  .hl { position: absolute; inset: 0; background: var(--color-surface); opacity: 0; pointer-events: none; z-index: -1; border-radius: 4px; }
+  .hov { position: relative; z-index: 0; }
+  .hov:hover > .hl { opacity: 1; }
+  .delta { font: 400 12px/16px var(--font-sans); color: var(--color-indigo-300); margin-top: var(--space-8); }
+  .tick { height: 30px; overflow: hidden; }
+  .tick p { height: 30px; }
+  /* ---------- product grid ---------- */
+  .bento { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-16); }
+  .tile { position: relative; overflow: hidden; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-background); min-height: 690px; padding: var(--space-24); }
+  .tile h3 { position: relative; z-index: 2; max-width: 320px; }
+  .tile .expand { position: absolute; z-index: 3; top: 16px; right: 16px; width: 32px; height: 32px; border-radius: 4px; background: var(--color-surface-3); color: var(--color-accent); display: grid; place-items: center; }
+  .span-2 { grid-column: span 2; }
+  .span-3 { grid-column: span 3; min-height: 450px; }
+  @media (max-width: 899px) { .bento { grid-template-columns: 1fr; } .span-2, .span-3 { grid-column: auto; } }
+  .blob { position: absolute; border-radius: 9999px; filter: blur(48px); pointer-events: none; }
+  .blob.o { background: radial-gradient(50% 50%, var(--color-amber-600) 27.4%, transparent 100%); }
+  .blob.v { background: radial-gradient(50% 50%, var(--color-accent) 23.56%, transparent 100%); }
+  .tile canvas { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 560px; }
 
-  /* ---------- features ---------- */
-  .feature { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-64); align-items: center; }
-  .feature.flip .feature-copy { order: 2; }
-  .feature-copy .text-h1-medium { margin-top: var(--space-12); }
-  .feature-copy .text-title-light { margin-top: var(--space-16); }
-  .checks { margin-top: var(--space-24); display: grid; gap: var(--space-8); }
-  .checks li { display: flex; gap: var(--space-12); align-items: baseline; }
-  .checks li::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--color-amber-600); opacity: 0.8; transform: translateY(-1px); }
-  .feature-copy .link-4 { display: inline-flex; margin-top: var(--space-24); }
-  .art { position: relative; border-radius: var(--radius-1); background: var(--color-surface); padding: var(--space-32); overflow: hidden; min-height: 360px; }
-  .art-glow { position: absolute; width: 520px; height: 520px; left: 50%; bottom: -320px; transform: translateX(-50%); border-radius: var(--radius-full);
-    background: radial-gradient(50% 50%, var(--color-yellow-800), var(--color-yellow-800-2) 30%, var(--color-blue-900) 55%, transparent 75%); opacity: 0.7; }
-  .art-glow.violet { background: radial-gradient(50% 50%, var(--color-accent), var(--color-pink-600) 33%, var(--color-surface-2) 66%, transparent 80%); opacity: 0.55; }
-  .art .card-7 { position: relative; padding: var(--space-16); }
-  .art .card-7 + .card-7 { margin-top: var(--space-16); }
-  .table { width: 100%; border-collapse: collapse; }
-  .table th, .table td { text-align: left; padding: var(--space-8) 0; border-bottom: var(--border-1); }
-  .table tr:last-child td { border-bottom: 0; }
-  .table td:last-child, .table th:last-child { text-align: right; }
-  .progress { height: 4px; border-radius: var(--radius-full); background: var(--color-surface-2); overflow: hidden; margin-top: var(--space-8); }
-  .progress i { display: block; height: 100%; background: var(--color-accent); transform-origin: 0 50%; }
-  @media (max-width: 939px) { .feature { grid-template-columns: 1fr; gap: var(--space-32); } .feature.flip .feature-copy { order: 0; } }
+  /* product UI grammar: 10/11/9px labels, 42px rows, 14/16/9px icons, 19px chips */
+  .ui { font-family: var(--font-sans); color: var(--color-ui-text-1); }
+  .ui-win { position: absolute; background: var(--color-ui-panel); border-radius: 8px; box-shadow: var(--shadow-2); overflow: hidden; }
+  .ui-bar { height: 28px; display: flex; align-items: center; gap: var(--space-4); padding: 0 12px; background: var(--color-surface); border-bottom: 1px solid var(--color-surface-2); }
+  .ui-bar i { width: 8px; height: 8px; border-radius: 9999px; background: var(--color-surface-2); }
+  .ui-bar .url { margin: 0 auto; display: inline-flex; gap: var(--space-4); align-items: center; height: 18px; padding: 0 12px; border-radius: 9999px; background: var(--color-background); color: var(--color-ui-text-3); font-size: 9px; }
+  .l8 { font-size: 8px; } .l9 { font-size: 9px; } .l10 { font-size: 10px; } .l11 { font-size: 11px; } .l12 { font-size: 12px; } .l26 { font-size: 26px; font-weight: 300; letter-spacing: -0.02em; }
+  .t1 { color: var(--color-ui-text-1); } .t2 { color: var(--color-ui-text-2); } .t3 { color: var(--color-ui-text-3); } .t4 { color: var(--color-ui-text-4); } .t5 { color: var(--color-ui-text-5); }
+  .b { font-weight: 400; }
+  .ui-row { height: 42px; display: flex; align-items: center; gap: var(--space-8); padding: 0 12px; border-bottom: 1px solid var(--color-surface-2); }
+  .ui-row.r36 { height: 36px; } .ui-row.r29 { height: 29px; } .ui-row.r34 { height: 34px; }
+  .ui-row .grow { flex: 1; min-width: 0; }
+  .chip { height: 19px; display: inline-flex; align-items: center; gap: var(--space-4); padding: 0 8px; border-radius: 4px; font: 400 11px/1.4 var(--font-sans); white-space: nowrap; }
+  .chip.ok { background: var(--color-white-1000); color: var(--color-indigo-300); }
+  .chip.go { background: var(--color-surface-3); color: var(--color-accent); }
+  .chip.warn { background: var(--color-surface); color: var(--color-orange-500); border: 1px solid var(--color-surface-2); }
+  .chip.done { background: var(--color-surface); color: var(--color-lime-700); border: 1px solid var(--color-surface-2); }
+  .radio { width: 12px; height: 12px; border-radius: 9999px; border: 1px solid var(--color-surface-2); flex: none; }
+  .radio.on { border: 4px solid var(--color-accent); }
+  .ini { width: 16px; height: 16px; border-radius: 9999px; display: grid; place-items: center; color: var(--color-background); font: 500 8px/1 var(--font-sans); flex: none; }
+  .ui-field { height: 29px; border: 1px solid var(--color-surface-2); border-radius: 4px; display: flex; align-items: center; gap: var(--space-8); padding: 0 8px; }
+  .ui-btn { height: 30px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font: 500 10px/1 var(--font-sans); }
+  .ui-side { width: 200px; border-right: 1px solid var(--color-surface-2); padding: 12px 8px; }
+  .ui-side .nv { height: 29px; display: flex; align-items: center; gap: var(--space-8); padding: 0 8px; border-radius: 4px; color: var(--color-ui-text-2); }
+  .ui-side .nv.on { background: var(--color-surface); color: var(--color-accent); }
+  .ui-th { display: grid; height: 29px; align-items: center; padding: 0 12px; border-bottom: 1px solid var(--color-surface-2); }
+  .ui-tr { display: grid; height: 34px; align-items: center; padding: 0 12px; border-bottom: 1px solid var(--color-surface-2); }
+  .bars { display: flex; align-items: flex-end; gap: var(--space-3); height: 100%; }
+  .bars span { flex: 1; background: linear-gradient(var(--color-violet-600), var(--color-accent)); border-radius: 2px 2px 0 0; transform-origin: bottom; }
+  .bars span.p { background: linear-gradient(var(--color-yellow-800), var(--color-amber-600)); }
 
-  /* integration cards (hover choreography as measured) */
-  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-16); margin-top: var(--space-48); }
-  .tile { position: relative; display: block; border-radius: var(--radius-1); overflow: hidden; padding: var(--space-24); background: var(--color-background); border: var(--border-1); }
-  .tile .text-h2-medium { color: var(--color-text); }
-  .tile .text-body { margin-top: var(--space-8); color: var(--color-text-tertiary); }
-  .tile-strip { position: absolute; left: 50%; bottom: 0; width: 200%; height: 4px; transform: translateX(-50%) translateX(0px);
-    background: linear-gradient(90deg, var(--color-blue-900), var(--color-accent), var(--color-pink-600), var(--color-amber-600), var(--color-yellow-900), var(--color-blue-900)); }
-  .tile:hover .tile-strip { transform: translateX(-50%) translateX(-20%); }
-  .tile-arrow { position: absolute; top: var(--space-24); right: var(--space-24); width: 24px; height: 24px; border-radius: var(--radius-2); display: grid; place-items: center; background: var(--color-surface-2); color: var(--color-accent); opacity: 0; }
-  .tile:hover .tile-arrow { opacity: 1; }
-  .index-links { display: flex; flex-wrap: wrap; gap: var(--space-24); margin-top: var(--space-24); }
-  .chips { display: flex; flex-wrap: wrap; gap: var(--space-8); margin-top: var(--space-16); }
-  @media (max-width: 939px) { .grid-3 { grid-template-columns: 1fr; } }
+  /* close-pack illustration */
+  .pack { position: absolute; left: 50%; top: 220px; transform: translateX(-50%); width: 252px; height: 380px; }
 
-  /* ---------- metrics ---------- */
-  .metrics { background: var(--color-surface); overflow: hidden; }
-  .metrics .text-h2 { text-align: center; color: var(--color-text-quaternary); }
-  .metric-row { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); margin-top: var(--space-64); border-top: var(--border-1); border-bottom: var(--border-1); }
-  .metric { padding: var(--space-32) var(--space-16); text-align: center; }
-  .metric .text-body-light-2 { margin-top: var(--space-8); }
-  .metric.lead .text-display, .metric.lead .text-body-light-2 { color: var(--color-text); }
-  .metrics-glow { position: relative; height: 320px; margin-top: var(--space-32);
-    background: radial-gradient(102.83% 103.24% at 49.98% 104.51%, var(--color-yellow-800) 0px, var(--color-yellow-800-2) 16.73%, var(--color-blue-900) 33.03%, var(--color-blue-900-2) 43.38%, var(--color-surface) 59.16%); }
-  @media (max-width: 939px) { .metric-row { grid-template-columns: repeat(2, 1fr); } }
+  /* ---------- image stage ---------- */
+  .stage { position: relative; border-radius: 6px; overflow: hidden; }
+  .stage img { width: 100%; height: 400px; object-fit: cover; }
+  .stage .over { position: absolute; left: 24px; top: 32px; max-width: 520px; color: var(--color-background); }
+  .stage .over h2 { margin-bottom: var(--space-32); }
+  .stage .tagline { position: absolute; right: 24px; bottom: 24px; color: var(--color-background); font: 500 24px/1 var(--font-sans); letter-spacing: -0.02em; }
+  .stage .tagline span { font-weight: 300; }
 
-  /* ---------- pricing ---------- */
-  .pricing-head { max-width: 640px; }
-  .pricing-head .text-title-light { margin-top: var(--space-16); }
-  .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-16); margin-top: var(--space-48); align-items: stretch; }
-  .tier { display: flex; flex-direction: column; padding: var(--space-32); border-radius: var(--radius-1); }
-  .tier.card-7 { border-radius: var(--radius-1); }
-  .tier .text-display { margin-top: var(--space-16); color: var(--color-text); }
-  .tier .per { margin-top: var(--space-4); }
-  .tier .text-body { margin-top: var(--space-16); }
-  .tier ul { margin-top: var(--space-24); display: grid; gap: var(--space-8); flex: 1; }
-  .tier li { display: flex; gap: var(--space-8); }
-  .tier li::before { content: "✓"; color: var(--color-accent); }
-  .tier .cta { margin-top: var(--space-32); }
-  .tier.dark { background: var(--color-text-secondary); color: var(--color-white-1000); box-shadow: var(--shadow-2); }
-  .tier.dark .text-h1-medium-2, .tier.dark .text-display { color: var(--color-background); }
-  .tier.dark .muted, .tier.dark .soft { color: var(--color-indigo-600); }
-  .tier.dark li::before { color: var(--color-blue-900); }
-  .tier.dark .button-primary:hover { background-color: var(--color-background); color: var(--color-text-secondary); }
-  .tier-top { display: flex; align-items: center; justify-content: space-between; }
-  .button-secondary:hover { background-color: var(--color-text-secondary); }
-  .button-outline:hover { background-color: var(--color-surface); }
-  @media (max-width: 939px) { .tiers { grid-template-columns: 1fr; } }
+  /* ---------- stats band ---------- */
+  .band { background: var(--color-surface); overflow: hidden; padding-top: var(--space-112); }
+  .band h2 { text-align: center; max-width: 640px; margin: 0 auto var(--space-16); color: var(--color-text-quaternary); }
+  .band .sub { text-align: center; max-width: 560px; margin: 0 auto var(--space-64); }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); border-block: 1px solid var(--color-border); position: relative; }
+  .stats > div { padding: 40px 16px; text-align: center; }
+  .stats .n { font: 300 48px/1.15 var(--font-sans); letter-spacing: -0.021em; display: block; margin-bottom: var(--space-8); }
+  .stats .wipe { position: absolute; top: -1px; left: 0; width: 25%; height: 1px; background: linear-gradient(90deg, transparent, var(--color-indigo-300-3), transparent); }
+  @media (max-width: 899px) { .stats { grid-template-columns: 1fr 1fr; } }
+  .glow { height: 420px; background: radial-gradient(102.83% 103.24% at 49.98% 104.51%, var(--color-yellow-800) 0px, var(--color-yellow-800-2) 16.73%, var(--color-blue-900) 33.03%, var(--color-blue-900-2) 43.38%, var(--color-background) 59.16%, var(--color-surface) 100%); }
 
-  /* ---------- testimonial ---------- */
-  .quote { display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-64); align-items: end; }
-  .quote blockquote { margin: 0; color: var(--color-text); }
-  .who { display: flex; align-items: center; gap: var(--space-16); margin-top: var(--space-32); }
-  .avatar { width: 48px; height: 48px; border-radius: var(--radius-full); background: radial-gradient(circle, var(--color-accent), var(--color-pink-600) 33%, var(--color-surface-2) 66%); }
-  .quote-stats { display: grid; gap: var(--space-24); border-left: var(--border-1); padding-left: var(--space-32); }
-  .quote-stats .text-h1-medium-3 { color: var(--color-text); }
-  .round-btn { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: var(--radius-full); border: var(--border-2); color: var(--color-accent); margin-top: var(--space-24); }
-  @media (max-width: 939px) { .quote { grid-template-columns: 1fr; } .quote-stats { border-left: 0; padding-left: 0; } }
+  /* ---------- sizes (card row) ---------- */
+  .sizes .lead { padding-bottom: var(--space-64); border-bottom: 1px solid var(--color-border); max-width: none; }
+  .sizes .lead h2 { max-width: 760px; }
+  .seg { padding-top: var(--space-64); }
+  .seg h3 { margin-bottom: var(--space-24); max-width: 440px; }
+  .story-head { display: flex; align-items: center; gap: var(--space-16); margin: 56px 0 var(--space-24); }
+  .story-head .lg { width: 40px; height: 40px; border-radius: 4px; display: grid; place-items: center; flex: none; }
+  .story-head .btn-o { margin-left: auto; border: 1px solid var(--color-border); border-radius: 4px; padding: 8px 20px; }
+  .story-img { border-radius: 6px; overflow: hidden; }
+  .story-img img { width: 100%; height: 531px; object-fit: cover; }
+  .story-facts { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: var(--space-24); padding: var(--space-24) 0; border-bottom: 1px solid var(--color-border); }
+  .acc li { display: flex; align-items: center; gap: var(--space-16); height: 72px; border-bottom: 1px solid var(--color-border); }
+  .acc .lg { width: 40px; height: 40px; border-radius: 4px; display: grid; place-items: center; flex: none; }
+  .acc .plus { margin-left: auto; width: 40px; height: 40px; border-radius: 4px; background: var(--color-surface-3); color: var(--color-accent); display: grid; place-items: center; }
+  .seg-title { margin: 80px 0 var(--space-40); }
+  .carousel-nav { display: flex; justify-content: flex-end; gap: var(--space-8); margin: var(--space-24) 0; }
+  .round-btn { width: 40px; height: 40px; border-radius: 4px; border: 1px solid var(--color-surface-2); display: grid; place-items: center; color: var(--color-accent); background: var(--color-background); }
+  .covers { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-16); }
+  .cover { border-radius: 6px; overflow: hidden; position: relative; background: var(--color-surface-2); }
+  .cover img { width: 100%; height: 400px; object-fit: cover; }
+  .cover .mk { position: absolute; left: 16px; bottom: 16px; color: var(--color-background); }
+  .covers figcaption { padding-top: var(--space-16); }
+  .covers figcaption p { margin-bottom: var(--space-12); }
+  @media (max-width: 899px) { .covers { grid-template-columns: 1fr 1fr; } }
+  .prog { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-16); margin-top: var(--space-64); }
+  .prog > div { position: relative; overflow: hidden; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 6px; padding: var(--space-40) var(--space-24); min-height: 170px; }
+  .prog p { max-width: 340px; margin-bottom: var(--space-12); }
+  .prog svg.tri { position: absolute; right: 0; top: 0; height: 100%; }
+  .wide-img { margin-top: var(--space-64); border-radius: 6px; overflow: hidden; border: 1px solid var(--color-border); }
+  .wide-img img { width: 100%; height: 480px; object-fit: cover; }
+  .quote { text-align: center; max-width: 820px; margin: 112px auto 0; }
+  .quote blockquote { color: var(--color-text-quaternary); margin-bottom: var(--space-24); }
+  .tabs4 { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: var(--space-64); border-top: 1px solid var(--color-border); }
+  .tabs4 > div { display: grid; place-items: center; height: 96px; color: var(--color-text-quaternary); position: relative; }
+  .tabs4 > div.on { color: var(--color-text); }
+  .tabs4 > div.on::before { content: ""; position: absolute; top: -1px; left: 0; right: 0; height: 1px; background: var(--color-accent); transform-origin: left; }
 
-  /* ---------- closing CTA + footer ---------- */
-  .closing { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: var(--space-48); padding-block: var(--space-64); border-top: var(--border-1); }
-  .closing .text-title-light { margin-top: var(--space-16); }
-  .closing .hero-ctas { margin-top: var(--space-24); }
-  .closing h3 { color: var(--color-text); }
-  .closing p.text-body { margin-top: var(--space-8); }
-  footer { background: var(--color-surface); padding-block: var(--space-64); }
-  .foot { display: grid; grid-template-columns: 1.4fr repeat(4, 1fr); gap: var(--space-32); }
-  .foot h4 { color: var(--color-text); margin-bottom: var(--space-12); }
-  .foot ul { display: grid; gap: var(--space-8); }
-  .foot .link:hover, .link:hover { color: var(--color-text); }
-  .legal { display: flex; justify-content: space-between; margin-top: var(--space-48); padding-top: var(--space-24); border-top: var(--border-1); }
-  .link-3:hover { color: var(--color-text-secondary); }
-  @media (max-width: 939px) { .closing { grid-template-columns: 1fr; } .foot { grid-template-columns: 1fr 1fr; } }
+  /* ---------- developers (dark) ---------- */
+  .dev { background: var(--color-violet-100); color: var(--color-background); }
+  .dev .rail { border-color: var(--color-indigo-200); }
+  .dev h2 .soft2, .dev .soft2 { color: var(--color-indigo-600); }
+  .btn-dark-o { border: 1px solid var(--color-accent); color: var(--color-background); border-radius: 4px; font: 400 16px/16px var(--font-sans); padding: 16px 24px; height: 48px; display: inline-flex; align-items: center; }
+  .dev .block { display: grid; grid-template-columns: 5fr 7fr; gap: var(--space-64); align-items: center; padding-block: var(--space-64); border-top: 1px solid var(--color-indigo-200); }
+  @media (max-width: 899px) { .dev .block { grid-template-columns: 1fr; } }
+  .dev .block p.text-title-lg-light { margin-bottom: var(--space-24); }
+  .dev .stat3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-32); padding-block: var(--space-64); border-top: 1px solid var(--color-indigo-200); }
+  .grad-num { font: 300 48px/1.15 var(--font-sans); letter-spacing: -0.021em; background: linear-gradient(90deg, var(--color-yellow-800-2), var(--color-pink-600) 60%, var(--color-violet-600)); -webkit-background-clip: text; background-clip: text; color: transparent; display: inline-block; margin-bottom: var(--space-8); }
+  .code { background: var(--color-indigo-200); border: 1px solid var(--color-indigo-300-3); border-radius: 8px; overflow: hidden; box-shadow: var(--shadow-3); }
+  .code .tabs { display: flex; gap: var(--space-4); padding: 8px 12px; border-bottom: 1px solid var(--color-indigo-300-3); }
+  .code .tabs span { padding: 4px 12px; border-radius: 4px; font: 400 12px/16px var(--font-sans); color: var(--color-indigo-600); }
+  .code .tabs span.on { background: var(--color-indigo-300-3); color: var(--color-background); }
+  .code pre { margin: 0; padding: 16px 20px; font: 300 13px/21px var(--font-sans); letter-spacing: 0.015em; font-feature-settings: "tnum"; color: var(--color-white-1000); overflow-x: auto; counter-reset: ln; }
+  .code pre span.ln { display: block; }
+  .code pre span.ln::before { counter-increment: ln; content: counter(ln); display: inline-block; width: 24px; margin-right: var(--space-16); color: var(--color-indigo-300-2); text-align: right; }
+  .k { color: var(--color-violet-600); } .s { color: var(--color-yellow-800-2); } .f { color: var(--color-blue-900); } .c { color: var(--color-indigo-500); } .n { color: var(--color-pink-600); }
+  .dev .feat .fi { border-color: var(--color-indigo-300-3); color: var(--color-violet-600); }
+  .dev .feat .callout { color: var(--color-violet-600); }
+  .diagram { width: 100%; height: auto; }
+  .tput { width: 100%; height: 320px; display: block; }
 
-  .callout { color: var(--color-accent); font: 425 15px/24px var(--font-sans); letter-spacing: 0.013em; }
-  .callout:hover { color: var(--color-violet-200); }
+  /* ---------- news / dataviz ---------- */
+  .news-head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: var(--space-40); }
+  .news-head .nav2 { display: flex; gap: var(--space-8); }
+  .news-head .nav2 a { width: 40px; height: 40px; border-radius: 4px; background: var(--color-surface-3); color: var(--color-accent); display: grid; place-items: center; }
+  .report { position: relative; }
+  .report canvas { width: 100%; height: 460px; display: block; }
+  .report-copy { display: flex; gap: var(--space-64); align-items: flex-start; justify-content: space-between; margin-top: var(--space-32); }
+  .report-copy p { max-width: 760px; }
+  .report-copy .btn-o { border: 1px solid var(--color-border); border-radius: 4px; padding: 12px 20px; flex: none; }
+  .book { margin-top: var(--space-40); background: var(--color-surface); border-radius: 6px; display: grid; grid-template-columns: 5fr 7fr; overflow: hidden; min-height: 520px; }
+  .book .cov { background: var(--color-white-1000); display: grid; place-items: center; padding: var(--space-40); }
+  .book .cov img { width: 260px; height: 338px; box-shadow: var(--shadow-2); border-radius: 2px; }
+  .book .txt { padding: var(--space-48); display: flex; flex-direction: column; gap: var(--space-24); }
+  .authors { display: flex; align-items: center; gap: var(--space-12); }
+  .authors img { width: 32px; height: 32px; border-radius: 9999px; }
+  .pubs { display: flex; gap: var(--space-8); margin-top: auto; }
+  .pubs a { display: inline-flex; align-items: center; gap: var(--space-8); border: 1px solid var(--color-surface-2); background: var(--color-background); border-radius: 4px; padding: 4px 12px 4px 4px; }
+  .pubs a i { width: 24px; height: 24px; border-radius: 2px; background: var(--color-text); display: block; }
+
+  /* ---------- CTA + footer ---------- */
+  .cta { background: var(--color-surface); }
+  .cta .grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: var(--space-32); }
+  .cta .grid p.text-title-lg-light { margin: var(--space-16) 0 var(--space-32); }
+  @media (max-width: 899px) { .cta .grid { grid-template-columns: 1fr; } }
+  footer { background: var(--color-surface); border-top: 1px dashed var(--color-surface-2); padding-block: var(--space-64) var(--space-32); }
+  footer .cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-32); }
+  footer h4 { margin-bottom: var(--space-12); }
+  footer ul { display: grid; gap: var(--space-4); margin-bottom: var(--space-40); }
+  footer .base { display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-40); padding-top: var(--space-24); border-top: 1px dashed var(--color-surface-2); }
+  @media (max-width: 899px) { footer .cols { grid-template-columns: 1fr 1fr; } }
 </style>
 </head>
 <body>
-
-<!-- ================= NAV ================= -->
-<header class="nav" data-reveal="reveal-fade-down-50">
-  <div class="container nav-inner">
-    <a class="brand" href="#" aria-label="Ledgerline home">
-      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="4" height="16" rx="2" fill="var(--color-accent)"/><rect x="10" y="8" width="4" height="12" rx="2" fill="var(--color-violet-600)"/><rect x="17" y="12" width="4" height="8" rx="2" fill="var(--color-amber-600)"/></svg>
-      <span class="text-h2-medium">Ledgerline</span>
-    </a>
-    <nav class="nav-links" aria-label="Primary">
-      <a class="link-2" href="#recognition">Product<svg class="chev hover-transform-57" width="8" height="8" viewBox="0 0 8 8" aria-hidden="true"><path d="M1 3l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></a>
-      <a class="link-2" href="#reconcile">Solutions<svg class="chev" width="8" height="8" viewBox="0 0 8 8" aria-hidden="true"><path d="M1 3l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></a>
-      <a class="link-2" href="#integrations">Developers</a>
-      <a class="link-2" href="#customers">Customers</a>
-      <a class="link-2" href="#pricing">Pricing</a>
-    </nav>
-    <div class="nav-right">
-      <a class="link-4" href="#">Sign in ›</a>
-      <a class="button-primary" href="#pricing">Talk to sales ›</a>
-    </div>
-  </div>
+<header class="site-head">
+  <nav class="container" data-reveal="reveal-fade-down-50" aria-label="Main">
+    <a class="brand" href="#"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect x="1" y="1" width="20" height="20" rx="4" fill="var(--color-accent)"/><path d="M7 5v12h9" fill="none" stroke="var(--color-background)" stroke-width="2.4"/><path d="M11 9h5M11 13h5" stroke="var(--color-background)" stroke-width="1.6"/></svg>Ledgerline</a>
+    <div class="nav-links"><a class="link-2" href="#" data-intro="intro-fade-out-2">Products<svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></a><a class="link-2" href="#" data-intro="intro-fade-out-2">Solutions<svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></a><a class="link-2" href="#" data-intro="intro-fade-out-2">Developers<svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></a><a class="link-2" href="#" data-intro="intro-fade-out-2">Resources<svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></a><a class="link-2" href="#" data-intro="intro-fade-out-2">Pricing</a></div>
+    <div class="nav-right"><a class="btn-ghost hover-tint-58" href="#">Sign in</a><a class="button-primary hover-tint-58" href="#">Contact sales <svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></div>
+  </nav>
 </header>
-
-<main>
-<!-- ================= HERO ================= -->
-<section class="hero">
-  <div class="hero-band" data-intro="intro-fade-9" aria-hidden="true"></div>
-  <div class="container hero-grid">
+<section class="hero" aria-labelledby="hero-h">
+  <canvas id="wave" data-intro="intro-fade-9" aria-hidden="true"></canvas>
+  <div class="container">
     <div class="hero-copy">
-      <span class="eyebrow badge-5" data-intro="intro-fade-out-2" style="--i:0">ASC 606 &amp; IFRS 15, automated</span>
-      <h1 class="text-h1" data-intro="intro-fade-out-2" style="--i:1">Revenue that recognises itself. Books that close on time.</h1>
-      <p class="text-title-light muted" data-intro="intro-fade-out-2" style="--i:2">Ledgerline turns every invoice, plan change and refund into audit-ready revenue schedules, then reconciles each payout against your bank to the cent. Finance teams at subscription companies close in days, not weeks.</p>
-      <div class="hero-ctas" data-intro="intro-fade-out-2" style="--i:3">
-        <a class="button-primary" href="#pricing">Start a free trial ›</a>
-        <a class="link-4" href="#recognition">See how it works ›</a>
-      </div>
+      <a class="pill text-caption" href="#" data-intro="intro-fade-out-2" style="--i:0"><b>New</b><span class="t4">The 2026 Close Report: how 2,400 finance teams close</span><svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a>
+      <h1 id="hero-h" class="text-display" data-intro="intro-fade-out-2" style="--i:1">Revenue infrastructure to close your books faster.</h1>
+      <p class="lede text-title-light muted" data-intro="intro-fade-out-2" style="--i:2">Join the subscription companies that use Ledgerline to recognise revenue under ASC&nbsp;606 and IFRS&nbsp;15, reconcile every payout to the cent and hand auditors a close pack they can trust.</p>
+      <div class="row-actions" data-intro="intro-fade-out-2" style="--i:3"><a class="button-secondary" href="#">Start now <svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a><a class="button-outline" href="#">Talk to a revenue expert</a></div>
     </div>
-
-    <div class="stage" aria-label="Ledgerline dashboard preview">
-      <div class="panel panel-main" data-intro="intro-fade-17" style="--i:0">
-        <div class="panel-head">
-          <div class="dots"><i></i><i></i><i></i></div>
-          <span class="text-caption soft">Revenue · October close</span>
-          <span class="badge-3">Live</span>
-        </div>
-        <div class="panel-body">
-          <div>
-            <div class="kpi">
-              <p class="text-micro soft">Recognised this month</p>
-              <div class="ticker">
-                <div class="text-h1-medium-3 ink" data-intro="intro-up-3">$1,284,310</div>
-                <div class="text-h1-medium-3 ink" data-intro="intro-up-3">$1,291,742</div>
-              </div>
-              <div class="chart" aria-hidden="true">
-                <div class="bar" data-intro="intro-fade-scale-4" style="--i:0;height:42%"></div>
-                <div class="bar def" data-intro="intro-fade-scale-4" style="--i:1;height:30%"></div>
-                <div class="bar" data-intro="intro-fade-scale-4" style="--i:2;height:56%"></div>
-                <div class="bar def" data-intro="intro-fade-scale-4" style="--i:3;height:36%"></div>
-                <div class="bar" data-intro="intro-fade-scale-4" style="--i:4;height:68%"></div>
-                <div class="bar def" data-intro="intro-fade-scale-4" style="--i:5;height:40%"></div>
-                <div class="bar" data-intro="intro-fade-scale-4" style="--i:6;height:84%"></div>
-                <div class="bar def" data-intro="intro-fade-scale-4" style="--i:7;height:44%"></div>
-                <div class="bar" data-intro="intro-fade-scale-4" style="--i:8;height:100%"></div>
-              </div>
-              <div class="legend text-micro-light soft"><span>Recognised</span><span class="def">Deferred</span></div>
-            </div>
-          </div>
-          <div class="rows">
-            <p class="text-micro soft">Payout matching</p>
-            <div class="row"><span class="text-micro-light ink">po_8KQ2 · Oct 24</span><span class="badge-3">Matched</span></div>
-            <div class="row"><span class="text-micro-light ink">po_8KP9 · Oct 23</span><span class="badge-3">Matched</span></div>
-            <div class="row">
-              <span class="text-micro-light ink">po_8KN1 · Oct 22</span><span class="badge-2">Pending</span>
-              <div class="row-over" data-intro="intro-down-wipe-10"><span class="text-micro-light ink">po_8KN1 · Oct 22</span><span class="badge-3">Matched</span></div>
-            </div>
-            <div class="row"><span class="text-micro-light ink">po_8KM6 · Oct 21</span><span class="badge-3">Matched</span></div>
-            <div class="row"><span class="text-micro-light ink">po_8KL3 · Oct 20</span><span class="badge-4">Review</span></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="toast" data-intro="intro-fade-8"><b></b><span class="text-micro">October ledger balanced</span></div>
-
-      <div class="panel panel-schedule" data-intro="intro-fade-13" style="--i:1">
-        <div class="tier-top"><span class="text-body-regular ink">Annual plan · Acme Seats</span><span class="badge-2">ASC 606</span></div>
-        <p class="text-micro-light soft" style="margin-top:var(--space-4)">$24,000 · straight-line over 12 months</p>
-        <div class="sched" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="now"></i><i></i><i></i></div>
-        <div class="match-line"><span class="text-micro soft">Recognised</span><span class="text-micro ink">$20,000</span></div>
-        <div class="match-line"><span class="text-micro soft">Deferred</span><span class="text-micro ink">$4,000</span></div>
-      </div>
-
-      <div class="panel panel-match" data-intro="intro-fade-13" style="--i:2">
-        <p class="text-micro soft">Bank deposit · First Harbor ••4410</p>
-        <p class="text-h1-medium-3 ink" style="margin-top:var(--space-4)">$48,912.07</p>
-        <div class="match-line"><span class="text-micro-light soft">412 charges − 9 refunds − fees</span><span class="badge-3">Δ $0.00</span></div>
-      </div>
-    </div>
+    <div class="logo-strip" aria-label="Companies closing on Ledgerline"><ul data-intro="intro-slide-43"><li data-intro="intro-fade-out-2"><svg class="mark" width="127" height="28" viewBox="0 0 127 28" role="img" aria-label="Northwave"><circle cx="12" cy="14" r="8" fill="none" stroke="currentColor" stroke-width="3"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="600" letter-spacing="-0.3" fill="currentColor">Northwave</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="96" height="28" viewBox="0 0 96 28" role="img" aria-label="Quanta"><path d="M4 22L12 6l8 16z" fill="currentColor"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="500" letter-spacing="-0.3" fill="currentColor">Quanta</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="106" height="28" viewBox="0 0 106 28" role="img" aria-label="Halvard"><rect x="4" y="6" width="16" height="16" rx="3" fill="currentColor"/><rect x="9" y="11" width="6" height="6" fill="var(--color-background)"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="700" letter-spacing="-0.3" fill="currentColor">Halvard</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="127" height="28" viewBox="0 0 127 28" role="img" aria-label="Pinecrest"><path d="M4 14a8 8 0 0116 0M4 18a8 8 0 0016 0" fill="none" stroke="currentColor" stroke-width="3"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="400" letter-spacing="-0.3" fill="currentColor">Pinecrest</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="127" height="28" viewBox="0 0 127 28" role="img" aria-label="Fernbrook"><path d="M6 6h12v4H10v2h7v4h-7v6H6z" fill="currentColor"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="600" letter-spacing="-0.3" fill="currentColor">Fernbrook</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="106" height="28" viewBox="0 0 106 28" role="img" aria-label="Orbitly"><circle cx="8" cy="14" r="5" fill="currentColor"/><circle cx="17" cy="14" r="5" fill="none" stroke="currentColor" stroke-width="2.5"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="500" letter-spacing="-0.3" fill="currentColor">Orbitly</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="106" height="28" viewBox="0 0 106 28" role="img" aria-label="Kestrel"><path d="M4 20l6-12 4 7 3-4 4 9z" fill="currentColor"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="700" letter-spacing="-0.3" fill="currentColor">Kestrel</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="117" height="28" viewBox="0 0 117 28" role="img" aria-label="Tidepool"><path d="M12 4l9 5v10l-9 5-9-5V9z" fill="none" stroke="currentColor" stroke-width="2.6"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="400" letter-spacing="-0.3" fill="currentColor">Tidepool</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="138" height="28" viewBox="0 0 138 28" role="img" aria-label="Brightline"><circle cx="12" cy="14" r="8" fill="none" stroke="currentColor" stroke-width="3"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="600" letter-spacing="-0.3" fill="currentColor">Brightline</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="148" height="28" viewBox="0 0 148 28" role="img" aria-label="Cobalt Labs"><path d="M4 22L12 6l8 16z" fill="currentColor"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="500" letter-spacing="-0.3" fill="currentColor">Cobalt Labs</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="106" height="28" viewBox="0 0 106 28" role="img" aria-label="Sundial"><rect x="4" y="6" width="16" height="16" rx="3" fill="currentColor"/><rect x="9" y="11" width="6" height="6" fill="var(--color-background)"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="700" letter-spacing="-0.3" fill="currentColor">Sundial</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="117" height="28" viewBox="0 0 117 28" role="img" aria-label="Parcelry"><path d="M4 14a8 8 0 0116 0M4 18a8 8 0 0016 0" fill="none" stroke="currentColor" stroke-width="3"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="400" letter-spacing="-0.3" fill="currentColor">Parcelry</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="148" height="28" viewBox="0 0 148 28" role="img" aria-label="Hearthstack"><path d="M6 6h12v4H10v2h7v4h-7v6H6z" fill="currentColor"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="600" letter-spacing="-0.3" fill="currentColor">Hearthstack</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="117" height="28" viewBox="0 0 117 28" role="img" aria-label="Meridian"><circle cx="8" cy="14" r="5" fill="currentColor"/><circle cx="17" cy="14" r="5" fill="none" stroke="currentColor" stroke-width="2.5"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="500" letter-spacing="-0.3" fill="currentColor">Meridian</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="86" height="28" viewBox="0 0 86 28" role="img" aria-label="Lumio"><path d="M4 20l6-12 4 7 3-4 4 9z" fill="currentColor"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="700" letter-spacing="-0.3" fill="currentColor">Lumio</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="106" height="28" viewBox="0 0 106 28" role="img" aria-label="Vantage"><path d="M12 4l9 5v10l-9 5-9-5V9z" fill="none" stroke="currentColor" stroke-width="2.6"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="400" letter-spacing="-0.3" fill="currentColor">Vantage</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="138" height="28" viewBox="0 0 138 28" role="img" aria-label="Copperleaf"><circle cx="12" cy="14" r="8" fill="none" stroke="currentColor" stroke-width="3"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="600" letter-spacing="-0.3" fill="currentColor">Copperleaf</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="127" height="28" viewBox="0 0 127 28" role="img" aria-label="Atlasware"><path d="M4 22L12 6l8 16z" fill="currentColor"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="500" letter-spacing="-0.3" fill="currentColor">Atlasware</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="127" height="28" viewBox="0 0 127 28" role="img" aria-label="Northwave"><circle cx="12" cy="14" r="8" fill="none" stroke="currentColor" stroke-width="3"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="600" letter-spacing="-0.3" fill="currentColor">Northwave</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="96" height="28" viewBox="0 0 96 28" role="img" aria-label="Quanta"><path d="M4 22L12 6l8 16z" fill="currentColor"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="500" letter-spacing="-0.3" fill="currentColor">Quanta</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="106" height="28" viewBox="0 0 106 28" role="img" aria-label="Halvard"><rect x="4" y="6" width="16" height="16" rx="3" fill="currentColor"/><rect x="9" y="11" width="6" height="6" fill="var(--color-background)"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="700" letter-spacing="-0.3" fill="currentColor">Halvard</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="127" height="28" viewBox="0 0 127 28" role="img" aria-label="Pinecrest"><path d="M4 14a8 8 0 0116 0M4 18a8 8 0 0016 0" fill="none" stroke="currentColor" stroke-width="3"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="400" letter-spacing="-0.3" fill="currentColor">Pinecrest</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="127" height="28" viewBox="0 0 127 28" role="img" aria-label="Fernbrook"><path d="M6 6h12v4H10v2h7v4h-7v6H6z" fill="currentColor"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="600" letter-spacing="-0.3" fill="currentColor">Fernbrook</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="106" height="28" viewBox="0 0 106 28" role="img" aria-label="Orbitly"><circle cx="8" cy="14" r="5" fill="currentColor"/><circle cx="17" cy="14" r="5" fill="none" stroke="currentColor" stroke-width="2.5"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="500" letter-spacing="-0.3" fill="currentColor">Orbitly</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="106" height="28" viewBox="0 0 106 28" role="img" aria-label="Kestrel"><path d="M4 20l6-12 4 7 3-4 4 9z" fill="currentColor"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="700" letter-spacing="-0.3" fill="currentColor">Kestrel</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="117" height="28" viewBox="0 0 117 28" role="img" aria-label="Tidepool"><path d="M12 4l9 5v10l-9 5-9-5V9z" fill="none" stroke="currentColor" stroke-width="2.6"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="400" letter-spacing="-0.3" fill="currentColor">Tidepool</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="138" height="28" viewBox="0 0 138 28" role="img" aria-label="Brightline"><circle cx="12" cy="14" r="8" fill="none" stroke="currentColor" stroke-width="3"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="600" letter-spacing="-0.3" fill="currentColor">Brightline</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="148" height="28" viewBox="0 0 148 28" role="img" aria-label="Cobalt Labs"><path d="M4 22L12 6l8 16z" fill="currentColor"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="500" letter-spacing="-0.3" fill="currentColor">Cobalt Labs</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="106" height="28" viewBox="0 0 106 28" role="img" aria-label="Sundial"><rect x="4" y="6" width="16" height="16" rx="3" fill="currentColor"/><rect x="9" y="11" width="6" height="6" fill="var(--color-background)"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="700" letter-spacing="-0.3" fill="currentColor">Sundial</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="117" height="28" viewBox="0 0 117 28" role="img" aria-label="Parcelry"><path d="M4 14a8 8 0 0116 0M4 18a8 8 0 0016 0" fill="none" stroke="currentColor" stroke-width="3"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="400" letter-spacing="-0.3" fill="currentColor">Parcelry</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="148" height="28" viewBox="0 0 148 28" role="img" aria-label="Hearthstack"><path d="M6 6h12v4H10v2h7v4h-7v6H6z" fill="currentColor"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="600" letter-spacing="-0.3" fill="currentColor">Hearthstack</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="117" height="28" viewBox="0 0 117 28" role="img" aria-label="Meridian"><circle cx="8" cy="14" r="5" fill="currentColor"/><circle cx="17" cy="14" r="5" fill="none" stroke="currentColor" stroke-width="2.5"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="500" letter-spacing="-0.3" fill="currentColor">Meridian</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="86" height="28" viewBox="0 0 86 28" role="img" aria-label="Lumio"><path d="M4 20l6-12 4 7 3-4 4 9z" fill="currentColor"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="700" letter-spacing="-0.3" fill="currentColor">Lumio</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="106" height="28" viewBox="0 0 106 28" role="img" aria-label="Vantage"><path d="M12 4l9 5v10l-9 5-9-5V9z" fill="none" stroke="currentColor" stroke-width="2.6"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="400" letter-spacing="-0.3" fill="currentColor">Vantage</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="138" height="28" viewBox="0 0 138 28" role="img" aria-label="Copperleaf"><circle cx="12" cy="14" r="8" fill="none" stroke="currentColor" stroke-width="3"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="600" letter-spacing="-0.3" fill="currentColor">Copperleaf</text></svg></li><li data-intro="intro-fade-out-2"><svg class="mark" width="127" height="28" viewBox="0 0 127 28" role="img" aria-label="Atlasware"><path d="M4 22L12 6l8 16z" fill="currentColor"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="500" letter-spacing="-0.3" fill="currentColor">Atlasware</text></svg></li></ul></div>
   </div>
 </section>
-
-<!-- ================= LOGOS ================= -->
-<section class="logos">
+<section class="section" aria-labelledby="steps-h">
   <div class="container">
-    <p class="text-body soft" style="text-align:center">Finance teams at 900+ subscription companies close with Ledgerline</p>
-    <div class="logo-row">
-      <span class="text-h1-medium-3" data-reveal="reveal-fade-52">Northwind</span>
-      <span class="text-h1-medium-3" data-reveal="reveal-fade-52">Parcelry</span>
-      <span class="text-h1-medium-3" data-reveal="reveal-fade-52">kitebase</span>
-      <span class="text-h1-medium-3" data-reveal="reveal-fade-52">Orbitly</span>
-      <span class="text-h1-medium-3" data-reveal="reveal-fade-52">Hearthstack</span>
-      <span class="text-h1-medium-3" data-reveal="reveal-fade-52">Tallow&amp;Co</span>
+    <div class="split-intro">
+      <h2 id="steps-h" class="text-title-lg-light ink">From signed contract to closed month, in one ledger.</h2>
+      <p class="text-body-light muted">Ledgerline sits between your billing system and your general ledger. It reads every commercial event as it happens, turns it into revenue that follows the standard, and proves each figure against cash in the bank — so the close becomes a review, not a rebuild.</p>
     </div>
+    <ol class="steps" style="list-style:none;padding:0;margin-block:64px 0"><li class="hov" data-reveal="reveal-fade-52" style="--i:0"><div class="hl hover-fade-56"></div><span class="num">01 — Step</span><h3 class="text-h2-medium ink">Ingest every contract</h3><p class="text-body muted">Plans, amendments, credits and refunds stream in from billing, CRM and your product — no spreadsheets in the middle.</p><ul class="sub"><li><a class="callout" href="#" data-reveal="reveal-tint-46">Billing sync<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></li><li><a class="callout" href="#" data-reveal="reveal-tint-46">Contract parser<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></li></ul></li><li class="hov" data-reveal="reveal-fade-52" style="--i:1"><div class="hl hover-fade-56"></div><span class="num">02 — Step</span><h3 class="text-h2-medium ink">Recognise as you earn</h3><p class="text-body muted">Each obligation gets its own schedule: ratable, usage-based or milestone, with standalone selling prices allocated for you.</p><ul class="sub"><li><a class="callout" href="#" data-reveal="reveal-tint-46">Revenue schedules<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></li><li><a class="callout" href="#" data-reveal="reveal-tint-46">SSP allocation<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></li></ul></li><li class="hov" data-reveal="reveal-fade-52" style="--i:2"><div class="hl hover-fade-56"></div><span class="num">03 — Step</span><h3 class="text-h2-medium ink">Reconcile to the bank</h3><p class="text-body muted">Payouts, fees and refunds are matched line by line against bank feeds, with exceptions routed to the right owner.</p><ul class="sub"><li><a class="callout" href="#" data-reveal="reveal-tint-46">Bank matching<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></li><li><a class="callout" href="#" data-reveal="reveal-tint-46">Exception queue<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></li></ul></li><li class="hov" data-reveal="reveal-fade-52" style="--i:3"><div class="hl hover-fade-56"></div><span class="num">04 — Step</span><h3 class="text-h2-medium ink">Close with evidence</h3><p class="text-body muted">Journal entries post to your ERP with a trail from every number back to the invoice, ready for review and audit.</p><ul class="sub"><li><a class="callout" href="#" data-reveal="reveal-tint-46">ERP posting<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></li><li><a class="callout" href="#" data-reveal="reveal-tint-46">Audit trail<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></li></ul></li></ol>
   </div>
 </section>
-
-<!-- ================= FEATURE 1 ================= -->
-<section class="section" id="recognition">
-  <div class="container feature">
-    <div class="feature-copy">
-      <span class="badge-5">Revenue recognition</span>
-      <h2 class="text-h1-medium">Schedules your auditors can read in one pass</h2>
-      <p class="text-title-light muted">Ledgerline reads contracts, invoices and usage straight from your billing system, splits them into performance obligations and builds a recognition schedule for each one. Upgrades, mid-cycle cancellations and credits re-plan automatically.</p>
-      <ul class="checks text-body muted">
-        <li>Standalone selling price allocation across bundles</li>
-        <li>Ratable, point-in-time and usage-based recognition</li>
-        <li>Full audit trail from journal entry back to invoice line</li>
-      </ul>
-      <a class="link-4" href="#">Explore recognition ›</a>
-    </div>
-    <div class="art" data-reveal="reveal-fade-52">
-      <div class="art-glow violet" aria-hidden="true"></div>
-      <div class="card-7">
-        <div class="tier-top"><span class="text-body-regular ink">Contract C-2291 · Pellucid Health</span><span class="badge-4">3 obligations</span></div>
-        <table class="table text-micro-light" style="margin-top:var(--space-12)">
-          <thead><tr class="text-micro soft"><th>Obligation</th><th>Method</th><th>Allocated</th></tr></thead>
-          <tbody class="ink">
-            <tr><td>Platform licence</td><td>Ratable · 24 mo</td><td>$186,400</td></tr>
-            <tr><td>Implementation</td><td>Milestones</td><td>$32,000</td></tr>
-            <tr><td>API usage</td><td>As consumed</td><td>$41,600</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="card-7">
-        <div class="tier-top"><span class="text-micro soft">Recognised to date</span><span class="text-micro ink">61%</span></div>
-        <div class="progress"><i data-reveal="reveal-scale-53"></i></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ================= FEATURE 2 ================= -->
-<section class="section" id="reconcile" style="background:var(--color-surface)">
-  <div class="container feature flip">
-    <div class="feature-copy">
-      <span class="badge-5">Reconciliation</span>
-      <h2 class="text-h1-medium">Every payout matched to the cent, every morning</h2>
-      <p class="text-title-light muted">Processor payouts arrive net of fees, refunds and disputes. Ledgerline unbundles each deposit into the charges behind it, matches it to your bank feed and flags only the exceptions a person needs to see.</p>
-      <ul class="checks text-body muted">
-        <li>Card processors, ACH, wallets and marketplaces in one view</li>
-        <li>Multi-currency with realised FX gain and loss</li>
-        <li>Exceptions routed to the right owner with context</li>
-      </ul>
-      <a class="link-4" href="#">See matching rules ›</a>
-    </div>
-    <div class="art" data-reveal="reveal-fade-52" style="background:var(--color-background)">
-      <div class="art-glow" aria-hidden="true"></div>
-      <div class="card-7">
-        <div class="tier-top"><span class="text-body-regular ink">Today's deposits</span><span class="badge">Auto-matched 98.6%</span></div>
-        <table class="table text-micro-light" style="margin-top:var(--space-12)">
-          <thead><tr class="text-micro soft"><th>Source</th><th>Bank</th><th>Status</th></tr></thead>
-          <tbody class="ink">
-            <tr><td>Card payouts · USD</td><td>$48,912.07</td><td><span class="badge-3">Matched</span></td></tr>
-            <tr><td>ACH debits · USD</td><td>$12,440.00</td><td><span class="badge-3">Matched</span></td></tr>
-            <tr><td>Wallet payouts · EUR</td><td>€9,318.52</td><td><span class="badge-3">Matched</span></td></tr>
-            <tr><td>Marketplace · GBP</td><td>£2,104.90</td><td><span class="badge-4">1 exception</span></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ================= FEATURE 3 ================= -->
-<section class="section" id="close">
-  <div class="container feature">
-    <div class="feature-copy">
-      <span class="badge-5">Close management</span>
-      <h2 class="text-h1-medium">A close that runs on day two, not day twelve</h2>
-      <p class="text-title-light muted">Journal entries post to your general ledger as revenue is earned, so month-end becomes a review instead of a rebuild. Checklists, sign-offs and flux analysis live next to the numbers they explain.</p>
-      <a class="link-4" href="#">Plan your close ›</a>
-    </div>
-    <div class="art" data-reveal="reveal-fade-52">
-      <div class="art-glow violet" aria-hidden="true"></div>
-      <div class="card-7">
-        <div class="tier-top"><span class="text-body-regular ink">October close</span><span class="badge-3">Day 2 of 3</span></div>
-        <div class="rows" style="margin-top:var(--space-8)">
-          <div class="row"><span class="text-micro-light ink">Revenue journal posted to GL</span><span class="badge-3">Done</span></div>
-          <div class="row"><span class="text-micro-light ink">Deferred revenue roll-forward</span><span class="badge-3">Done</span></div>
-          <div class="row"><span class="text-micro-light ink">Payout reconciliation sign-off</span><span class="badge-3">Done</span></div>
-          <div class="row"><span class="text-micro-light ink">Flux review · ARR vs recognised</span><span class="badge-4">In review</span></div>
-          <div class="row"><span class="text-micro-light ink">Controller approval</span><span class="badge-2">Waiting</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ================= FEATURE 4: INTEGRATIONS ================= -->
-<section class="section" id="integrations" style="background:var(--color-surface)">
+<section class="section" style="padding-block:64px 32px" aria-labelledby="stmt-h">
   <div class="container">
-    <div class="pricing-head">
-      <span class="badge-5">Integrations</span>
-      <h2 class="text-h1-medium" style="margin-top:var(--space-12)">Built for the stack you already run</h2>
-      <p class="text-title-light muted">Connect billing, payments, banks and your ERP in an afternoon. Ledgerline keeps them in agreement, and an open API lets your engineers extend every rule.</p>
-      <nav class="index-links" aria-label="Product areas">
-        <a class="link" href="#recognition" data-reveal="reveal-tint-46">Recognition</a>
-        <a class="link" href="#reconcile" data-reveal="reveal-tint-46">Reconciliation</a>
-        <a class="link" href="#close" data-reveal="reveal-tint-46">Close</a>
-        <a class="link" href="#integrations" data-reveal="reveal-tint-46">Reporting</a>
-        <a class="link" href="#integrations" data-reveal="reveal-tint-46">Revenue API</a>
-      </nav>
-    </div>
-    <div class="grid-3">
-      <a class="tile" href="#">
-        <div class="tile-arrow hover-fade-56" aria-hidden="true">›</div>
-        <h3 class="text-h2-medium">Billing systems</h3>
-        <p class="text-body">Plans, invoices, credits and usage sync every fifteen minutes.</p>
-        <div class="chips"><span class="badge">Subscriptions</span><span class="badge">Usage</span><span class="badge">Credits</span></div>
-        <div class="tile-strip hover-slide-60" aria-hidden="true"></div>
-      </a>
-      <a class="tile" href="#">
-        <div class="tile-arrow hover-fade-56" aria-hidden="true">›</div>
-        <h3 class="text-h2-medium">Banks &amp; processors</h3>
-        <p class="text-body">Direct feeds from 40+ banks and every major card processor.</p>
-        <div class="chips"><span class="badge">Bank feeds</span><span class="badge">Payouts</span><span class="badge">FX</span></div>
-        <div class="tile-strip hover-slide-60" aria-hidden="true"></div>
-      </a>
-      <a class="tile" href="#">
-        <div class="tile-arrow hover-fade-56" aria-hidden="true">›</div>
-        <h3 class="text-h2-medium">ERP &amp; general ledger</h3>
-        <p class="text-body">Summarised journals post to your ERP with full drill-down.</p>
-        <div class="chips"><span class="badge">Journals</span><span class="badge">Dimensions</span><span class="badge">API</span></div>
-        <div class="tile-strip hover-slide-60" aria-hidden="true"></div>
-      </a>
-    </div>
+    <h2 id="stmt-h" class="text-title-lg ink" style="max-width:760px">Flexible revenue tools for every pricing model. <span class="soft">Subscriptions, usage, seats and services — recognised, reconciled and reported from one modular platform.</span></h2>
   </div>
 </section>
-
-<!-- ================= METRICS ================= -->
-<section class="section metrics" id="customers">
+<section class="section" style="padding-top:32px" aria-label="Products">
   <div class="container">
-    <h2 class="text-h2">The ledger behind<br>modern subscription finance</h2>
-    <div class="metric-row">
-      <div class="metric lead"><p class="text-display">$41bn</p><p class="text-body-light-2">revenue recognised<br>through Ledgerline in 2026</p></div>
-      <div class="metric"><p class="text-display" data-intro="intro-tint-5">2.3 days</p><p class="text-body-light-2" data-intro="intro-tint-5">median month-end close<br>for customers</p></div>
-      <div class="metric"><p class="text-display" data-intro="intro-tint-5">98.6%</p><p class="text-body-light-2" data-intro="intro-tint-5">of payouts matched<br>without a human</p></div>
-      <div class="metric"><p class="text-display" data-intro="intro-tint-5">0</p><p class="text-body-light-2" data-intro="intro-tint-5">material weaknesses<br>at customer audits</p></div>
+    <div class="bento"><article class="tile span-2" data-reveal="reveal-fade-52">
+  <div class="blob v" style="width:520px;height:520px;left:-160px;top:120px;opacity:.9"></div>
+  <div class="blob o" style="width:380px;height:380px;right:-120px;top:-120px;opacity:.7"></div>
+  <h3 class="text-title-lg-light ink">Recognise revenue the moment it is earned</h3><span class="expand" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M8 2h4v4M6 12H2V8M12 2L8 6M2 12l4-4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></span>
+  <div class="ui" style="position:absolute;left:24px;top:200px;width:200px;height:400px;border-radius:8px;background:linear-gradient(160deg,var(--color-violet-600),var(--color-accent));box-shadow:var(--shadow-2);padding:16px;color:var(--color-background)">
+    <span class="l9" style="opacity:.8">Contract CT-2291</span>
+    <p class="l26" style="color:var(--color-background);margin:8px 0 4px">US$70,000</p>
+    <span class="l10" style="opacity:.8">Annual · signed 2 Jan 2026</span>
+    <div style="margin-top:24px;display:grid;gap:8px"><div style="display:flex;justify-content:space-between;height:29px;align-items:center;border-bottom:1px solid var(--color-violet-a75)"><span class="l10">Recognised</span><span class="l10 b">US$23,330</span></div><div style="display:flex;justify-content:space-between;height:29px;align-items:center;border-bottom:1px solid var(--color-violet-a75)"><span class="l10">Deferred</span><span class="l10 b">US$46,670</span></div><div style="display:flex;justify-content:space-between;height:29px;align-items:center;border-bottom:1px solid var(--color-violet-a75)"><span class="l10">Billed</span><span class="l10 b">US$70,000</span></div><div style="display:flex;justify-content:space-between;height:29px;align-items:center;border-bottom:1px solid var(--color-violet-a75)"><span class="l10">Collected</span><span class="l10 b">US$52,500</span></div><div style="display:flex;justify-content:space-between;height:29px;align-items:center;border-bottom:1px solid var(--color-violet-a75)"><span class="l10">Unbilled</span><span class="l10 b">US$0</span></div></div>
+    <div class="ui-btn" style="margin-top:24px;background:var(--color-background);color:var(--color-accent)">View journal</div>
+  </div>
+  <div class="ui-win ui" style="left:248px;top:150px;right:-1px;bottom:-1px">
+    <div class="ui-bar"><i></i><i></i><i></i><span class="url"><svg class="ic" width="9" height="9" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M5 7V5a3 3 0 016 0v2" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>app.ledgerline.com/contracts/CT-2291</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;height:100%">
+      <div style="padding:16px;border-right:1px solid var(--color-surface-2)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px"><span class="ini" style="background:var(--color-blue-700)">N</span><span class="l11 b t1">Northwave Analytics</span><span class="chip ok" style="margin-left:auto">Active</span></div>
+        <span class="l9 t3">Customer email</span>
+        <div class="ui-field" style="margin:4px 0 12px"><span class="l10 t2">ap@northwave.io</span></div>
+        <span class="l9 t3">Performance obligations</span>
+        <div style="border:1px solid var(--color-surface-2);border-radius:4px;margin-top:4px"><div class="ui-row r36"><span class="radio on"></span><span class="t2"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v8H4z M9 2v3h3" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span><span class="grow"><span class="l10 t1 b" style="display:block">Platform licence</span><span class="l9 t3">Ratable · 12 months</span></span><span class="l10 t4">US$48,000</span></div><div class="ui-row r36"><span class="radio"></span><span class="t2"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M9 1.5L3.5 9H8l-1 5.5L12.5 7H8z" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span><span class="grow"><span class="l10 t1 b" style="display:block">API usage</span><span class="l9 t3">Usage-based · monthly</span></span><span class="l10 t4">US$9,600</span></div><div class="ui-row r36"><span class="radio"></span><span class="t2"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="6" r="2.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M1.5 13c.5-3 2.2-4 4.5-4s4 1 4.5 4M11 4a2 2 0 010 4M12.5 9.5c1 .6 1.7 1.8 2 3.5" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span><span class="grow"><span class="l10 t1 b" style="display:block">Onboarding services</span><span class="l9 t3">Milestone · 3 stages</span></span><span class="l10 t4">US$6,000</span></div><div class="ui-row r36"><span class="radio"></span><span class="t2"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5l5 2v4c0 3.5-2.2 5.8-5 7-2.8-1.2-5-3.5-5-7v-4z" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span><span class="grow"><span class="l10 t1 b" style="display:block">Premium support</span><span class="l9 t3">Ratable · 12 months</span></span><span class="l10 t4">US$4,800</span></div><div class="ui-row r36"><span class="radio"></span><span class="t2"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M2 6.5h12M5 1.5v3M11 1.5v3" stroke="currentColor" stroke-width="1.3"/></svg></span><span class="grow"><span class="l10 t1 b" style="display:block">Training credits</span><span class="l9 t3">Point in time</span></span><span class="l10 t4">US$1,600</span></div></div>
+        <div class="ui-btn" style="margin-top:12px;background:linear-gradient(90deg,var(--color-yellow-800-2),var(--color-yellow-800));color:var(--color-orange-500)">Generate schedule</div>
+      </div>
+      <div style="padding:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span class="l11 b t1">Recognition schedule</span><span class="chip go">ASC 606</span></div>
+        <div class="ui-row r29"><span class="l9 t3" style="width:28px">Jan</span><span class="grow" style="height:6px;background:var(--color-surface-2);border-radius:2px;position:relative"><i style="position:absolute;left:0;top:0;bottom:0;width:8%;background:var(--color-violet-600);border-radius:2px"></i></span><span class="l9 t4" style="width:56px;text-align:right">US$4,800</span></div><div class="ui-row r29"><span class="l9 t3" style="width:28px">Feb</span><span class="grow" style="height:6px;background:var(--color-surface-2);border-radius:2px;position:relative"><i style="position:absolute;left:0;top:0;bottom:0;width:17%;background:var(--color-violet-600);border-radius:2px"></i></span><span class="l9 t4" style="width:56px;text-align:right">US$4,035</span></div><div class="ui-row r29"><span class="l9 t3" style="width:28px">Mar</span><span class="grow" style="height:6px;background:var(--color-surface-2);border-radius:2px;position:relative"><i style="position:absolute;left:0;top:0;bottom:0;width:25%;background:var(--color-violet-600);border-radius:2px"></i></span><span class="l9 t4" style="width:56px;text-align:right">US$4,070</span></div><div class="ui-row r29"><span class="l9 t3" style="width:28px">Apr</span><span class="grow" style="height:6px;background:var(--color-surface-2);border-radius:2px;position:relative"><i style="position:absolute;left:0;top:0;bottom:0;width:33%;background:var(--color-violet-600);border-radius:2px"></i></span><span class="l9 t4" style="width:56px;text-align:right">US$4,905</span></div><div class="ui-row r29"><span class="l9 t3" style="width:28px">May</span><span class="grow" style="height:6px;background:var(--color-surface-2);border-radius:2px;position:relative"><i style="position:absolute;left:0;top:0;bottom:0;width:42%;background:var(--color-violet-600);border-radius:2px"></i></span><span class="l9 t4" style="width:56px;text-align:right">US$4,140</span></div><div class="ui-row r29"><span class="l9 t3" style="width:28px">Jun</span><span class="grow" style="height:6px;background:var(--color-surface-2);border-radius:2px;position:relative"><i style="position:absolute;left:0;top:0;bottom:0;width:50%;background:var(--color-violet-600);border-radius:2px"></i></span><span class="l9 t4" style="width:56px;text-align:right">US$4,175</span></div><div class="ui-row r29"><span class="l9 t3" style="width:28px">Jul</span><span class="grow" style="height:6px;background:var(--color-surface-2);border-radius:2px;position:relative"><i style="position:absolute;left:0;top:0;bottom:0;width:58%;background:var(--color-violet-600);border-radius:2px"></i></span><span class="l9 t4" style="width:56px;text-align:right">US$5,010</span></div><div class="ui-row r29"><span class="l9 t3" style="width:28px">Aug</span><span class="grow" style="height:6px;background:var(--color-surface-2);border-radius:2px;position:relative"><i style="position:absolute;left:0;top:0;bottom:0;width:66%;background:var(--color-violet-600);border-radius:2px"></i></span><span class="l9 t4" style="width:56px;text-align:right">US$4,245</span></div>
+        <div style="display:flex;justify-content:space-between;margin-top:12px"><span class="l10 t3">Total recognised YTD</span><span class="l10 b t1">US$34,180</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:20px 0 4px"><span class="l11 b t1">Journal preview · Jan</span><span class="chip done">Balanced</span></div><div class="ui-row r29" style="padding:0"><span class="l9 t3" style="width:24px">Dr</span><span class="l10 t1 grow">Deferred revenue</span><span class="l10 t4" style="width:60px;text-align:right">4,000.00</span><span class="l10 t4" style="width:60px;text-align:right"></span></div><div class="ui-row r29" style="padding:0"><span class="l9 t3" style="width:24px">Cr</span><span class="l10 t1 grow">Subscription revenue</span><span class="l10 t4" style="width:60px;text-align:right"></span><span class="l10 t4" style="width:60px;text-align:right">4,000.00</span></div><div class="ui-row r29" style="padding:0"><span class="l9 t3" style="width:24px">Dr</span><span class="l10 t1 grow">Accounts receivable</span><span class="l10 t4" style="width:60px;text-align:right">800.00</span><span class="l10 t4" style="width:60px;text-align:right"></span></div><div class="ui-row r29" style="padding:0"><span class="l9 t3" style="width:24px">Cr</span><span class="l10 t1 grow">Usage revenue</span><span class="l10 t4" style="width:60px;text-align:right"></span><span class="l10 t4" style="width:60px;text-align:right">800.00</span></div>
+      </div>
     </div>
   </div>
-  <div class="metrics-glow" aria-hidden="true"></div>
+</article><article class="tile" data-reveal="reveal-fade-52" style="background:linear-gradient(180deg,var(--color-background) 55%,var(--color-yellow-800-2))">
+  <div class="blob o" style="width:420px;height:420px;right:-180px;top:-160px;opacity:.85"></div>
+  <h3 class="text-title-lg-light ink">Bill usage and recognise it automatically</h3><span class="expand" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M8 2h4v4M6 12H2V8M12 2L8 6M2 12l4-4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></span>
+  <div class="ui" style="position:absolute;left:40px;right:40px;top:160px">
+    <div style="background:var(--color-ui-panel);border-radius:8px;box-shadow:var(--shadow-3);padding:16px;margin-bottom:12px">
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px"><span style="width:32px;height:32px;border-radius:4px;background:var(--color-surface);display:grid;place-items:center;color:var(--color-amber-600)"><svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M9 1.5L3.5 9H8l-1 5.5L12.5 7H8z" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span><span><span class="l12 b t1" style="display:block">Scale plan</span><span class="l10 t3">Billed monthly · 1,200 seats</span></span></div>
+      <div class="ui-row r34" style="padding:0"><span class="l10 t1 b grow">API calls</span><span class="l10 t2">US$0.40 per 1,000</span></div>
+      <div class="ui-row r34" style="padding:0"><span class="l10 t1 b grow">Seats</span><span class="l10 t2">US$18 per seat</span></div>
+      <div class="ui-row r34" style="padding:0;border:0"><span class="t2"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 14V2M2 14h12M5 11V8M8 11V5M11 11V7" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span><span class="l10 t1 b grow">Usage meter</span><span class="chip done"><svg class="ic " width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r="4" fill="currentColor"/></svg>Live</span></div>
+    </div>
+    <div style="background:var(--color-ui-panel);border-radius:8px;box-shadow:var(--shadow-3);padding:16px">
+      <span class="l10 t3">API calls in the last 30 days</span>
+      <div class="tick"><p class="l26 t1" data-intro="intro-up-3">1,284,500,000</p><p class="l26 t1" data-intro="intro-up-3">1,291,742,000</p></div>
+      <span class="l9 t3">US$513,800 billed · US$498,210 recognised</span>
+      <div style="height:120px;margin-top:16px"><div class="bars"><span class="" style="--i:0;height:71%"></span><span class="" style="--i:1;height:49%"></span><span class="" style="--i:2;height:80%"></span><span class="" style="--i:3;height:36%"></span><span class="" style="--i:4;height:39%"></span><span class="" style="--i:5;height:98%"></span><span class="" style="--i:6;height:42%"></span><span class="" style="--i:7;height:76%"></span><span class="" style="--i:8;height:37%"></span><span class="" style="--i:9;height:94%"></span><span class="" style="--i:10;height:57%"></span><span class="p" style="--i:11;height:34%"></span><span class="p" style="--i:12;height:41%"></span><span class="" style="--i:13;height:85%"></span><span class="" style="--i:14;height:83%"></span><span class="" style="--i:15;height:38%"></span><span class="" style="--i:16;height:60%"></span><span class="" style="--i:17;height:41%"></span><span class="" style="--i:18;height:100%"></span><span class="" style="--i:19;height:84%"></span><span class="" style="--i:20;height:37%"></span><span class="" style="--i:21;height:45%"></span><span class="" style="--i:22;height:58%"></span><span class="" style="--i:23;height:37%"></span><span class="" data-intro="intro-fade-scale-4" style="--i:24;height:80%"></span><span class="" data-intro="intro-fade-scale-4" style="--i:25;height:36%"></span><span class="p" data-intro="intro-fade-scale-4" style="--i:26;height:58%"></span><span class="" data-intro="intro-fade-scale-4" style="--i:27;height:35%"></span><span class="" data-intro="intro-fade-scale-4" style="--i:28;height:47%"></span><span class="" data-intro="intro-fade-scale-4" style="--i:29;height:67%"></span></div></div>
+      <div style="display:flex;justify-content:space-between;margin-top:4px"><span class="l8 t3">1 Oct</span><span class="l8 t3">15 Oct</span><span class="l8 t3">30 Oct</span></div>
+      <div style="display:flex;gap:12px;margin-top:12px"><span class="l9 t2" style="display:inline-flex;gap:4px;align-items:center"><span style="color:var(--color-accent)"><svg class="ic " width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r="4" fill="currentColor"/></svg></span>Recognised</span><span class="l9 t2" style="display:inline-flex;gap:4px;align-items:center"><span style="color:var(--color-amber-600)"><svg class="ic " width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r="4" fill="currentColor"/></svg></span>True-up</span></div>
+    </div>
+  </div>
+</article><article class="tile" data-reveal="reveal-fade-52"><h3 class="text-title-lg-light ink">Forecast deferred revenue with confidence</h3><span class="expand" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M8 2h4v4M6 12H2V8M12 2L8 6M2 12l4-4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></span><canvas class="viz" data-viz="ring" aria-label="Deferred revenue waterfall drawn as a ring of 1,800 contract points"></canvas></article><article class="tile" data-reveal="reveal-fade-52"><div class="blob v" style="width:380px;height:380px;left:20px;top:240px;opacity:.35"></div><h3 class="text-title-lg-light ink">Hand auditors a close pack they can trust</h3><span class="expand" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M8 2h4v4M6 12H2V8M12 2L8 6M2 12l4-4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></span>
+  <svg class="pack" viewBox="0 0 252 380" aria-label="Close pack illustration">
+    <defs><linearGradient id="pk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--color-pink-600)"/><stop offset=".45" stop-color="var(--color-violet-600)"/><stop offset=".75" stop-color="var(--color-yellow-800)"/><stop offset="1" stop-color="var(--color-background)"/></linearGradient></defs>
+    <rect x="18" y="18" width="216" height="344" rx="8" fill="var(--color-surface-2)"/>
+    <rect x="8" y="8" width="236" height="352" rx="8" fill="url(#pk)"/>
+    <path d="M8 250 C80 200 160 300 244 220 L244 360 L8 360 Z" fill="var(--color-background)" opacity=".75"/>
+    <rect x="24" y="32" width="36" height="28" rx="4" fill="var(--color-background)" opacity=".85"/>
+    <path d="M30 40h24M30 46h24M30 52h16" stroke="var(--color-accent)" stroke-width="1.5"/>
+    <text x="24" y="104" font-family="Inter, sans-serif" font-size="22" font-weight="300" fill="var(--color-background)">October close</text>
+    <text x="24" y="126" font-family="Inter, sans-serif" font-size="11" fill="var(--color-background)">14 entities · 3,912 journal lines</text>
+    <rect x="24" y="150" width="200" height="5" rx="2" fill="var(--color-background)" opacity=".7"/><rect x="24" y="166" width="171" height="5" rx="2" fill="var(--color-background)" opacity=".7"/><rect x="24" y="182" width="142" height="5" rx="2" fill="var(--color-background)" opacity=".7"/><rect x="24" y="198" width="113" height="5" rx="2" fill="var(--color-background)" opacity=".7"/><rect x="24" y="214" width="174" height="5" rx="2" fill="var(--color-background)" opacity=".7"/><rect x="24" y="230" width="145" height="5" rx="2" fill="var(--color-background)" opacity=".7"/><rect x="24" y="246" width="116" height="5" rx="2" fill="var(--color-background)" opacity=".7"/><rect x="24" y="262" width="177" height="5" rx="2" fill="var(--color-background)" opacity=".7"/>
+    <circle cx="210" cy="320" r="18" fill="var(--color-accent)"/><path d="M202 320l6 6 10-12" fill="none" stroke="var(--color-background)" stroke-width="2.4"/>
+    <text x="24" y="330" font-family="Inter, sans-serif" font-size="14" font-weight="500" fill="var(--color-text-secondary)">Ledgerline</text>
+  </svg>
+</article><article class="tile" data-reveal="reveal-fade-52" style="background:linear-gradient(180deg,var(--color-background),var(--color-white-1000))"><h3 class="text-title-lg-light ink">Consolidate entities across 40 currencies</h3><span class="expand" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M8 2h4v4M6 12H2V8M12 2L8 6M2 12l4-4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></span><canvas class="viz" data-viz="globe" aria-label="Dotted globe of consolidated entities"></canvas></article><article class="tile span-3" data-reveal="reveal-fade-52">
+  <svg aria-hidden="true" style="position:absolute;left:0;bottom:0;width:60%;height:70%" viewBox="0 0 600 300" preserveAspectRatio="none"><path d="M0 300 C200 300 380 200 600 120" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.15"/><path d="M0 295 C200 295 380 197 600 118" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.16"/><path d="M0 290 C200 290 380 194 600 116" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.17"/><path d="M0 285 C200 285 380 191 600 114" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.19"/><path d="M0 280 C200 280 380 188 600 112" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.20"/><path d="M0 275 C200 275 380 185 600 110" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.21"/><path d="M0 270 C200 270 380 182 600 108" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.22"/><path d="M0 265 C200 265 380 179 600 106" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.23"/><path d="M0 260 C200 260 380 176 600 104" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.25"/><path d="M0 255 C200 255 380 173 600 102" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.26"/><path d="M0 250 C200 250 380 170 600 100" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.27"/><path d="M0 245 C200 245 380 167 600 98" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.28"/><path d="M0 240 C200 240 380 164 600 96" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.29"/><path d="M0 235 C200 235 380 161 600 94" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.31"/><path d="M0 230 C200 230 380 158 600 92" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.32"/><path d="M0 225 C200 225 380 155 600 90" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.33"/><path d="M0 220 C200 220 380 152 600 88" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.34"/><path d="M0 215 C200 215 380 149 600 86" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.35"/><path d="M0 210 C200 210 380 146 600 84" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.37"/><path d="M0 205 C200 205 380 143 600 82" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.38"/><path d="M0 200 C200 200 380 140 600 80" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.39"/><path d="M0 195 C200 195 380 137 600 78" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.40"/><path d="M0 190 C200 190 380 134 600 76" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.41"/><path d="M0 185 C200 185 380 131 600 74" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.43"/><path d="M0 180 C200 180 380 128 600 72" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.44"/><path d="M0 175 C200 175 380 125 600 70" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.45"/><path d="M0 170 C200 170 380 122 600 68" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.46"/><path d="M0 165 C200 165 380 119 600 66" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.47"/><path d="M0 160 C200 160 380 116 600 64" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.49"/><path d="M0 155 C200 155 380 113 600 62" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.50"/><path d="M0 150 C200 150 380 110 600 60" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.51"/><path d="M0 145 C200 145 380 107 600 58" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.52"/><path d="M0 140 C200 140 380 104 600 56" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.53"/><path d="M0 135 C200 135 380 101 600 54" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.55"/><path d="M0 130 C200 130 380 98 600 52" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.56"/><path d="M0 125 C200 125 380 95 600 50" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.57"/><path d="M0 120 C200 120 380 92 600 48" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.58"/><path d="M0 115 C200 115 380 89 600 46" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.59"/><path d="M0 110 C200 110 380 86 600 44" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.61"/><path d="M0 105 C200 105 380 83 600 42" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.62"/><path d="M0 100 C200 100 380 80 600 40" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.63"/><path d="M0 95 C200 95 380 77 600 38" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.64"/><path d="M0 90 C200 90 380 74 600 36" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.65"/><path d="M0 85 C200 85 380 71 600 34" fill="none" stroke="var(--color-pink-600)" stroke-width=".6" opacity="0.67"/></svg>
+  <div style="position:absolute;right:0;top:0;width:40%;height:100%;background:repeating-linear-gradient(135deg,var(--color-violet-600) 0 1px,transparent 1px 8px);opacity:.35"></div>
+  <h3 class="text-title-lg-light ink">Reconcile every payout, automatically</h3><span class="expand" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M8 2h4v4M6 12H2V8M12 2L8 6M2 12l4-4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></span>
+  <p class="text-body muted" style="position:relative;max-width:260px;margin-top:16px">Bank lines, processor payouts, fees and refunds matched to invoices in every currency, with exceptions routed to an owner.</p>
+  <div class="ui-win ui" style="left:400px;top:24px;right:24px;bottom:-1px">
+    <div class="ui-bar"><i></i><i></i><i></i><span class="url"><svg class="ic" width="9" height="9" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M5 7V5a3 3 0 016 0v2" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>app.ledgerline.com/reconciliation</span></div>
+    <div style="display:flex;height:100%">
+      <div class="ui-side"><div style="display:flex;gap:8px;align-items:center;padding:4px 8px 12px"><span class="ini" style="background:var(--color-accent);width:20px;height:20px">H</span><span class="l11 b t1">Halvard Freight</span></div><div class="nv"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 7l6-5 6 5v7H2z" fill="none" stroke="currentColor" stroke-width="1.3"/></svg><span class="l11">Home</span></div><div class="nv"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v8H4z M9 2v3h3" fill="none" stroke="currentColor" stroke-width="1.3"/></svg><span class="l11">Contracts</span></div><div class="nv"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 14V2M2 14h12M5 11V8M8 11V5M11 11V7" fill="none" stroke="currentColor" stroke-width="1.3"/></svg><span class="l11">Revenue</span></div><div class="nv on"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5h10l-3-3M13 11H3l3 3" fill="none" stroke="currentColor" stroke-width="1.3"/></svg><span class="l11">Reconciliation</span></div><div class="nv"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6l6-4 6 4M3 7v5M6 7v5M10 7v5M13 7v5M2 13h12" fill="none" stroke="currentColor" stroke-width="1.3"/></svg><span class="l11">Bank feeds</span></div><div class="nv"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M2 6.5h12M5 1.5v3M11 1.5v3" stroke="currentColor" stroke-width="1.3"/></svg><span class="l11">Close</span></div><div class="nv"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="5" height="5" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="9" width="5" height="5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M11.5 2v5M9 4.5h5M2 9h5v5H2z" fill="none" stroke="currentColor" stroke-width="1.3"/></svg><span class="l11">Reports</span></div><div class="nv"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4" stroke="currentColor" stroke-width="1.3"/></svg><span class="l11">Settings</span></div></div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;padding:12px"><span class="l12 b t1">Bank reconciliation · October</span><span class="chip done" style="margin-left:auto"><svg class="ic" width="9" height="9" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>96.4% matched</span><span class="chip go"><svg class="ic" width="9" height="9" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.3"/></svg>Filter</span></div>
+        <div class="ui-th l9 t3 b" style="grid-template-columns:2.2fr 1fr 1.3fr 1fr 0.9fr"><span>Counterparty</span><span>Entity</span><span>Amount</span><span>Matched to</span><span>Status</span></div>
+        <div class="ui-tr" style="grid-template-columns:2.2fr 1fr 1.3fr 1fr 0.9fr"><span style="display:flex;gap:8px;align-items:center"><span class="ini" style="background:var(--color-accent)">H</span><span class="l10 b t1">Halvard Freight GmbH</span></span><span class="l10 t2">DE · EUR</span><span class="l10 t4">EUR 48,210.00</span><span class="l10 t2">PO-88412</span><span><span class="chip ok">Matched</span></span></div><div class="ui-tr" style="grid-template-columns:2.2fr 1fr 1.3fr 1fr 0.9fr"><span style="display:flex;gap:8px;align-items:center"><span class="ini" style="background:var(--color-amber-600)">P</span><span class="l10 b t1">Pinecrest Health</span></span><span class="l10 t2">US · USD</span><span class="l10 t4">US$12,940.50</span><span class="l10 t2">INV-20931</span><span><span class="chip ok">Matched</span></span></div><div class="ui-tr" style="grid-template-columns:2.2fr 1fr 1.3fr 1fr 0.9fr"><span style="display:flex;gap:8px;align-items:center"><span class="ini" style="background:var(--color-blue-700)">K</span><span class="l10 b t1">Kestrel Mobility</span></span><span class="l10 t2">UK · GBP</span><span class="l10 t4">GBP 7,420.00</span><span class="l10 t2">INV-20944</span><span><span class="chip warn">Review</span></span></div><div class="ui-tr" style="grid-template-columns:2.2fr 1fr 1.3fr 1fr 0.9fr"><span style="display:flex;gap:8px;align-items:center"><span class="ini" style="background:var(--color-pink-600)">T</span><span class="l10 b t1">Tidepool Studio</span></span><span class="l10 t2">CA · CAD</span><span class="l10 t4">CAD 3,180.00</span><span class="l10 t2">INV-20957</span><span><span class="chip ok">Matched</span></span></div><div class="ui-tr" style="grid-template-columns:2.2fr 1fr 1.3fr 1fr 0.9fr"><span style="display:flex;gap:8px;align-items:center"><span class="ini" style="background:var(--color-accent)">O</span><span class="l10 b t1">Orbitly Inc.</span></span><span class="l10 t2">US · USD</span><span class="l10 t4">US$96,000.00</span><span class="l10 t2">PO-88430</span><span><span class="chip ok">Matched</span></span></div><div class="ui-tr" style="grid-template-columns:2.2fr 1fr 1.3fr 1fr 0.9fr"><span style="display:flex;gap:8px;align-items:center"><span class="ini" style="background:var(--color-lime-700)">F</span><span class="l10 b t1">Fernbrook Learning</span></span><span class="l10 t2">AU · AUD</span><span class="l10 t4">AUD 11,875.20</span><span class="l10 t2">INV-20961</span><span><span class="chip go">Split 2</span></span></div><div class="ui-tr" style="grid-template-columns:2.2fr 1fr 1.3fr 1fr 0.9fr"><span style="display:flex;gap:8px;align-items:center"><span class="ini" style="background:var(--color-yellow-700)">S</span><span class="l10 b t1">Sundial Health</span></span><span class="l10 t2">NL · EUR</span><span class="l10 t4">EUR 2,310.00</span><span class="l10 t2">INV-20968</span><span><span class="chip ok">Matched</span></span></div><div class="ui-tr" style="grid-template-columns:2.2fr 1fr 1.3fr 1fr 0.9fr"><span style="display:flex;gap:8px;align-items:center"><span class="ini" style="background:var(--color-orange-500)">B</span><span class="l10 b t1">Brightline Media</span></span><span class="l10 t2">US · USD</span><span class="l10 t4">US$18,600.00</span><span class="l10 t2">INV-20970</span><span><span class="chip ok">Matched</span></span></div><div class="ui-tr" style="grid-template-columns:2.2fr 1fr 1.3fr 1fr 0.9fr"><span style="display:flex;gap:8px;align-items:center"><span class="ini" style="background:var(--color-indigo-300)">C</span><span class="l10 b t1">Copperleaf Retail</span></span><span class="l10 t2">IE · EUR</span><span class="l10 t4">EUR 5,045.75</span><span class="l10 t2">—</span><span><span class="chip warn">Unmatched</span></span></div><div class="ui-tr" style="grid-template-columns:2.2fr 1fr 1.3fr 1fr 0.9fr"><span style="display:flex;gap:8px;align-items:center"><span class="ini" style="background:var(--color-violet-600)">M</span><span class="l10 b t1">Meridian Labs</span></span><span class="l10 t2">SG · SGD</span><span class="l10 t4">SGD 22,400.00</span><span class="l10 t2">PO-88441</span><span><span class="chip ok">Matched</span></span></div>
+      </div>
+    </div>
+  </div>
+  <div class="ui" style="position:absolute;left:200px;top:180px;width:240px;background:var(--color-ui-panel);border-radius:8px;box-shadow:var(--shadow-2);padding:16px;z-index:4">
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><span style="width:28px;height:28px;border-radius:9999px;background:var(--color-surface-3);color:var(--color-accent);display:grid;place-items:center"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5h10l-3-3M13 11H3l3 3" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span><span class="l12 b t1">Suggested match</span></div>
+    <span class="l10 t3">Bank line · Deutsche Handelsbank</span>
+    <div class="ui-row r34" style="padding:0"><span class="l10 t1 grow">Payout PO-88412</span><span class="l10 b t1">EUR 48,210.00</span></div>
+    <div class="ui-row r34" style="padding:0"><span class="l10 t2 grow">INV-20912 · Halvard</span><span class="l10 t4">EUR 48,600.00</span></div>
+    <div class="ui-row r34" style="padding:0"><span class="l10 t2 grow">Processor fee</span><span class="l10 t4">−EUR 390.00</span></div>
+    <div style="display:flex;justify-content:space-between;margin:8px 0 12px"><span class="l10 t3">Difference</span><span class="chip done">EUR 0.00</span></div>
+    <div class="ui-btn" style="background:var(--color-surface-3);color:var(--color-accent)">Confirm match</div>
+  </div>
+</article></div>
+  </div>
 </section>
-
-<!-- ================= PRICING ================= -->
-<section class="section" id="pricing">
+<section class="section" style="padding-block:64px" aria-labelledby="key-h">
   <div class="container">
-    <div class="pricing-head">
-      <h2 class="text-display">Pricing that scales with your revenue, not your headcount</h2>
-      <p class="text-title-light muted">Every plan includes unlimited users, SOC 2 Type II controls and onboarding with a revenue accountant.</p>
+    <div class="stage" data-reveal="reveal-fade-52">
+      <img src="img/keynote.svg" width="1232" height="400" alt="Keynote stage at the Ledgerline Close Summit, a speaker in front of sweeping violet and orange light">
+      <div class="over"><h2 id="key-h" class="text-display" style="color:var(--color-background)">Building the revenue ledger for usage pricing</h2><a class="btn-white" href="#">Watch the keynote <svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></div>
+      <div class="tagline">Ledgerline <span>Close Summit</span></div>
     </div>
-    <div class="tiers">
-      <div class="tier card-7" data-reveal="reveal-fade-52">
-        <div class="tier-top"><h3 class="text-h1-medium-2 ink">Starter</h3></div>
-        <p class="text-display">$490</p>
-        <p class="per text-body-light-2 soft">per month, billed annually · up to $5M ARR</p>
-        <p class="text-body muted">Automated recognition and payout matching for teams closing their first audited year.</p>
-        <ul class="text-body muted">
-          <li>ASC 606 &amp; IFRS 15 schedules</li>
-          <li>One billing system, two bank feeds</li>
-          <li>Monthly journal export</li>
-        </ul>
-        <div class="cta"><a class="button-outline" href="#">Start a free trial</a></div>
+  </div>
+</section>
+<section class="band" aria-labelledby="band-h">
+  <div class="container rail">
+    <h2 id="band-h" class="text-h2">The ledger behind modern subscription finance</h2>
+    <p class="sub text-body-light muted">From seed-stage SaaS to public companies with dozens of entities, Ledgerline keeps revenue, cash and the general ledger in agreement every single day.</p>
+    <div class="stats"><i class="wipe" data-reveal="reveal-fade-52"></i><div><span class="n" data-intro="intro-tint-5">US$84bn</span><span class="text-body muted">in revenue recognised on Ledgerline in 2025</span><div class="delta" data-intro="intro-down-wipe-10">+38% on 2024</div></div><div><span class="n" data-intro="intro-tint-5">2,400+</span><span class="text-body muted">finance teams closing every month</span><div class="delta" data-intro="intro-down-wipe-10">+640 this year</div></div><div><span class="n" data-intro="intro-tint-5">3.8 days</span><span class="text-body muted">median close, down from eleven</span><div class="delta" data-intro="intro-down-wipe-10">−1.4 days on 2024</div></div><div><span class="n" data-intro="intro-tint-5">99.98%</span><span class="text-body muted">of bank lines matched without a human</span><div class="delta" data-intro="intro-down-wipe-10">+0.06 pts on 2024</div></div></div>
+    <div class="glow" aria-hidden="true"></div>
+  </div>
+</section>
+<section class="section sizes" style="padding-top:0" aria-labelledby="sizes-h">
+  <div class="container rail">
+    <div class="lead" style="padding-top:112px"><h2 id="sizes-h" class="text-title-lg ink">Powering finance teams of all sizes. <span class="soft">Run revenue on a platform that grows from your first contract to your fortieth entity.</span></h2></div>
+
+    <div class="seg">
+      <div class="split-intro"><div><h3 class="text-title-lg-light ink">Transform enterprise revenue operations</h3><a class="button-secondary" href="#">Ledgerline for enterprise <svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></div><p class="text-body-light muted">Seven of the ten fastest-growing public SaaS companies run revenue on Ledgerline — from multi-entity consolidation to usage true-ups audited by the Big Four.</p></div>
+      <div class="story-head hov"><div class="hl hover-fade-56"></div><span class="lg" style="background:var(--color-yellow-900);color:var(--color-text)"><svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M2 8h12M8 2c2 2 2 10 0 12M8 2c-2 2-2 10 0 12" fill="none" stroke="currentColor" stroke-width="1.1"/></svg></span><span class="text-title-light ink">Halvard Freight closes 14 entities in four days.</span><a class="btn-o callout" href="#">Read the story<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></div>
+      <div class="story-img" data-reveal="reveal-fade-52"><img src="img/freight.svg" width="1232" height="531" alt="Illustration of a freight port at dusk with stacked containers and cranes"></div>
+      <div class="story-facts"><span class="text-small muted"><b class="ink" style="font-weight:425">14</b> entities</span><span class="text-small muted"><b class="ink" style="font-weight:425">9</b> currencies</span><span class="text-small muted"><b class="ink" style="font-weight:425">Products used</b> Recognition, Reconciliation, Close and Revenue API</span></div>
+      <ul class="acc"><li class="hov"><div class="hl hover-fade-56"></div><span class="lg" style="background:var(--color-text);color:var(--color-background)"><svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="5" height="5" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="9" width="5" height="5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M11.5 2v5M9 4.5h5M2 9h5v5H2z" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span><span class="text-title-light ink">Copperleaf Retail moves US$2bn of store and online revenue onto one ledger.</span><a class="plus" href="#" aria-label="Expand story"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.4"/></svg></a></li><li class="hov"><div class="hl hover-fade-56"></div><span class="lg" style="background:var(--color-lime-700);color:var(--color-background)"><svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 12l4-4 3 3 6-6M10 5h4.5v4.5" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span><span class="text-title-light ink">Fernbrook Learning cuts its audit fieldwork from six weeks to nine days.</span><a class="plus" href="#" aria-label="Expand story"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.4"/></svg></a></li><li class="hov"><div class="hl hover-fade-56"></div><span class="lg" style="background:var(--color-blue-700);color:var(--color-background)"><svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5h10l-3-3M13 11H3l3 3" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span><span class="text-title-light ink">Tidepool Studio reconciles 40,000 creator payouts a month without a spreadsheet.</span><a class="plus" href="#" aria-label="Expand story"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.4"/></svg></a></li></ul>
+    </div>
+
+    <h3 class="seg-title text-title-lg-light ink">Realise value faster with revenue experts</h3>
+    <div class="trio"><div class="feat"><span class="fi"><svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="5" height="5" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="9" width="5" height="5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M11.5 2v5M9 4.5h5M2 9h5v5H2z" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span><p class="text-body muted"><b class="ink" style="font-weight:425">Implementation services.</b> Ledgerline accountants map your contracts, SSP policy and chart of accounts in a fixed-scope engagement.</p><a class="callout" href="#">View services<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></div><div class="feat"><span class="fi"><svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="6" r="2.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M1.5 13c.5-3 2.2-4 4.5-4s4 1 4.5 4M11 4a2 2 0 010 4M12.5 9.5c1 .6 1.7 1.8 2 3.5" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span><p class="text-body muted"><b class="ink" style="font-weight:425">Certified partners.</b> Work with an accounting firm trained on Ledgerline to migrate history and run parallel closes.</p><a class="callout" href="#">View partners<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></div><div class="feat"><span class="fi"><svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12v8H7l-3 3v-3H2z" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span><p class="text-body muted"><b class="ink" style="font-weight:425">Close support.</b> A named revenue specialist on call during your close window, with response times measured in minutes.</p><a class="callout" href="#">View plans<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></div></div>
+
+    <div class="seg" style="padding-top:112px">
+      <div class="split-intro"><div><h3 class="text-title-lg-light ink">Build a finance stack that scales with your startup</h3><a class="button-secondary" href="#">Ledgerline for startups <svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></div><p class="text-body-light muted">From two-person finance teams to Series D, startups get audit-ready revenue from their first invoice — with no spreadsheet to unwind before the round.</p></div>
+      <div class="carousel-nav"><a class="round-btn" href="#" data-intro="intro-tint-6" aria-label="Previous">←</a><a class="round-btn" href="#" data-intro="intro-tint-6" aria-label="Next">→</a></div>
+      <div class="covers"><figure class="hov"><div class="hl hover-fade-56"></div><div class="cover"><img src="img/cover-north.svg" width="330" height="400" alt="Abstract brand artwork for Northwave"><span class="mk"><svg class="mark" width="130" height="28" viewBox="0 0 130 28" role="img" aria-label="Northwave"><rect x="4" y="6" width="16" height="16" rx="3" fill="currentColor"/><rect x="9" y="11" width="6" height="6" fill="var(--color-background)"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="700" letter-spacing="-0.3" fill="currentColor">Northwave</text></svg></span></div><figcaption><p class="text-body ink">Northwave closes in three days with 14 entities on Ledgerline.</p><a class="callout" href="#">Read Northwave&rsquo;s story<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></figcaption></figure><figure class="hov"><div class="hl hover-fade-56"></div><div class="cover"><img src="img/cover-quanta.svg" width="330" height="400" alt="Abstract brand artwork for Quanta"><span class="mk"><svg class="mark" width="130" height="28" viewBox="0 0 130 28" role="img" aria-label="Quanta"><path d="M4 14a8 8 0 0116 0M4 18a8 8 0 0016 0" fill="none" stroke="currentColor" stroke-width="3"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="400" letter-spacing="-0.3" fill="currentColor">Quanta</text></svg></span></div><figcaption><p class="text-body ink">Quanta moves to usage pricing without restating a single month.</p><a class="callout" href="#">Read Quanta&rsquo;s story<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></figcaption></figure><figure class="hov"><div class="hl hover-fade-56"></div><div class="cover"><img src="img/cover-ember.svg" width="330" height="400" alt="Abstract brand artwork for Ember"><span class="mk"><svg class="mark" width="130" height="28" viewBox="0 0 130 28" role="img" aria-label="Ember"><path d="M6 6h12v4H10v2h7v4h-7v6H6z" fill="currentColor"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="600" letter-spacing="-0.3" fill="currentColor">Ember</text></svg></span></div><figcaption><p class="text-body ink">Ember Health passes its first SOC 1 audit with zero revenue findings.</p><a class="callout" href="#">Read Ember&rsquo;s story<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></figcaption></figure><figure class="hov"><div class="hl hover-fade-56"></div><div class="cover"><img src="img/cover-fjord.svg" width="330" height="400" alt="Abstract brand artwork for Fjord"><span class="mk"><svg class="mark" width="130" height="28" viewBox="0 0 130 28" role="img" aria-label="Fjord"><circle cx="8" cy="14" r="5" fill="currentColor"/><circle cx="17" cy="14" r="5" fill="none" stroke="currentColor" stroke-width="2.5"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="500" letter-spacing="-0.3" fill="currentColor">Fjord</text></svg></span></div><figcaption><p class="text-body ink">Fjord reconciles payouts in nine currencies, hands-free.</p><a class="callout" href="#">Read Fjord&rsquo;s story<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></figcaption></figure></div>
+      <div class="prog">
+        <div class="hov"><div class="hl hover-fade-56"></div><p class="text-body muted"><b class="ink" style="font-weight:425">Ledgerline Launch programme.</b> Free recognition for your first US$1m in revenue, plus office hours with our controllers.</p><a class="callout" href="#">Apply now<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></div>
+        <div class="hov"><div class="hl hover-fade-56"></div><p class="text-body muted"><b class="ink" style="font-weight:425">Close in a box.</b> A chart of accounts, revenue policy and close checklist tuned for subscription startups.</p><a class="callout" href="#">Get the template<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a>
+          <svg class="tri" viewBox="0 0 220 170" aria-hidden="true"><path d="M60 0h160v170H0z" fill="var(--color-yellow-900)"/><path d="M60 0h160L140 170z" fill="var(--color-amber-600)"/><path d="M220 40v130h-80z" fill="var(--color-yellow-700)"/></svg></div>
       </div>
-      <div class="tier dark" data-reveal="reveal-fade-52">
-        <div class="tier-top"><h3 class="text-h1-medium-2">Growth</h3><span class="badge-2" style="color:var(--color-blue-900);border-color:var(--color-indigo-300-2)">Most popular</span></div>
-        <p class="text-display">$1,490</p>
-        <p class="per text-body-light-2 soft">per month, billed annually · up to $50M ARR</p>
-        <p class="text-body muted">Daily reconciliation, close management and multi-entity consolidation.</p>
-        <ul class="text-body muted">
-          <li>Everything in Starter</li>
-          <li>Unlimited processors and bank feeds</li>
-          <li>Close checklists and flux analysis</li>
-          <li>Multi-currency and multi-entity</li>
-        </ul>
-        <div class="cta"><a class="button-primary" href="#">Start a free trial ›</a></div>
-      </div>
-      <div class="tier card-7" data-reveal="reveal-fade-52">
-        <div class="tier-top"><h3 class="text-h1-medium-2 ink">Enterprise</h3></div>
-        <p class="text-display">Custom</p>
-        <p class="per text-body-light-2 soft">for public and pre-IPO companies</p>
-        <p class="text-body muted">SOX-ready controls, custom obligations and a dedicated revenue engineer.</p>
-        <ul class="text-body muted">
-          <li>Everything in Growth</li>
-          <li>SOX control evidence and SSO</li>
-          <li>Custom recognition rules via API</li>
-          <li>99.99% uptime SLA</li>
-        </ul>
-        <div class="cta"><a class="button-outline" href="#">Contact sales</a></div>
+    </div>
+
+    <div class="seg" style="padding-top:112px">
+      <div class="split-intro"><div><h3 class="text-title-lg-light ink">Make your platform a complete finance back office</h3><a class="button-secondary" href="#">Ledgerline for platforms <svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></div><p class="text-body-light muted">Vertical SaaS platforms embed Ledgerline to give every business they serve recognised revenue, reconciled payouts and a monthly close — under their own brand.</p></div>
+      <div class="wide-img" data-reveal="reveal-fade-52"><img src="img/platform.svg" width="1232" height="480" alt="Network illustration of businesses connected to one platform ledger"></div>
+      <div class="trio" style="margin-top:64px"><div class="feat"><span class="fi"><svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5l9 5.5-9 5.5z" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span><p class="text-body muted"><b class="ink" style="font-weight:425">Launch revenue products faster.</b> Embed recognition and invoicing in your vertical platform with prebuilt components.</p><a class="callout" href="#">Read the guide<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></div><div class="feat"><span class="fi"><svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 12l4-4 3 3 6-6M10 5h4.5v4.5" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span><p class="text-body muted"><b class="ink" style="font-weight:425">Earn on every transaction.</b> Monetise reconciliation and close for the businesses on your platform.</p><a class="callout" href="#">Read the guide<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></div><div class="feat"><span class="fi"><svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5l5 2v4c0 3.5-2.2 5.8-5 7-2.8-1.2-5-3.5-5-7v-4z" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span><p class="text-body muted"><b class="ink" style="font-weight:425">Stay audit-ready at scale.</b> Controls, approvals and evidence trails for every connected account.</p><a class="callout" href="#">Read the guide<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></div></div>
+      <div class="quote"><blockquote class="text-title-lg-light">&ldquo;Ledgerline gave our 9,000 clinics a real close for the first time — revenue, payouts and the bank finally tell the same story.&rdquo;</blockquote><p class="text-body muted"><b class="ink" style="font-weight:425">Priya Raman,</b> VP Finance Platform, Pinecrest Health</p><a class="callout" href="#" style="margin-top:24px">Read the story<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></div>
+      <div class="tabs4"><div class="on"><svg class="mark" width="148" height="28" viewBox="0 0 148 28" role="img" aria-label="Cobalt Labs"><path d="M4 22L12 6l8 16z" fill="currentColor"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="500" letter-spacing="-0.3" fill="currentColor">Cobalt Labs</text></svg></div><div class=""><svg class="mark" width="106" height="28" viewBox="0 0 106 28" role="img" aria-label="Sundial"><rect x="4" y="6" width="16" height="16" rx="3" fill="currentColor"/><rect x="9" y="11" width="6" height="6" fill="var(--color-background)"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="700" letter-spacing="-0.3" fill="currentColor">Sundial</text></svg></div><div class=""><svg class="mark" width="117" height="28" viewBox="0 0 117 28" role="img" aria-label="Parcelry"><path d="M4 14a8 8 0 0116 0M4 18a8 8 0 0016 0" fill="none" stroke="currentColor" stroke-width="3"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="400" letter-spacing="-0.3" fill="currentColor">Parcelry</text></svg></div><div class=""><svg class="mark" width="148" height="28" viewBox="0 0 148 28" role="img" aria-label="Hearthstack"><path d="M6 6h12v4H10v2h7v4h-7v6H6z" fill="currentColor"/><text x="28" y="20" font-family="Inter, sans-serif" font-size="17" font-weight="600" letter-spacing="-0.3" fill="currentColor">Hearthstack</text></svg></div></div>
+    </div>
+  </div>
+</section>
+<section class="section dev" style="padding-block:0" aria-labelledby="dev-h">
+  <div class="container rail" style="padding-top:112px;padding-bottom:112px">
+    <h2 id="dev-h" class="text-title-lg" style="max-width:780px;margin-bottom:32px">Reliable, extensible infrastructure for every finance stack. <span class="soft2">Connect Ledgerline to the systems you already run, or build on the API.</span></h2>
+    <div class="row-actions" style="margin-bottom:64px"><a class="button-secondary" href="#">Read the API docs <svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a><a class="btn-dark-o" href="#">View the SDKs</a></div>
+    <div class="block"><div><p class="text-title-lg-light"><span style="color:var(--color-background)">Connect to existing systems.</span> <span class="soft2">Pull contracts from billing and CRM, push journals to your ERP and read every bank feed — with connectors or the API.</span></p></div>
+      <svg class="diagram" viewBox="0 0 700 420" role="img" aria-label="Diagram: eight systems connected to the Ledgerline revenue ledger"><path d="M150 60 C220.0 60 220.0 210 294 210" fill="none" stroke="var(--color-violet-600)" stroke-width="1" opacity=".6"/><circle r="3" fill="var(--color-pink-600)"><animateMotion dur="3s" repeatCount="indefinite" path="M150 60 C220.0 60 220.0 210 294 210"/></circle><rect x="30" y="42" width="120" height="36" rx="6" fill="var(--color-indigo-200)" stroke="var(--color-indigo-300-3)"/><text x="90" y="64" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="var(--color-white-1000)">Billing</text><path d="M150 160 C220.0 160 220.0 210 294 210" fill="none" stroke="var(--color-violet-600)" stroke-width="1" opacity=".6"/><circle r="3" fill="var(--color-pink-600)"><animateMotion dur="3s" repeatCount="indefinite" path="M150 160 C220.0 160 220.0 210 294 210"/></circle><rect x="30" y="142" width="120" height="36" rx="6" fill="var(--color-indigo-200)" stroke="var(--color-indigo-300-3)"/><text x="90" y="164" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="var(--color-white-1000)">CRM</text><path d="M150 260 C220.0 260 220.0 210 294 210" fill="none" stroke="var(--color-violet-600)" stroke-width="1" opacity=".6"/><circle r="3" fill="var(--color-pink-600)"><animateMotion dur="3s" repeatCount="indefinite" path="M150 260 C220.0 260 220.0 210 294 210"/></circle><rect x="30" y="242" width="120" height="36" rx="6" fill="var(--color-indigo-200)" stroke="var(--color-indigo-300-3)"/><text x="90" y="264" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="var(--color-white-1000)">Product events</text><path d="M150 360 C220.0 360 220.0 210 294 210" fill="none" stroke="var(--color-violet-600)" stroke-width="1" opacity=".6"/><circle r="3" fill="var(--color-pink-600)"><animateMotion dur="3s" repeatCount="indefinite" path="M150 360 C220.0 360 220.0 210 294 210"/></circle><rect x="30" y="342" width="120" height="36" rx="6" fill="var(--color-indigo-200)" stroke="var(--color-indigo-300-3)"/><text x="90" y="364" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="var(--color-white-1000)">Payments</text><path d="M550 60 C480.0 60 480.0 210 406 210" fill="none" stroke="var(--color-violet-600)" stroke-width="1" opacity=".6"/><circle r="3" fill="var(--color-pink-600)"><animateMotion dur="3s" repeatCount="indefinite" path="M550 60 C480.0 60 480.0 210 406 210"/></circle><rect x="550" y="42" width="120" height="36" rx="6" fill="var(--color-indigo-200)" stroke="var(--color-indigo-300-3)"/><text x="610" y="64" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="var(--color-white-1000)">ERP</text><path d="M550 160 C480.0 160 480.0 210 406 210" fill="none" stroke="var(--color-violet-600)" stroke-width="1" opacity=".6"/><circle r="3" fill="var(--color-pink-600)"><animateMotion dur="3s" repeatCount="indefinite" path="M550 160 C480.0 160 480.0 210 406 210"/></circle><rect x="550" y="142" width="120" height="36" rx="6" fill="var(--color-indigo-200)" stroke="var(--color-indigo-300-3)"/><text x="610" y="164" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="var(--color-white-1000)">Data warehouse</text><path d="M550 260 C480.0 260 480.0 210 406 210" fill="none" stroke="var(--color-violet-600)" stroke-width="1" opacity=".6"/><circle r="3" fill="var(--color-pink-600)"><animateMotion dur="3s" repeatCount="indefinite" path="M550 260 C480.0 260 480.0 210 406 210"/></circle><rect x="550" y="242" width="120" height="36" rx="6" fill="var(--color-indigo-200)" stroke="var(--color-indigo-300-3)"/><text x="610" y="264" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="var(--color-white-1000)">Bank feeds</text><path d="M550 360 C480.0 360 480.0 210 406 210" fill="none" stroke="var(--color-violet-600)" stroke-width="1" opacity=".6"/><circle r="3" fill="var(--color-pink-600)"><animateMotion dur="3s" repeatCount="indefinite" path="M550 360 C480.0 360 480.0 210 406 210"/></circle><rect x="550" y="342" width="120" height="36" rx="6" fill="var(--color-indigo-200)" stroke="var(--color-indigo-300-3)"/><text x="610" y="364" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="var(--color-white-1000)">Tax engine</text><rect x="294" y="170" width="112" height="80" rx="8" fill="var(--color-accent)"/><text x="350" y="206" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="500" fill="var(--color-background)">Ledgerline</text><text x="350" y="226" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="var(--color-white-1000)">revenue ledger</text></svg></div>
+    <div class="block"><div><p class="text-title-lg-light"><span style="color:var(--color-background)">Scale with confidence.</span> <span class="soft2">Ledgerline posts millions of journal lines an hour and keeps p99 latency flat through quarter-end peaks.</span></p></div>
+      <svg class="tput" viewBox="0 0 640 320" role="img" aria-label="Journal lines per second through a quarter-end close, with p99 latency"><defs><linearGradient id="tg" x1="0" x2="1"><stop offset="0" stop-color="var(--color-violet-600)"/><stop offset=".7" stop-color="var(--color-pink-600)"/><stop offset="1" stop-color="var(--color-yellow-800)"/></linearGradient></defs><path d="M32 32H632M32 96H632M32 160H632M32 224H632M32 288H632" stroke="var(--color-indigo-200)" fill="none"/><path d="M32.0 288V261.9M38.7 288V260.1M45.4 288V255.4M52.1 288V260.1M58.8 288V248.4M65.5 288V255.4M72.2 288V252.1M78.9 288V257.0M85.6 288V252.7M92.3 288V257.9M99.0 288V261.5M105.7 288V261.8M112.4 288V259.6M119.2 288V266.0M125.9 288V266.4M132.6 288V262.8M139.3 288V270.9M146.0 288V264.7M152.7 288V260.7M159.4 288V257.0M166.1 288V260.8M172.8 288V254.3M179.5 288V258.3M186.2 288V252.9M192.9 288V261.0M199.6 288V258.7M206.3 288V260.3M213.0 288V258.2M219.7 288V257.0M226.4 288V262.6M233.1 288V261.9M239.8 288V260.3M246.5 288V261.5M253.2 288V260.8M259.9 288V270.3M266.6 288V267.7M273.3 288V265.2M280.0 288V260.2M286.7 288V258.1M293.5 288V255.5M300.2 288V253.9M306.9 288V254.9M313.6 288V247.2M320.3 288V251.8M327.0 288V260.1M333.7 288V254.8M340.4 288V255.6M347.1 288V260.4M353.8 288V261.4M360.5 288V264.2M367.2 288V261.9M373.9 288V258.2M380.6 288V267.1M387.3 288V262.6M394.0 288V260.3M400.7 288V260.6M407.4 288V263.4M414.1 288V257.5M420.8 288V260.6M427.5 288V252.9M434.2 288V256.0M440.9 288V255.7M447.6 288V253.5M454.3 288V250.8M461.1 288V251.3M467.8 288V251.0M474.5 288V252.0M481.2 288V248.5M487.9 288V247.5M494.6 288V240.7M501.3 288V225.1M508.0 288V218.4M514.7 288V216.2M521.4 288V209.8M528.1 288V205.4M534.8 288V205.8M541.5 288V208.4M548.2 288V212.1M554.9 288V223.5M561.6 288V231.3M568.3 288V240.1M575.0 288V239.7M581.7 288V248.3M588.4 288V246.6M595.1 288V258.5M601.8 288V257.9M608.5 288V258.4M615.2 288V264.9M621.9 288V267.1M628.6 288V265.6" stroke="var(--color-accent)" stroke-width="3" opacity=".5"/><path d="M32.0 222.7L35.4 220.0L38.7 218.2L42.1 200.2L45.4 206.6L48.8 208.3L52.1 218.2L55.5 206.1L58.8 188.9L62.2 197.0L65.5 206.5L68.9 191.3L72.2 198.3L75.6 200.0L78.9 210.5L82.3 214.1L85.6 199.8L89.0 215.1L92.3 212.7L95.7 213.8L99.0 221.7L102.4 224.9L105.7 222.6L109.1 239.4L112.4 217.1L115.8 224.5L119.2 233.1L122.5 251.4L125.9 234.1L129.2 239.8L132.6 224.9L135.9 225.7L139.3 245.3L142.6 222.4L146.0 229.7L149.3 222.9L152.7 219.6L156.0 215.2L159.4 210.4L162.7 206.9L166.1 220.1L169.4 198.6L172.8 203.6L176.1 198.8L179.5 213.7L182.8 209.5L186.2 200.2L189.5 213.7L192.9 220.5L196.2 196.4L199.6 214.8L202.9 194.5L206.3 218.8L209.7 220.9L213.0 213.5L216.4 217.4L219.7 210.5L223.1 217.5L226.4 224.5L229.8 229.9L233.1 222.8L236.5 219.4L239.8 218.6L243.2 240.1L246.5 221.7L249.9 228.7L253.2 220.0L256.6 227.6L259.9 243.7L263.3 245.5L266.6 237.3L270.0 230.7L273.3 231.0L276.7 215.3L280.0 218.5L283.4 216.3L286.7 213.3L290.1 210.6L293.5 206.8L296.8 207.5L300.2 202.7L303.5 187.7L306.9 205.1L310.2 196.0L313.6 186.0L316.9 220.0L320.3 197.6L323.6 190.7L327.0 218.2L330.3 202.1L333.7 205.0L337.0 201.2L340.4 207.1L343.7 215.8L347.1 218.9L350.4 217.5L353.8 221.4L357.1 223.9L360.5 228.4L363.8 235.1L367.2 222.8L370.5 238.6L373.9 213.6L377.3 248.2L380.6 235.8L384.0 243.6L387.3 224.4L390.7 248.0L394.0 218.7L397.4 234.6L400.7 219.6L404.1 231.3L407.4 226.4L410.8 213.4L414.1 211.8L417.5 211.2L420.8 219.5L424.2 210.4L427.5 200.1L430.9 205.5L434.2 207.9L437.6 199.8L440.9 207.3L444.3 204.3L447.6 201.6L451.0 185.5L454.3 195.0L457.7 199.9L461.1 196.3L464.4 198.7L467.8 195.5L471.1 203.3L474.5 198.0L477.8 198.7L481.2 189.2L484.5 192.5L487.9 186.7L491.2 173.5L494.6 169.8L497.9 143.9L501.3 130.8L504.6 129.6L508.0 113.9L511.3 121.9L514.7 108.6L518.0 112.4L521.4 92.5L524.7 82.0L528.1 81.5L531.4 78.0L534.8 82.5L538.1 83.9L541.5 89.0L544.8 99.4L548.2 98.3L551.6 122.6L554.9 126.6L558.3 115.0L561.6 146.3L565.0 144.1L568.3 168.2L571.7 176.3L575.0 167.3L578.4 179.2L581.7 188.9L585.1 196.5L588.4 184.6L591.8 204.4L595.1 214.3L598.5 207.3L601.8 212.7L605.2 219.9L608.5 214.0L611.9 215.6L615.2 230.2L618.6 243.2L621.9 235.7L625.3 226.2L628.6 231.9L632.0 213.1" stroke="url(#tg)" stroke-width="2" fill="none"/><path d="M32.0 240.4L42.1 237.4L52.1 238.3L62.2 238.2L72.2 238.6L82.3 237.0L92.3 237.4L102.4 238.2L112.4 239.1L122.5 238.4L132.6 238.2L142.6 239.1L152.7 239.3L162.7 241.1L172.8 237.6L182.8 239.4L192.9 241.6L202.9 241.1L213.0 237.4L223.1 240.6L233.1 239.9L243.2 238.4L253.2 237.5L263.3 240.2L273.3 239.9L283.4 239.8L293.5 241.8L303.5 237.4L313.6 241.8L323.6 237.0L333.7 241.1L343.7 241.1L353.8 237.6L363.8 237.7L373.9 240.7L384.0 239.1L394.0 239.5L404.1 238.2L414.1 241.0L424.2 237.7L434.2 236.8L444.3 238.3L454.3 237.2L464.4 237.1L474.5 240.0L484.5 237.6L494.6 237.7L504.6 238.9L514.7 241.4L524.7 238.7L534.8 237.3L544.8 240.4L554.9 238.6L565.0 237.3L575.0 238.8L585.1 241.7L595.1 238.7L605.2 240.6L615.2 237.5L625.3 238.5" stroke="var(--color-blue-900)" stroke-dasharray="4 4" opacity=".6" fill="none"/><g font-family="Inter, sans-serif" font-size="10" fill="var(--color-indigo-600)"><text x="0" y="35">40k</text><text x="0" y="99">30k</text><text x="0" y="163">20k</text><text x="0" y="227">10k</text><text x="0" y="291">0</text><text x="468" y="20">Quarter-end close</text><text x="45" y="234">p99 latency 41 ms</text></g></svg></div>
+    <div class="stat3"><div><span class="grad-num" data-intro="intro-tint-5">1.2bn</span><p class="text-small" style="color:var(--color-background)">journal lines posted a month</p></div><div><span class="grad-num">40k</span><p class="text-small" style="color:var(--color-background)">ledger events per second</p></div><div><span class="grad-num">6 min</span><p class="text-small" style="color:var(--color-background)">to build a close pack</p></div></div>
+    <div class="block"><div><p class="text-title-lg-light"><span style="color:var(--color-background)">Choose an integration path.</span> <span class="soft2">Start in the dashboard, add a connector, or model your own contracts in code — the ledger is the same.</span></p></div>
+      <div class="code"><div class="tabs"><span class="on">close.ts</span><span>schedules.py</span><span>webhooks.rb</span></div><pre><span class="ln"><span class="k">import</span> Ledgerline <span class="k">from</span> <span class="s">"@ledgerline/node"</span>;</span><span class="ln"><span class="k">const</span> ll = <span class="k">new</span> <span class="f">Ledgerline</span>(process.env.LEDGERLINE_KEY);</span><span class="ln">&nbsp;</span><span class="ln"><span class="c">// Turn a signed contract into revenue schedules</span></span><span class="ln"><span class="k">const</span> contract = <span class="k">await</span> ll.contracts.<span class="f">create</span>({</span><span class="ln">  customer: <span class="s">"cus_northwave"</span>,</span><span class="ln">  currency: <span class="s">"usd"</span>,</span><span class="ln">  obligations: [</span><span class="ln">    { product: <span class="s">"platform"</span>, amount: <span class="n">48000</span>, pattern: <span class="s">"ratable"</span>, months: <span class="n">12</span> },</span><span class="ln">    { product: <span class="s">"api_usage"</span>, pattern: <span class="s">"usage"</span>, meter: <span class="s">"api_calls"</span> },</span><span class="ln">    { product: <span class="s">"onboarding"</span>, amount: <span class="n">6000</span>, pattern: <span class="s">"milestone"</span> },</span><span class="ln">  ],</span><span class="ln">});</span><span class="ln">&nbsp;</span><span class="ln"><span class="c">// Close October once every bank line is matched</span></span><span class="ln"><span class="k">const</span> close = <span class="k">await</span> ll.periods.<span class="f">close</span>(<span class="s">"2026-10"</span>, { requireMatched: <span class="k">true</span> });</span><span class="ln">console.<span class="f">log</span>(close.journal.lines); <span class="c">// 3,912</span></span></pre></div></div>
+    <div class="trio" style="padding-top:64px"><div class="feat"><span class="fi"><svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 4L1.5 8 5 12M11 4l3.5 4L11 12M9.5 2.5l-3 11" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span><p class="text-body soft2"><b class="" style="font-weight:425;color:var(--color-background)">No code?</b> Connect billing, CRM and your bank in the dashboard and run your first close without an engineer.</p><a class="callout" href="#">Explore no-code<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></div><div class="feat"><span class="fi"><svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M7 9a3 3 0 004 0l2-2a3 3 0 00-4-4l-1 1M9 7a3 3 0 00-4 0L3 9a3 3 0 004 4l1-1" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span><p class="text-body soft2"><b class="" style="font-weight:425;color:var(--color-background)">Use a pre-built connector.</b> Over 120 connectors for billing systems, ERPs and banks, maintained by Ledgerline.</p><a class="callout" href="#">See connectors<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></div><div class="feat"><span class="fi"><svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M9 1.5L3.5 9H8l-1 5.5L12.5 7H8z" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span><p class="text-body soft2"><b class="" style="font-weight:425;color:var(--color-background)">Build on the Revenue API.</b> SDKs in six languages, webhooks for every ledger event and a sandbox seeded with test contracts.</p><a class="callout" href="#">Get started<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></div></div>
+  </div>
+</section>
+<section class="section" aria-labelledby="news-h">
+  <div class="container">
+    <div class="news-head"><div><h2 id="news-h" class="text-title-lg ink">What&rsquo;s happening</h2><p class="text-title-lg soft">The latest from Ledgerline.</p></div><div class="nav2"><a href="#" aria-label="Previous">←</a><a href="#" aria-label="Next">→</a></div></div>
+    <div class="report" data-reveal="reveal-fade-52"><canvas data-viz="close" aria-label="Days to close for 2,400 finance teams, 2023 to 2025"></canvas></div>
+    <div class="report-copy"><p class="text-title-light muted"><span class="ink">Finance teams on Ledgerline closed 2.9× faster in 2025.</span> Our annual Close Report looks at 2,400 companies — how usage pricing changed revenue policy, why reconciliation is the real bottleneck, and what the fastest closers automate first.</p><a class="btn-o callout" href="#">Read the report<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></div>
+    <h2 class="text-title-lg ink" style="margin-top:112px">Book of the month</h2><p class="text-title-lg soft">Ideas for finance builders.</p>
+    <div class="book">
+      <div class="cov"><img src="img/book.svg" width="260" height="338" alt="Cover of The Accrual Instinct by Mara Okonkwo"></div>
+      <div class="txt">
+        <h3 class="text-h1-medium-3 ink">The Accrual Instinct</h3>
+        <p class="text-body muted">How the best controllers think about time, obligation and evidence — and why the monthly close is a product, not a ritual. A field guide from twenty years of subscription accounting.</p>
+        <div class="authors"><img src="img/ava-1.svg" width="32" height="32" alt="Mara Okonkwo"><img src="img/ava-2.svg" width="32" height="32" alt="Tomasz Wren"><span class="text-caption-light muted">Mara Okonkwo with Tomasz Wren · 312 pages</span></div>
+        <a class="callout" href="#">Read an excerpt<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a>
+        <div><p class="text-caption-light muted" style="max-width:260px;margin-bottom:12px">For more on finance operations and the economics of software, see our publications:</p>
+        <div class="pubs"><a href="#" class="text-caption"><i></i>Ledgerline Press</a><a href="#" class="text-caption"><img src="img/ava-3.svg" width="24" height="24" alt="" style="border-radius:2px">Close Notes</a></div></div>
       </div>
     </div>
   </div>
 </section>
-
-<!-- ================= TESTIMONIAL ================= -->
-<section class="section" style="background:var(--color-surface)">
-  <div class="container quote">
-    <div>
-      <blockquote class="text-title-lg-light">“We used to spend the first nine days of every month rebuilding revenue in spreadsheets. With Ledgerline our close takes two, and our auditors stopped asking for the workbook.”</blockquote>
-      <div class="who">
-        <div class="avatar" aria-hidden="true"></div>
-        <div><p class="text-label-regular ink">Mara Okonkwo</p><p class="text-body-light-2 soft">VP Finance, Northwind Cloud</p></div>
-      </div>
-      <a class="callout hover-tint-55" href="#" style="display:inline-block;margin-top:var(--space-24)">Read the story ›</a>
-    </div>
-    <div class="quote-stats">
-      <div><p class="text-h1-medium-3">9 → 2 days</p><p class="text-body muted">month-end close</p></div>
-      <div><p class="text-h1-medium-3">14,000</p><p class="text-body muted">contracts on automated schedules</p></div>
-      <div><p class="text-h1-medium-3">$0</p><p class="text-body muted">unexplained variance at year-end</p></div>
-      <a class="round-btn" href="#" data-intro="intro-tint-6" aria-label="Next story">›</a>
-    </div>
-  </div>
+<section class="section cta" aria-labelledby="cta-h" style="padding-block:96px">
+  <div class="container"><div class="grid">
+    <div><h2 id="cta-h" class="text-title-lg ink">Ready to close faster?</h2><p class="text-title-lg-light muted" >Start with a sandbox seeded with your own contracts, or talk to us about a migration plan.</p><a class="button-secondary" href="#">Contact sales <svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></div>
+    <div class="feat"><span class="fi"><svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2h6l6 6-6 6-6-6z" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="5.5" cy="5.5" r="1" fill="currentColor"/></svg></span><p class="text-body muted"><b class="ink" style="font-weight:425;display:block">See what you&rsquo;ll pay</b>Priced on recognised revenue, with no seat fees.</p><a class="callout" href="#">Pricing details<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></div>
+    <div class="feat"><span class="fi"><svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 4L1.5 8 5 12M11 4l3.5 4L11 12M9.5 2.5l-3 11" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></span><p class="text-body muted"><b class="ink" style="font-weight:425;display:block">Start building</b>Model your first contract in about ten minutes.</p><a class="callout" href="#">Integration options<svg class="arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></div>
+  </div></div>
 </section>
-
-<!-- ================= CLOSING CTA ================= -->
-<section class="container closing">
-  <div>
-    <h2 class="text-h1-medium-2 ink">Ready to close faster?</h2>
-    <p class="text-title-light muted">Connect your billing system and see last month's revenue recognised in under an hour.</p>
-    <div class="hero-ctas">
-      <a class="button-primary" href="#pricing">Start a free trial ›</a>
-      <a class="link-4" href="#">Talk to sales ›</a>
-    </div>
-  </div>
-  <div>
-    <h3 class="text-h2-medium">Migrate in a week</h3>
-    <p class="text-body muted">Bring historical contracts and opening balances; we rebuild prior periods and tie them out for you.</p>
-    <a class="link-4" href="#" style="display:inline-block;margin-top:var(--space-8)">Migration guide ›</a>
-  </div>
-  <div>
-    <h3 class="text-h2-medium">Read the API docs</h3>
-    <p class="text-body muted">Define custom obligations, post journals and subscribe to reconciliation events.</p>
-    <a class="link-4" href="#" style="display:inline-block;margin-top:var(--space-8)">API reference ›</a>
-  </div>
-</section>
-</main>
-
-<!-- ================= FOOTER ================= -->
 <footer>
-  <div class="container">
-    <div class="foot">
-      <div>
-        <a class="brand" href="#"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="4" height="16" rx="2" fill="var(--color-accent)"/><rect x="10" y="8" width="4" height="12" rx="2" fill="var(--color-violet-600)"/><rect x="17" y="12" width="4" height="8" rx="2" fill="var(--color-amber-600)"/></svg><span class="text-h2-medium">Ledgerline</span></a>
-        <p class="text-body-light-2 soft" style="margin-top:var(--space-12)">Revenue recognition and reconciliation for subscription businesses.</p>
-      </div>
-      <div><h4 class="text-label-regular">Product</h4><ul><li><a class="link" href="#">Recognition</a></li><li><a class="link" href="#">Reconciliation</a></li><li><a class="link" href="#">Close</a></li><li><a class="link" href="#">Reporting</a></li></ul></div>
-      <div><h4 class="text-label-regular">Solutions</h4><ul><li><a class="link" href="#">SaaS</a></li><li><a class="link" href="#">Usage-based</a></li><li><a class="link" href="#">Marketplaces</a></li><li><a class="link" href="#">Pre-IPO</a></li></ul></div>
-      <div><h4 class="text-label-regular">Developers</h4><ul><li><a class="link" href="#">API reference</a></li><li><a class="link" href="#">Webhooks</a></li><li><a class="link" href="#">Status</a></li><li><a class="link" href="#">Changelog</a></li></ul></div>
-      <div><h4 class="text-label-regular">Company</h4><ul><li><a class="link" href="#">About</a></li><li><a class="link" href="#">Customers</a></li><li><a class="link" href="#">Security</a></li><li><a class="link" href="#">Careers</a></li></ul></div>
-    </div>
-    <div class="legal">
-      <span class="text-caption soft">© 2026 Ledgerline, Inc. A fictional product.</span>
-      <span><a class="link-3" href="#">Privacy</a> · <a class="link-3" href="#">Terms</a> · <a class="link-3" href="#">English (US)</a></span>
-    </div>
-  </div>
+  <div class="container"><div class="cols"><div><h4 class="text-label-regular ink">Product</h4><ul><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Pricing</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Revenue recognition</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Reconciliation</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Close management</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Usage billing sync</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Multi-entity consolidation</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Deferred revenue forecasting</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Audit trail</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Revenue API</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Bank feeds</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">ERP connectors</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Reports</a></li></ul></div><div><h4 class="text-label-regular ink">Solutions</h4><ul><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Enterprise</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Startups</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">SaaS</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Usage-based pricing</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Marketplaces</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Platforms</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Healthcare</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Media</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Education</a></li></ul><h4 class="text-label-regular ink">Developers</h4><ul><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Documentation</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">API reference</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">API status</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Changelog</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">SDKs</a></li></ul></div><div><h4 class="text-label-regular ink">Resources</h4><ul><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Close Report 2026</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Guides</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Customer stories</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Blog</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Close Summit</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Privacy and terms</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Sitemap</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Cookie settings</a></li></ul></div><div><h4 class="text-label-regular ink">Company</h4><ul><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">About</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Careers</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Newsroom</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Ledgerline Press</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Contact sales</a></li></ul><h4 class="text-label-regular ink">Support</h4><ul><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Get support</a></li><li><a class="link-2" href="#" style="color:var(--color-text-tertiary)">Close support plans</a></li></ul></div></div>
+  <div class="base"><span class="text-small violet" style="display:inline-flex;gap:8px;align-items:center"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M2 8h12M8 2c2 2 2 10 0 12M8 2c-2 2-2 10 0 12" fill="none" stroke="currentColor" stroke-width="1.1"/></svg>United States (English)</span><span class="text-small ink">© 2026 Ledgerline, Inc.</span></div></div>
 </footer>
+<script>
+(() => {
+  const css = getComputedStyle(document.documentElement);
+  const v = (n) => css.getPropertyValue(n).trim();
+  const C = { a: v('--color-accent'), p: v('--color-pink-600'), o: v('--color-amber-600'), y: v('--color-yellow-800'), y2: v('--color-yellow-900'),
+    b: v('--color-blue-900'), v4: v('--color-violet-400'), v6: v('--color-violet-600'), d: v('--color-violet-100'), t: v('--color-text-quaternary'),
+    s2: v('--color-surface-2'), bl: v('--color-blue-700'), w: v('--color-background'), i6: v('--color-indigo-600'), i2: v('--color-indigo-200') };
+  const fit = (cv) => { const r = cv.getBoundingClientRect(), k = Math.min(2, devicePixelRatio || 1); cv.width = r.width * k; cv.height = r.height * k; const g = cv.getContext('2d'); g.scale(k, k); return [g, r.width, r.height]; };
+  let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
 
-<style>
-  /* stagger order for intros: --i steps of the 150ms motion token */
-  [data-intro="intro-fade-out-2"], [data-intro="intro-fade-17"], [data-intro="intro-fade-13"] { animation-delay: calc(var(--i, 0) * 150ms); }
-</style>
+  // hero: sweeping ribbon of 140 strands
+  function wave() {
+    const cv = document.getElementById('wave'); if (!cv) return; const [g, W, H] = fit(cv);
+    const grad = g.createLinearGradient(W * 0.3, H, W, 0);
+    grad.addColorStop(0, C.a); grad.addColorStop(0.3, C.v6); grad.addColorStop(0.5, C.p); grad.addColorStop(0.75, C.o); grad.addColorStop(1, C.y2);
+    for (let i = 0; i < 220; i++) {
+      const t = i / 220; g.beginPath();
+      for (let x = 0; x <= W + 20; x += 6) {
+        const u = x / W;
+        const y = H * (1.55 - 1.75 * u) + Math.sin(u * 4.2 + t * 2.4) * 46 + (t - 0.5) * 520 * (0.25 + u * 0.9);
+        x === 0 ? g.moveTo(x, y) : g.lineTo(x, y);
+      }
+      g.strokeStyle = grad; g.globalAlpha = (0.12 + 0.55 * Math.sin(t * Math.PI)) * 0.9; g.lineWidth = 1.4; g.stroke();
+    }
+    g.globalAlpha = 1;
+  }
+  // ring of contract points
+  function ring(cv) {
+    const [g, W, H] = fit(cv); const cx = W / 2, cy = H * 0.45, R = Math.min(W, H) * 0.36;
+    for (let i = 0; i < 1800; i++) {
+      const a = rnd() * Math.PI * 2, r = R + (rnd() - 0.5) * 44 * (1 + Math.sin(a * 3));
+      g.fillStyle = [C.p, C.v6, C.a, C.o][i % 4]; g.globalAlpha = 0.25 + rnd() * 0.6;
+      g.fillRect(cx + Math.cos(a) * r, cy + Math.sin(a) * r * 1.05, 1.6, 1.6);
+    }
+    g.globalAlpha = 1;
+  }
+  // dotted globe
+  function globe(cv) {
+    const [g, W, H] = fit(cv); const cx = W * 0.5, cy = H * 0.52, R = Math.min(W, H) * 0.5;
+    for (let i = 0; i < 16000; i++) {
+      const lat = Math.asin(2 * rnd() - 1), lon = rnd() * Math.PI * 2;
+      const land = Math.sin(lon * 2 + 1) * Math.cos(lat * 1.6) + Math.sin(lon * 5 + lat * 3) * 0.35 > -0.05; if (!land) continue;
+      const x = Math.cos(lat) * Math.sin(lon), y = Math.sin(lat), z = Math.cos(lat) * Math.cos(lon); if (z < 0) continue;
+      g.fillStyle = y < -0.2 ? C.o : (x > 0.3 ? C.p : C.v4); g.globalAlpha = 0.25 + z * 0.7;
+      g.fillRect(cx + x * R, cy - y * R, 1.4, 1.4);
+    }
+    g.globalAlpha = 1;
+  }
+  // throughput line chart
+  function tput(cv) {
+    const [g, W, H] = fit(cv); const pad = 32, N = 180;
+    g.strokeStyle = C.i2; g.lineWidth = 1;
+    for (let k = 0; k <= 4; k++) { const y = pad + (H - 2 * pad) * k / 4; g.beginPath(); g.moveTo(pad, y); g.lineTo(W - 8, y); g.stroke(); }
+    g.fillStyle = C.i6; g.font = '10px Inter, sans-serif';
+    ['40k', '30k', '20k', '10k', '0'].forEach((s, k) => g.fillText(s, 0, pad + (H - 2 * pad) * k / 4 + 3));
+    const pts = []; for (let i = 0; i < N; i++) { const u = i / N; const peak = Math.exp(-((u - 0.82) ** 2) / 0.004); pts.push(0.25 + 0.12 * Math.sin(u * 30) * rnd() + 0.55 * peak + rnd() * 0.05); }
+    const X = (i) => pad + (W - pad - 8) * i / (N - 1), Y = (p) => H - pad - (H - 2 * pad) * p;
+    for (let i = 0; i < N; i += 2) { g.fillStyle = C.v4; g.globalAlpha = 0.5; const bh = (H - 2 * pad) * pts[i] * 0.4; g.fillRect(X(i) - 1.5, H - pad - bh, 3, bh); }
+    g.globalAlpha = 1; const gr = g.createLinearGradient(0, 0, W, 0); gr.addColorStop(0, C.v6); gr.addColorStop(0.7, C.p); gr.addColorStop(1, C.y);
+    g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(X(i), Y(p)) : g.moveTo(X(i), Y(p))); g.strokeStyle = gr; g.lineWidth = 2; g.stroke();
+    g.beginPath(); pts.forEach((p, i) => g.lineTo(X(i), Y(0.18 + rnd() * 0.02))); g.strokeStyle = C.b; g.globalAlpha = 0.6; g.lineWidth = 1; g.setLineDash([4, 4]); g.stroke(); g.setLineDash([]); g.globalAlpha = 1;
+    g.fillStyle = C.i6; g.fillText('Quarter-end close', X(140), pad - 12); g.fillText('p99 latency 41 ms', X(4), Y(0.18) - 8);
+  }
+  // days-to-close beeswarm by year
+  function close(cv) {
+    const [g, W, H] = fit(cv); const top = 40, bot = H - 40, left = 120;
+    g.font = '12px Inter, sans-serif';
+    for (let d = 0; d <= 15; d++) { const x = left + (W - left - 16) * d / 15; g.strokeStyle = C.s2; g.beginPath(); g.moveTo(x, top - 8); g.lineTo(x, bot); g.stroke(); g.fillStyle = C.t; g.fillText(d + 'd', x - 6, H - 16); }
+    const yrs = [['2023', 9.6, C.b], ['2024', 6.4, C.v6], ['2025', 3.8, C.p]];
+    yrs.forEach(([yr, med, col], r) => {
+      const cy = top + (bot - top) * (r + 0.5) / 3; g.fillStyle = C.t; g.fillText(yr, 16, cy + 4);
+      for (let i = 0; i < 800; i++) { let d = med + (rnd() + rnd() + rnd() - 1.5) * med * 0.7; d = Math.max(0.6, Math.min(15, d)); const x = left + (W - left - 16) * d / 15; const y = cy + (rnd() - 0.5) * 90 * Math.exp(-((d - med) ** 2) / (med * 1.5)); g.fillStyle = col; g.globalAlpha = 0.65; g.beginPath(); g.arc(x, y, 2.2, 0, 7); g.fill(); }
+      g.globalAlpha = 1; const mx = left + (W - left - 16) * med / 15; g.strokeStyle = C.d; g.lineWidth = 1.5; g.beginPath(); g.moveTo(mx, cy - 52); g.lineTo(mx, cy + 52); g.stroke(); g.lineWidth = 1;
+      g.fillStyle = C.d; g.fillText('median ' + med + ' days', mx + 8, cy - 44);
+    });
+    g.fillStyle = C.t; g.fillText('Days from period end to close · each dot is a finance team', left, 20);
+  }
+  const draw = () => { seed = 11; wave(); document.querySelectorAll('canvas[data-viz]').forEach((cv) => ({ ring, globe, tput, close })[cv.dataset.viz](cv)); };
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(draw);
+  let t; addEventListener('resize', () => { clearTimeout(t); t = setTimeout(draw, 150); });
+})();
+</script>
 </body>
 </html>

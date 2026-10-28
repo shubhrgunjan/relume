@@ -144,7 +144,7 @@ components:
 # lenis.darkroom.engineering
 
 ## Overview
-Dark interface, almost entirely neutral — colour is rationed (chromatic share 2%). Maximum-contrast text (18.3:1). Headlines 160px / 400; body 18px at 1.328 leading. Crisp, near-square geometry (0px). Depth comes from hairline borders, not shadows. Translucent, blurred (glass) layers are part of the language. Generous vertical rhythm: sections breathe with ~56px padding on desktop. Entrances run ~716ms; scrolling is smoothed (lenis, lerp 0.14).
+Dark interface, almost entirely neutral — colour is rationed (chromatic share 2%). Maximum-contrast text (18.3:1). Headlines 160px / 400; body 18px at 1.328 leading. Crisp, near-square geometry (0px). Depth comes from hairline borders, not shadows. Translucent, blurred (glass) layers are part of the language. Generous vertical rhythm: sections breathe with ~56px padding on desktop. Entrances run ~716ms; scrolling is smoothed (lenis, lerp 0.13).
 
 ## Colors
 - **background** `#000000` — background

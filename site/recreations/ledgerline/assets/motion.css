@@ -29,8 +29,8 @@
 [data-intro="intro-tint-5"] { animation: intro-tint-5 300ms cubic-bezier(0.25, 1, 0.5, 1) both; animation-delay: calc(0ms); }
 /* intro-tint-6: a.hds-button.customer-story-button 40×40 (×6) */
 @keyframes intro-tint-6 {
-  from { background-color: rgba(0, 0, 0, 0); border-bottom-color: rgb(214, 217, 252); border-left-color: rgb(214, 217, 252); border-right-color: rgb(214, 217, 252); border-color: rgb(214, 217, 252); width: 50pxpx; }
-  to { background-color: rgb(226, 228, 255); border-bottom-color: rgb(226, 228, 255); border-left-color: rgb(226, 228, 255); border-right-color: rgb(226, 228, 255); border-color: rgb(226, 228, 255); width: 40pxpx; }
+  from { background-color: rgba(0, 0, 0, 0); border-bottom-color: rgb(214, 217, 252); border-left-color: rgb(214, 217, 252); border-right-color: rgb(214, 217, 252); border-color: rgb(214, 217, 252); width: 50px; }
+  to { background-color: rgb(226, 228, 255); border-bottom-color: rgb(226, 228, 255); border-left-color: rgb(226, 228, 255); border-right-color: rgb(226, 228, 255); border-color: rgb(226, 228, 255); width: 40px; }
 }
 [data-intro="intro-tint-6"] { animation: intro-tint-6 400ms cubic-bezier(0.3, 0, 0.2, 1) both; animation-delay: calc(0ms); }
 /* intro-fade-7: div.lazy-animation.lazy-animation--loaded 826×684 (×6) */
@@ -98,8 +98,8 @@
 [data-intro="intro-tint-18"] { animation: intro-tint-18 300ms cubic-bezier(0.25, 1, 0.5, 1) both; animation-delay: calc(0ms); }
 /* intro-width-19: a.hds-button.customer-story-button 171×40 (×2) */
 @keyframes intro-width-19 {
-  from { width: 50pxpx; }
-  to { width: 171pxpx; }
+  from { width: 50px; }
+  to { width: 171px; }
 }
 [data-intro="intro-width-19"] { animation: intro-width-19 400ms cubic-bezier(0.3, 0, 0.2, 1) both; animation-delay: calc(0ms); }
 /* intro-up-20: div 154×15 (×2) */

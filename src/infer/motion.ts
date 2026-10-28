@@ -67,7 +67,8 @@ function readableTransform(t: string) {
   if (Math.abs(p.ty) > 0.5) o.y = r0(p.ty);
   if (Math.abs(p.scale - 1) > 0.005) o.scale = r2(p.scale);
   if (Math.abs(p.rot) > 0.5) o.rotate = r0(p.rot);
-  if (!t.startsWith('matrix') && t !== 'none') return { transform: t.slice(0, 80) } as Record<string, any>;
+  // never clip a CSS value: a cut-off value is invalid CSS and takes the rest of the stylesheet with it
+  if (!t.startsWith('matrix') && t !== 'none') return { transform: t } as Record<string, any>;
   return o;
 }
 
@@ -78,7 +79,7 @@ function kfValues(k: Record<string, any>, props: string[]) {
     if (v === undefined) continue;
     if (p === 'transform') Object.assign(out, readableTransform(String(v)));
     else if (p === 'opacity') out.opacity = r2(+v);
-    else out[p] = String(v).slice(0, 80);
+    else out[p] = String(v);
   }
   return out;
 }

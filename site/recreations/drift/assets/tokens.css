@@ -63,7 +63,7 @@
   --ease-5: ease;
   --ease-6: ease-in;
   --ease-7: ease-in-out;
-  --container: 1360px;
+  --container: 1440px; /* content 1360px, text edge at x 40 on a 1440px screen */
   --gutter-desktop: 40px;
   --gutter-tablet: 23px;
   --gutter-mobile: 17px;
@@ -71,7 +71,7 @@
 
 html { background: var(--color-background); color: var(--color-text); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
 .container { box-sizing: border-box; width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: var(--gutter-desktop); }
-@media (max-width: 800px) { .container { padding-inline: var(--gutter-tablet); } }
+@media (max-width: 1024px) { .container { padding-inline: var(--gutter-tablet); } }
 @media (max-width: 640px) { .container { padding-inline: var(--gutter-mobile); } }
 .section { padding-block: 56px; } @media (max-width: 640px) { .section { padding-block: 66.56px; } }
 

@@ -21,11 +21,11 @@ export function initReveals(root = document) {
 
 
 // Smooth scrolling as measured: one wheel notch moves 100px and settles in ~530ms
-// (exponential approach, lerp ≈ 0.14 per frame).
+// (exponential approach, lerp ≈ 0.13 per frame).
 // npm i lenis
 import Lenis from 'lenis';
 export function initSmoothScroll() {
-  const lenis = new Lenis({ lerp: 0.115, wheelMultiplier: 1, smoothWheel: true });
+  const lenis = new Lenis({ lerp: 0.13, wheelMultiplier: 1, smoothWheel: true });
   const raf = (t) => { lenis.raf(t); requestAnimationFrame(raf); };
   requestAnimationFrame(raf);
   return lenis;
