@@ -31,12 +31,14 @@
       role: el.getAttribute?.('role') || undefined,
     };
   }
+  const refs = [];
   function idOf(el) {
     let id = ids.get(el);
     if (id === undefined) {
       if (R.elements.length >= MAX_ELEMENTS) return -1;
       id = R.elements.length;
       ids.set(el, id);
+      refs[id] = new WeakRef(el);
       R.elements.push(describe(el));
       try { el.setAttribute('data-relume-id', String(id)); } catch {}
     }
@@ -104,9 +106,36 @@
   }
   requestAnimationFrame(frame);
 
+  // text and structure changes are behaviour too: typing, cycling status lines, steps appended one by one,
+  // image frames swapped. Recorded per element as [t, id, kind, value].
+  R.texts = [];
+  const lastText = new WeakMap();
+  const textOf = (el) => (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 160);
+  const noteText = (el) => {
+    if (!(el instanceof Element) || R.texts.length > 20000) return;
+    const v = textOf(el);
+    if (lastText.get(el) === v) return;
+    lastText.set(el, v);
+    const id = idOf(el);
+    if (id >= 0) R.texts.push([Math.round(now()), id, 'text', v]);
+  };
   new MutationObserver((list) => {
-    for (const m of list) if (m.type === 'attributes') track(m.target, 'attr:' + m.attributeName);
-  }).observe(document, { subtree: true, attributes: true, attributeFilter: ['style', 'class', 'data-state', 'aria-expanded', 'open', 'hidden'] });
+    for (const m of list) {
+      if (m.type === 'attributes') {
+        if (m.attributeName === 'src' || m.attributeName === 'srcset') { const id = idOf(m.target); if (id >= 0 && R.texts.length < 20000) R.texts.push([Math.round(now()), id, 'src', String(m.target.getAttribute('src') || '').slice(-80)]); }
+        track(m.target, 'attr:' + m.attributeName);
+      } else if (m.type === 'characterData') noteText(m.target.parentElement);
+      else if (m.type === 'childList') {
+        const el = m.target;
+        if (el instanceof Element && (m.addedNodes.length || m.removedNodes.length)) {
+          const id = idOf(el);
+          if (id >= 0 && R.texts.length < 20000) R.texts.push([Math.round(now()), id, 'children', el.children.length]);
+          noteText(el);
+          for (const n of m.addedNodes) if (n instanceof Element) track(n, 'added');
+        }
+      }
+    }
+  }).observe(document, { subtree: true, attributes: true, characterData: true, childList: true, attributeFilter: ['style', 'class', 'data-state', 'aria-expanded', 'open', 'hidden', 'src', 'srcset'] });
 
   // ---- animation ledger -------------------------------------------------------------------------
   const seen = new WeakSet();
@@ -146,7 +175,26 @@
   const animate = Element.prototype.animate;
   Element.prototype.animate = function (...args) { track(this, 'waapi'); return animate.apply(this, args); };
 
-  R.mark = (label) => R.marks.push({ t: Math.round(now()), label, scrollY });
+  // sync flash: a 6×6 magenta square in the top-left corner for 300ms, so the video clock can be aligned to the
+  // page clock exactly (behaviour analysis finds these frames)
+  R.flash = () => {
+    const d = document.createElement('div');
+    d.setAttribute('style', 'position:fixed;left:0;top:0;width:6px;height:6px;background:#ff00ff;z-index:2147483647;pointer-events:none');
+    (document.body || document.documentElement).appendChild(d);
+    setTimeout(() => d.remove(), 300);
+  };
+  // how much the page did on its own, since t, to elements that are on screen now (not elsewhere on the page)
+  R.localActivity = (t) => {
+    const vis = (id) => { const el = refs[id]?.deref(); if (!el) return false; const r = el.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight && r.width > 0; };
+    let n = 0;
+    for (const x of R.texts) if (x[0] >= t && vis(x[1])) n++;
+    for (const a of R.anims) if (a.t >= t && a.target >= 0 && vis(a.target)) n++;
+    for (const tr of R.done) if (tr.samples[0][0] >= t && vis(tr.id)) n++;
+    for (const [id, tr] of R.tracks) if (tr.samples[0][0] >= t && vis(id)) n++;
+    return n;
+  };
+  R.now = () => now();
+  R.mark = (label) => { R.marks.push({ t: Math.round(now()), label, scrollY }); if (/^(loaded|scroll:start|scroll:end|dwell:end)$/.test(label)) R.flash(); };
 
   // ---- library detection ------------------------------------------------------------------------
   R.libraries = () => {
@@ -217,6 +265,7 @@
     'animationName', 'animationDuration', 'animationTimingFunction', 'animationIterationCount',
     'backdropFilter', 'filter', 'mixBlendMode', 'outlineWidth', 'outlineColor', 'outlineOffset', 'outlineStyle',
     'transform', 'fill', 'stroke', 'strokeWidth', 'textShadow', 'whiteSpace', 'textWrap',
+    'maskImage', 'webkitMaskImage', 'backgroundPosition', 'backgroundRepeat', 'imageRendering',
   ];
   R.harvest = () => {
     const rows = [];
@@ -294,6 +343,6 @@
     for (const [id, tr] of R.tracks) if (tr.samples.length > 2) R.done.push({ id, why: tr.why, samples: tr.samples });
     R.tracks.clear();
     ledger();
-    return { marks: R.marks, elements: R.elements, tracks: R.done, anims: R.anims, scroll: R.scroll, wheel: R.wheel, stats: R.stats };
+    return { marks: R.marks, elements: R.elements, tracks: R.done, anims: R.anims, scroll: R.scroll, wheel: R.wheel, stats: R.stats, texts: R.texts };
   };
 })();

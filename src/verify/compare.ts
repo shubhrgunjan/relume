@@ -196,7 +196,41 @@ export function compareDna(src: DNA, cand: DNA): Report {
     if (seq < 0.7) F.push({ dimension: 'composition', severity: 7, message: `section sequence differs: source ${a.join(' → ')}; yours ${b.join(' → ')}`, fix: 'Follow the section order in blueprint.md' });
     if (dens < 0.6) F.push({ dimension: 'composition', severity: 6, message: `${cc0.totals.elementsPerScreen} elements per screen; the source has ${sc0.totals.elementsPerScreen}`, fix: 'Match the source density: every section carries detailed content, not only headings' });
   }
-  const W: Record<string, number> = S.composition !== undefined
+  // ---- behaviour: what each section does on its own (typing, dim/active sets, drift and depth, followers…)
+  if (sc0 && cc0) {
+    const srcSecs = sc0.sections as any[], candSecs = cc0.sections as any[];
+    const want = srcSecs.flatMap((sec: any, i: number) => (sec.behaviour?.items || []).filter((it: any) => !['loop', 'mask-fade'].includes(it.kind) || it.kind === 'mask-fade').map((it: any) => ({ it, i, sec })));
+    // one requirement per section and kind (three typed commands in the hero are one behaviour)
+    const reqs = new Map<string, any>();
+    for (const w of want) { const k = `${w.i}:${w.it.kind}`; if (!reqs.has(k)) reqs.set(k, w); }
+    const scores: number[] = [];
+    const near = (a: number, b: number, tol: number) => a && b ? Math.max(0, 1 - Math.abs(a - b) / (a * tol)) : 0.5;
+    for (const { it, i, sec } of reqs.values()) {
+      // the candidate's matching section: the same position in the sequence, ±1
+      const j = Math.round(i * (candSecs.length - 1) / Math.max(1, srcSecs.length - 1));
+      const pool = [j - 1, j, j + 1].filter((k) => k >= 0 && k < candSecs.length).flatMap((k) => (candSecs[k].behaviour?.items || []).filter((x: any) => x.kind === it.kind));
+      const p = it.params;
+      let sc = 0;
+      if (pool.length) {
+        const q = pool[0].params;
+        sc = it.kind === 'typewriter' ? 0.5 + 0.5 * near(p.charsPerSecond, q.charsPerSecond, 0.5)
+          : it.kind === 'active-one-of-n' ? 0.4 + 0.3 * near(p.switchEveryMs, q.switchEveryMs, 0.5) + 0.3 * (Math.abs(p.dimmedLevel - q.dimmedLevel) < 0.2 ? 1 : 0)
+          : it.kind === 'drift' ? 0.5 + 0.5 * near(p.pxPerSecond, q.pxPerSecond, 0.6)
+          : it.kind === 'parallax' ? 0.6 + 0.4 * (q.layers >= p.layers ? 1 : 0)
+          : it.kind === 'staged-reveal' || it.kind === 'cycling-text' ? 0.6 + 0.4 * near(p.intervalMs, q.intervalMs, 0.6)
+          : 1;
+      }
+      scores.push(sc);
+      if (sc < 0.6) {
+        const what = { typewriter: `text types itself out (${p.charsPerSecond} chars/s)`, 'active-one-of-n': `one of ${p.members} is active while the rest are dimmed (${p.via}, level ${p.dimmedLevel}), switching every ${p.switchEveryMs}ms`, drift: `a layer drifts ${p.direction} at ${p.pxPerSecond}px/s`, parallax: `${p.layers} layers move at different speeds (depth)`, mover: `an element travels between ${p.positions} positions`, 'cycling-text': `a label cycles through ${p.values?.length} values every ${p.intervalMs}ms`, 'staged-reveal': `items appear one at a time, ${p.intervalMs}ms apart`, progress: `a progress bar fills over ${p.durationMs}ms`, 'mask-fade': `panels fade out through a gradient mask`, 'frame-swap': 'a sprite / frame animation', 'autoplay-media': 'autoplaying video', loop: 'a repeating animation' }[it.kind as string] || it.kind;
+        F.push({ dimension: 'behaviour', severity: ['active-one-of-n', 'typewriter', 'drift', 'parallax'].includes(it.kind) ? 8 : 5, message: `${pool.length ? 'off' : 'missing'} in section ${i + 1} (${sec.kind}): ${what}`, fix: pool.length ? 'match the measured speed/period (see_behaviour)' : `build it: see_behaviour section ${i + 1}` });
+      }
+    }
+    if (scores.length) S.behaviour = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length * 100);
+  }
+  const W: Record<string, number> = S.behaviour !== undefined
+    ? { color: 0.1, type: 0.1, spacing: 0.06, shape: 0.06, layout: 0.06, motion: 0.12, feel: 0.05, composition: 0.25, behaviour: 0.2 }
+    : S.composition !== undefined
     ? { color: 0.12, type: 0.12, spacing: 0.08, shape: 0.08, layout: 0.08, motion: 0.15, feel: 0.07, composition: 0.3 }
     : { color: 0.2, type: 0.2, spacing: 0.1, shape: 0.1, layout: 0.1, motion: 0.2, feel: 0.1 };
   const overall = Math.round(Object.entries(W).reduce((s, [k, w]) => s + (S[k] ?? 0) * w, 0));

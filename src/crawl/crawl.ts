@@ -106,6 +106,45 @@ async function toTop(page: Page) {
   await page.waitForTimeout(1200);
 }
 
+/**
+ * Dwell pass: hold each stretch of the page in view, still, long enough for autonomous behaviour to show —
+ * scripted demos, typing, cycling status lines, drifting backgrounds, loops. Marks are 'dwell:<y>'.
+ */
+async function dwellPass(page: Page, budgetMs = 120000) {
+  await closeOverlays(page);
+  const { H, vh } = await page.evaluate(() => ({ H: Math.max(document.documentElement.scrollHeight, (window as any).lenis?.limit + innerHeight || 0), vh: innerHeight }));
+  const step = Math.max(vh * 0.6, (H - vh) / 18);
+  const stops: number[] = [];
+  for (let y = 0; y <= H - vh * 0.5; y += step) stops.push(Math.round(y));
+  const hold = Math.max(2500, Math.min(5000, (budgetMs * 0.5) / Math.max(1, stops.length)));
+  const go = async (y: number) => {
+    await page.evaluate((y) => { const l = (window as any).lenis || (window as any).__lenis; if (l?.scrollTo) l.scrollTo(y, { immediate: true, force: true }); else scrollTo(0, y); }, y);
+    await page.waitForTimeout(300);
+    await page.evaluate((y) => (window as any).__relume.mark('dwell:' + y), y);
+  };
+  const t = () => page.evaluate(() => (window as any).__relume.now());
+  const local = (since: number) => page.evaluate((s) => (window as any).__relume.localActivity(s), since);
+  // park the cursor where it hovers nothing, so what moves is the page's own doing
+  await page.mouse.move(2, 2);
+  // 1) a short look at every stop, measuring how much the page does there on its own
+  const busy: { y: number; n: number }[] = [];
+  for (const y of stops) { await go(y); const t0 = await t(); await page.waitForTimeout(hold); busy.push({ y, n: await local(t0) }); }
+  // 2) long watches where the page is busiest: scripted demos run on cycles longer than a glance
+  for (const b of busy.filter((b) => b.n > 3).sort((a, b) => b.n - a.n).slice(0, 2)) { await go(b.y); await page.waitForTimeout(22000); }
+  // 3) slow, steady sweeps through the first and last stretches (where layered, parallax scenes usually sit):
+  //    content that moves at a different speed than the scroll is measured against these
+  for (const [from, to] of [[0, Math.min(H - vh, vh * 1.5)], [Math.max(0, H - vh * 2.6), H - vh]]) {
+    if (to - from < vh * 0.4) continue;
+    await go(from);
+    await page.evaluate(() => (window as any).__relume.mark('sweep:start'));
+    const steps = Math.ceil((to - from) / 12);
+    for (let i = 1; i <= steps; i++) { await page.mouse.wheel(0, 12); await page.waitForTimeout(40); }
+    await page.waitForTimeout(600);
+    await page.evaluate(() => (window as any).__relume.mark('sweep:end'));
+  }
+  await page.evaluate(() => (window as any).__relume.mark('dwell:end'));
+}
+
 /** Pick hover candidates: visible interactive things, one per distinct style signature. */
 async function hoverCandidates(page: Page, limit: number) {
   return page.evaluate((limit) => {
@@ -276,6 +315,7 @@ async function motionVisit(browser: Browser, url: string, dir: string, opt: Craw
   await toTop(page);
   const hovers = await hoverPass(page, opt.hoverLimit, opt.log);
   lap(`hover pass (${hovers.length})`);
+  if (isHome) { await dwellPass(page); lap('dwell pass'); }
   // hovering can open menus and modals; close them so they are not captured as page content
   await closeOverlays(page);
   await toTop(page);

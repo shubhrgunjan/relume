@@ -27,6 +27,7 @@ export interface Motion {
   scroll: [number, number, number][];
   wheel: [number, number][];
   hovers: { id: number; before: Record<string, string> | null; during: Record<string, string> | null; focus?: Record<string, string> | null }[];
+  texts?: any[][];
   libraries: Record<string, any>;
 }
 export interface Anim {

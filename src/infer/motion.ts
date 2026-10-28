@@ -38,6 +38,7 @@ function phaseAt(m: Motion, t: number): { phase: string; ref?: number; markT: nu
   if (l === 'scroll:end') return { phase: t - cur.t < 1500 ? 'scroll' : 'idle', markT: cur.t };
   if (l.startsWith('hover:')) return { phase: 'hover', ref: +l.slice(6), markT: cur.t };
   if (l.startsWith('unhover:')) return { phase: 'hover-exit', ref: +l.slice(8), markT: cur.t };
+  if (l.startsWith('dwell') || l.startsWith('sweep')) return { phase: 'idle', markT: cur.t };
   return { phase: 'load', markT: cur.t };
 }
 
@@ -141,7 +142,15 @@ export function inferMotion(ev: Evidence) {
       const fromKey = JSON.stringify(from), toKey = JSON.stringify(to);
       // a transition between equivalent values (background-position 0px → 0%) is shorthand noise, not motion
       if (!infinite && source === 'css-transition' && props.every((p) => /^background(Position|Size|Repeat)/.test(p))) continue;
-      if (!infinite && fromKey === toKey && props.every((p) => p === 'opacity' || p === 'transform')) continue;
+      // a "change" from a value to itself is not motion (grid rows 12px → 12px, blur 0 → none)
+      const same = (a: Record<string, any>, b: Record<string, any>) => Object.keys({ ...a, ...b }).every((k) => String(a[k] ?? '').replace(/blur\(0px\)|none/g, '0') === String(b[k] ?? '').replace(/blur\(0px\)|none/g, '0'));
+      if (!infinite && (fromKey === toKey || same(from, to))) continue;
+      // something changing during the hover pass that is not the hovered element (or inside it) runs on its own
+      if (trigger === 'hover' && ph.ref !== undefined && a.target >= 0 && a.target !== ph.ref) {
+        let p = rows.get(a.target)?.pid, inside = false;
+        for (let k = 0; p !== undefined && p >= 0 && k < 12; k++) { if (p === ph.ref) { inside = true; break; } p = rows.get(p)?.pid; }
+        if (!inside) trigger = 'state';
+      }
       const key = [trigger, source, props.sort().join(','), dur, easing, trigger === 'hover' || trigger === 'hover-exit' ? '' : fromKey + toKey, a.name].join('|');
       const target = describe(m, a.target, rows);
       let entry: number | undefined;

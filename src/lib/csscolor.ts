@@ -115,3 +115,15 @@ export function contrast(a: RGBA, b: RGBA): number {
   const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
   return (x + 0.05) / (y + 0.05);
 }
+
+/** Rewrite lab()/oklab()/oklch()/lch()/color() inside any CSS value as hex or rgb(… / a), keeping the rest. */
+export function normalizeColors(value: string): string {
+  if (!value || !/(lab|lch|oklab|oklch|color)\(/i.test(value)) return value;
+  return value.replace(/(oklab|oklch|lab|lch|color)\([^()]*\)/gi, (m) => { const c = parseColor(m); return c ? rgbaCss(c) : m; });
+}
+
+/** Browsers clamp "infinite" radii to 3.35544e+07px; that is a pill, written 9999px. */
+export function normalizeRadius(v: string): string {
+  if (!v) return v;
+  return v.replace(/(\d+(?:\.\d+)?)(e\+?\d+)?px/g, (m, n, e) => (parseFloat(n + (e || '')) >= 9999 ? '9999px' : m));
+}

@@ -3,7 +3,7 @@ import { mkdirSync, writeFileSync, copyFileSync, existsSync, rmSync, readFileSyn
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { DNA } from '../infer/dna.js';
-import { parseColor, rgbaCss } from '../lib/csscolor.js';
+import { parseColor, rgbaCss, normalizeColors } from '../lib/csscolor.js';
 import { baseFamily } from '../infer/tokens.js';
 import { buildRecipes, type Recipe } from './motion-recipes.js';
 
@@ -28,19 +28,21 @@ export function compileSkill(dna: DNA, entryDir: string) {
   const recipes = buildRecipes(dna.motion.patterns as any);
   const host = new URL(dna.source.url).hostname;
 
-  writeFileSync(join(out, 'assets', 'tokens.css'), safeCss(tokensCss(dna)));
-  writeFileSync(join(out, 'assets', 'tailwind.css'), safeCss(tailwindCss(dna)));
-  writeFileSync(join(out, 'assets', 'tokens.json'), JSON.stringify(dtcg(dna), null, 2));
-  writeFileSync(join(out, 'assets', 'motion.css'), safeCss(motionCss(dna, recipes)));
-  writeFileSync(join(out, 'assets', 'motion.js'), motionJs(dna, recipes));
-  writeFileSync(join(out, 'assets', 'DESIGN.md'), designMd(dna, host));
-  writeFileSync(join(out, 'references', 'tokens.md'), tokensMd(dna));
-  writeFileSync(join(out, 'references', 'components.md'), componentsMd(dna));
-  writeFileSync(join(out, 'references', 'motion.md'), motionMd(dna, recipes));
-  writeFileSync(join(out, 'references', 'layout.md'), layoutMd(dna));
-  writeFileSync(join(out, 'references', 'blueprint.md'), blueprintMd(dna));
+  writeText(join(out, 'assets', 'tokens.css'), safeCss(tokensCss(dna)));
+  writeText(join(out, 'assets', 'tailwind.css'), safeCss(tailwindCss(dna)));
+  writeText(join(out, 'assets', 'tokens.json'), JSON.stringify(dtcg(dna), null, 2));
+  writeText(join(out, 'assets', 'motion.css'), safeCss(motionCss(dna, recipes)));
+  writeText(join(out, 'assets', 'motion.js'), motionJs(dna, recipes));
+  writeText(join(out, 'assets', 'DESIGN.md'), designMd(dna, host));
+  writeText(join(out, 'references', 'tokens.md'), tokensMd(dna));
+  writeText(join(out, 'references', 'components.md'), componentsMd(dna));
+  writeText(join(out, 'references', 'motion.md'), motionMd(dna, recipes));
+  writeText(join(out, 'references', 'layout.md'), layoutMd(dna));
+  writeText(join(out, 'references', 'blueprint.md'), blueprintMd(dna));
   mkdirSync(join(out, 'assets', 'reference', 'sections'), { recursive: true });
-  for (const pg of (dna as any).composition?.pages || []) for (const sec of pg.sections) if (sec.crop && existsSync(join(entryDir, sec.crop))) copyFileSync(join(entryDir, sec.crop), join(out, 'assets', 'reference', sec.crop));
+  for (const pg of (dna as any).composition?.pages || []) for (const sec of pg.sections) {
+    for (const f of [sec.crop, sec.behaviour?.filmstrip, ...sec.blocks.map((b: any) => b.crop)]) if (f && existsSync(join(entryDir, f))) copyFileSync(join(entryDir, f), join(out, 'assets', 'reference', f));
+  }
   writeFileSync(join(out, 'scripts', 'lint.mjs'), readFileSync(join(HERE, 'lint-template.mjs'), 'utf8'));
   // reference shots: the look, for the agent's eyes only — never ship them in a build
   for (const p of dna.source.pages.slice(0, 3)) for (const vp of ['desktop', 'mobile']) {
@@ -48,7 +50,7 @@ export function compileSkill(dna: DNA, entryDir: string) {
     if (existsSync(src)) copyFileSync(src, join(out, 'assets', 'reference', `${p.key}-${vp}.jpg`));
   }
   for (const c of dna.components) if (c.crop && existsSync(join(entryDir, c.crop))) copyFileSync(join(entryDir, c.crop), join(out, 'assets', 'reference', c.crop.split('/').pop()!));
-  writeFileSync(join(out, 'SKILL.md'), skillMd(dna, name, host, recipes));
+  writeText(join(out, 'SKILL.md'), skillMd(dna, name, host, recipes));
   return out;
 }
 
@@ -75,7 +77,7 @@ function skillMd(dna: DNA, name: string, host: string, recipes: Recipe[]) {
   const donts: string[] = [];
   dos.push(`Use only the colour tokens in \`assets/tokens.css\`; the accent (${fmt(t('accent')?.value)}) covers ≤${Math.max(1, Math.round((t('accent')?.share || 1) * 3))}% of any screen.`);
   dos.push(`Set text with the named styles (\`.text-body\`, \`.text-${dna.typography.styles[0]?.name}\` …); never invent sizes between them.`);
-  dos.push(`Space on the ${dna.spacing.base}px grid (${dna.spacing.top.slice(0, 6).map((x) => x.value).join(', ')} are the workhorses); sections get ~${dna.spacing.sections.desktop?.median ?? '—'}px vertical padding on desktop.`);
+  dos.push(`Space on the ${dna.spacing.base}px grid (${dna.spacing.top.slice(0, 6).map((x) => x.value).join(', ')} are the workhorses)${dna.spacing.sections.desktop?.median ? `; sections get ~${dna.spacing.sections.desktop.median}px vertical padding on desktop` : '; section padding was not measurable here, so take it from the blueprint crops'}.`);
   if (dna.feel.metrics.hairlines && !dna.feel.metrics.shadows) donts.push('Do not use drop shadows for depth; separate surfaces with the hairline border tokens.');
   if (dna.feel.metrics.shadows) dos.push('Reuse the measured shadows verbatim; they are layered, not single blurs.');
   if (dna.feel.metrics.glass) dos.push('Floating chrome (nav, popovers) uses the measured backdrop blur over a translucent fill.');
@@ -99,6 +101,9 @@ ${dna.feel.notes.map((n) => `- ${n}`).join('\n')}
 
 ## Build to the blueprint first
 This language is not only its tokens. ${blueprintLead(dna)} Read \`references/blueprint.md\` before anything else: it lists every section of the source in order, with a crop, its layout, and what it is made of. A new page must have the same kinds of sections in the same order, filled with the same kinds of things for your product: product UI built in real HTML with the measured UI grammar, illustrations in the source's style, data visualisations, logo rows, testimonial cards. Headings over empty boxes are not this language, and the checker fails them.
+
+## Build the behaviour, not just the picture
+${behaviourLead(dna)}
 
 ## Setup
 1. Copy \`assets/tokens.css\` (plain CSS variables, text styles, component classes, \`.container\` and \`.section\` with the measured width, gutters and rhythm — use them, don't re-derive) into the project; with Tailwind v4 also import \`assets/tailwind.css\` after \`@import "tailwindcss"\`.
@@ -138,12 +143,16 @@ ${recipes.filter((r) => r.trigger !== 'loop').slice(0, 6).map((r) => `- **${r.na
 }
 
 /** One CSS variable per family: the body family is --font-sans, a mono family --font-mono, others by name. */
+/** Agents copy values verbatim: every lab()/oklab()/oklch() colour is written as hex or rgb(). */
+function writeText(file: string, text: string) { writeFileSync(file, normalizeColors(text)); }
+
 export function fontVar(dna: DNA, family: string) {
   const f = dna.typography.families.find((x) => x.family === family);
   if (!f) return '--font-sans';
   const body = dna.typography.styles.find((s) => s.name === 'body')?.family;
   if (family === body) return '--font-sans';
-  if (f.roles.some((r) => r.startsWith('mono')) || /mono|code/i.test(family)) return '--font-mono';
+  const isMono = (x: typeof f) => x.roles.some((r) => r.startsWith('mono')) || /mono|code/i.test(x.family);
+  if (isMono(f) && dna.typography.families.find(isMono)?.family === family) return '--font-mono';
   return cssVarName('font-' + baseFamily(family));
 }
 
@@ -561,10 +570,31 @@ function blueprintMd(dna: DNA) {
       if (s.crop) L.push(`![${s.kind}](../assets/reference/${s.crop})`);
       L.push(`- layout: **${s.layout}**${s.columns > 1 ? `, ${s.columns} columns` : ''}; ${Math.round(s.box[3])}px tall; visuals cover ${Math.round(s.visualShare * 100)}%; ${s.elements} painted elements${s.background ? `; background ${s.background}` : ''}`);
       if (s.heading) L.push(`- heading: “${s.heading.text}” — ${s.heading.size}px / ${s.heading.weight}, at x ${Math.round(s.heading.x)}, ${Math.round(s.heading.width)}px wide`);
-      if (s.blocks.length) L.push(`- made of: ${s.blocks.map((b: any) => `**${b.kind}** (${b.detail}, at ${b.box.map((v: number) => Math.round(v)).join('/')})`).join('; ')}`);
+      if (s.blocks.length) L.push(`- made of: ${s.blocks.map((b: any) => `**${b.kind}** (${b.detail}, at ${b.box.map((v: number) => Math.round(v)).join('/')}${b.opacity ? `, opacity ${b.opacity}` : ''})`).join('; ')}`);
       else L.push(`- made of: text only (${s.copyChars} characters)`);
+      const crops = s.blocks.filter((b: any) => b.crop).slice(0, 6);
+      if (crops.length) L.push(`- see each block: ${crops.map((b: any) => `[${b.kind}](../assets/reference/${b.crop})`).join(' · ')}`);
+      const art = s.blocks.filter((b: any) => b.palette?.length);
+      for (const b of art.slice(0, 3)) L.push(`- ${b.kind} pixels use: ${b.palette.map((c: any) => `${c.hex} ${Math.round(c.share * 100)}%`).join(', ')}`);
+      if (s.palette?.length) L.push(`- this section's pixels: ${s.palette.slice(0, 6).map((c: any) => `${c.hex} ${Math.round(c.share * 100)}%`).join(', ')} (use these for painted or image art instead of inventing colours)`);
+      const bh = s.behaviour;
+      if (bh?.narrative?.length) {
+        L.push('', `**Behaviour** — what this section does while you watch it${bh.filmstrip ? ` ([filmstrip](../assets/reference/${bh.filmstrip}), six moments of a still view)` : ''}:`);
+        for (const n of bh.narrative) L.push(`- ${n}`);
+      }
       L.push('');
     }
   }
   return L.join('\n');
+}
+
+function behaviourLead(dna: DNA) {
+  const pages = (dna as any).composition?.pages || [];
+  const lines: string[] = [];
+  for (const pg of pages.slice(0, 1)) for (const sec of pg.sections) {
+    const n = sec.behaviour?.narrative || [];
+    if (n.length) lines.push(`- **${sec.kind}** (section ${sec.index + 1}): ${n.slice(0, 4).join(' ')}`);
+  }
+  if (!lines.length) return 'No autonomous behaviour was measured on this site: sections sit still unless scrolled or hovered (see motion.md).';
+  return `Sections on this site move on their own. A static copy of their layout is not this language: recreate each behaviour for your content, with the measured speeds, periods and levels. Each section's full behaviour and a filmstrip are in \`references/blueprint.md\`; with the relume MCP, \`see_behaviour\` shows it.\n\n${lines.join('\n')}`;
 }

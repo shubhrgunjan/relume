@@ -2,11 +2,11 @@
 // product UI, illustrations, data visualisation, logos, code, cards, testimonials, text — and how much of the
 // screen those take. Tokens say what things look like; this says what a page *is*.
 import type { Harvest, Row } from './evidence.js';
-import { parseColor } from '../lib/csscolor.js';
+import { parseColor, normalizeColors, normalizeRadius, rgbaCss } from '../lib/csscolor.js';
 
 export type ContentKind = 'ui-mock' | 'illustration' | 'dataviz' | 'logos' | 'image' | 'avatar' | 'code' | 'cards' | 'testimonial' | 'tabs' | 'form' | 'video';
 
-export interface Block { kind: ContentKind; box: [number, number, number, number]; detail: string; count?: number }
+export interface Block { kind: ContentKind; box: [number, number, number, number]; detail: string; count?: number; crop?: string; palette?: { hex: string; share: number }[]; opacity?: number }
 export interface Section {
   index: number; kind: string; box: [number, number, number, number];
   layout: 'hero' | 'split' | 'centered' | 'stacked' | 'grid' | 'columns';
@@ -65,6 +65,13 @@ export function blueprint(h: Harvest): Blueprint {
   }
   // a fixed/sticky header is chrome, not a section
   secs = secs.filter((s) => !(/fixed|sticky/.test(s.s.position) && s.box[3] < 120));
+  // wide blocks outside the stack (a closing band or footer next to <main>) are sections too
+  const covered = (r: Row) => secs.some((s) => Math.min(s.box[1] + s.box[3], r.box[1] + r.box[3]) - Math.max(s.box[1], r.box[1]) > r.box[3] * 0.5);
+  const containsSec = (r: Row) => secs.some((s) => inside(s.box, r.box));
+  const extra = rows.filter((r) => r.box[2] >= vw * 0.9 && r.box[3] >= 120 && !/fixed|sticky/.test(r.s.position) && r.box[1] >= 0 && !covered(r) && !containsSec(r))
+    .sort((a, b) => b.box[2] * b.box[3] - a.box[2] * a.box[3]);
+  for (const r of extra) if (!covered(r) && !secs.some((s) => inside(r.box, s.box))) secs.push(r);
+  secs.sort((a, b) => a.box[1] - b.box[1]);
 
   const sections: Section[] = secs.map((sec, index) => {
     const all = descendants(sec.id).filter((r) => inside(r.box, sec.box) || r.box[1] < sec.box[1] + sec.box[3]);
@@ -102,10 +109,15 @@ export function blueprint(h: Harvest): Blueprint {
     for (const v of all.filter((r) => r.tag === 'video' && area(r.box) > 160 * 90)) { blocks.push({ kind: 'video', box: v.box, detail: `video ${v.box[2]}×${v.box[3]}` }); claim(v); }
     // images: avatars (small, round), logos (row of similar small marks), photos/screens
     const imgs = all.filter((r) => (r.tag === 'img' || r.tag === 'picture') && !claimed.has(r.id));
+    // a carousel repeats the same image at the same size and height: report it once, with how many copies
+    const seenImg = new Map<string, Block>();
     for (const i of imgs) {
+      const key = `${i.box[2]}x${i.box[3]}@${Math.round(i.box[1] / 8)}`;
+      const dup = i.box[2] > 64 && seenImg.get(key);
+      if (dup) { dup.count = (dup.count || 1) + 1; dup.detail = `${i.box[2]}×${i.box[3]}, ×${dup.count} (carousel/loop)`; claim(i); continue; }
       const round = px(i.s.borderTopLeftRadius) >= Math.min(i.box[2], i.box[3]) / 2 - 1;
       if (i.box[2] <= 64 && i.box[3] <= 64) { if (round || Math.abs(i.box[2] - i.box[3]) < 2) blocks.push({ kind: 'avatar', box: i.box, detail: `${i.box[2]}px` }); }
-      else if (area(i.box) > 160 * 100) blocks.push({ kind: 'image', box: i.box, detail: `${i.box[2]}×${i.box[3]}` });
+      else if (area(i.box) > 160 * 100) { const b: Block = { kind: 'image', box: i.box, detail: `${i.box[2]}×${i.box[3]}`, opacity: +i.s.opacity < 0.95 ? +i.s.opacity : undefined } as Block; blocks.push(b); seenImg.set(key, b); }
       claim(i);
     }
     // logos: ≥4 small marks (svg/img, 16–64px tall) on one baseline
@@ -248,8 +260,8 @@ function uiGrammar(panels: Block[], rows: Row[], _desc: (id: number) => Row[]): 
   return {
     panels: panels.length, fontSizes: top(fs), rowHeights: top(rh), iconSizes: top(ic, 4),
     avatar: avatars.length ? Math.round(avatars[0].box[2]) : undefined,
-    chips: chip ? { height: chip.box[3], radius: chip.s.borderTopLeftRadius, font: `${chip.s.fontWeight} ${chip.s.fontSize}`, samples: chipRows.slice(0, 6).map((c) => c.text) } : undefined,
-    panelSurface: surf ? { background: surf.s.backgroundColor, border: `${surf.s.borderTopWidth} ${surf.s.borderTopColor}`, radius: surf.s.borderTopLeftRadius, shadow: surf.s.boxShadow } : undefined,
-    sidebarWidth: side?.box[2], textColors: top(tc, 5), statusColors: status,
+    chips: chip ? { height: chip.box[3], radius: normalizeRadius(chip.s.borderTopLeftRadius), font: `${chip.s.fontWeight} ${chip.s.fontSize}`, samples: chipRows.slice(0, 6).map((c) => c.text) } : undefined,
+    panelSurface: surf ? { background: normalizeColors(surf.s.backgroundColor), border: normalizeColors(`${surf.s.borderTopWidth} ${surf.s.borderTopColor}`), radius: normalizeRadius(surf.s.borderTopLeftRadius), shadow: normalizeColors(surf.s.boxShadow) } : undefined,
+    sidebarWidth: side?.box[2], textColors: top(tc, 5).map(([c, n]) => { const p = parseColor(c); return [p ? rgbaCss(p) : c, n] as [string, number]; }), statusColors: status,
   };
 }

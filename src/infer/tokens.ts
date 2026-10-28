@@ -1,7 +1,7 @@
 // Static design tokens from harvested computed styles: colour (with roles), typography (with fluid sizes),
 // spacing, shape (radii, borders, shadows, blur) and layout (containers, gutters, grids, breakpoints, rhythm).
 import { de2000, rgbToLab, type Lab } from '../lib/color.js';
-import { parseColor, rgbaCss, rgbaHex, colorsIn, over, contrast, type RGBA } from '../lib/csscolor.js';
+import { parseColor, rgbaCss, rgbaHex, colorsIn, over, contrast, normalizeColors, type RGBA } from '../lib/csscolor.js';
 import type { Evidence, Harvest, Row } from './evidence.js';
 import { visibleRows } from './evidence.js';
 import { readFileSync } from 'node:fs';
@@ -219,7 +219,12 @@ export interface TextStyle {
   share: number; tags: Record<string, number>; sample: string; fluid?: { mobile: number; tablet: number; desktop: number; css: string };
 }
 
-function primaryFamily(stack: string) { return stack.split(',')[0].trim().replace(/["']/g, ''); }
+const GENERIC = /^(ui-monospace|ui-sans-serif|ui-serif|ui-rounded|monospace|sans-serif|serif|system-ui|-apple-system|blinkmacsystemfont|cursive|fantasy|emoji|math|fangsong)$/i;
+/** The first real family in a stack; a stack that starts with a generic keyword names its first real one after it. */
+function primaryFamily(stack: string) {
+  const fams = stack.split(',').map((f) => f.trim().replace(/["']/g, '')).filter(Boolean);
+  return fams.find((f) => !GENERIC.test(f)) || (/mono/i.test(stack) ? 'monospace' : fams[0]);
+}
 
 const WEIGHT_NAMES: [number, string][] = [[150, 'thin'], [250, 'extralight'], [350, 'light'], [450, 'regular'], [550, 'medium'], [650, 'semibold'], [750, 'bold'], [850, 'extrabold'], [1000, 'black']];
 const weightName = (w: number) => WEIGHT_NAMES.find(([lim]) => w < lim)![1];
@@ -454,7 +459,7 @@ export function inferShape(ev: Evidence) {
       const bw = px(s[`border${side}Width`]);
       if (bw > 0 && s.borderTopStyle !== 'none') { const c = parseColor(s[`border${side}Color`]); if (c && c.a > 0.02) borders.push(`${bw}px ${s.borderTopStyle} ${rgbaCss(c)}`); }
     }
-    if (s.boxShadow && s.boxShadow !== 'none') { const e = shadows.get(s.boxShadow) || { count: 0, tags: new Set() }; e.count++; e.tags.add(r.tag); shadows.set(s.boxShadow, e); }
+    if (s.boxShadow && s.boxShadow !== 'none') { const v = normalizeColors(s.boxShadow); const e = shadows.get(v) || { count: 0, tags: new Set() }; e.count++; e.tags.add(r.tag); shadows.set(v, e); }
     if (s.backdropFilter && s.backdropFilter !== 'none') blurs.push(s.backdropFilter);
   }
   const rh = histogram(radii);
@@ -499,8 +504,11 @@ export function inferLayout(ev: Evidence) {
     out.containers[vpName] = histogram(widths).slice(0, 4).map(([value, count]) => ({ value, count }));
     // the content edge: where left-aligned text actually starts, weighted by how much text starts there
     const lefts = new Map<number, number>();
-    for (const p of ev.pages) { const hh = p.harvests[vpName]; if (!hh) continue; for (const r of hh.rows) if (r.chars > 20 && r.box[0] > 0 && r.box[0] < hh.viewport[0] / 3 && r.s.textAlign !== 'center') lefts.set(Math.round(r.box[0]), (lefts.get(Math.round(r.box[0])) || 0) + r.chars); }
-    const edge = [...lefts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+    for (const p of ev.pages) { const hh = p.harvests[vpName]; if (!hh) continue; for (const r of hh.rows) { const cx = r.box[0] + r.box[2] / 2; if (r.chars > 20 && r.box[0] > 0 && r.box[0] < hh.viewport[0] / 3 && r.s.textAlign !== 'center' && Math.abs(cx - hh.viewport[0] / 2) > 24) lefts.set(Math.round(r.box[0]), (lefts.get(Math.round(r.box[0])) || 0) + r.chars); } }
+    // a narrow centred column inside the container also starts text further in; the container edge is the
+    // outermost one that carries a comparable amount of text
+    const ranked = [...lefts.entries()].sort((a, b) => b[1] - a[1]);
+    const edge = ranked.filter(([, n]) => n >= (ranked[0]?.[1] ?? 0) * 0.5).sort((a, b) => a[0] - b[0])[0]?.[0];
     const vwv = ev.pages[0].harvests[vpName]?.viewport[0];
     if (edge !== undefined && vwv) { out.contentEdge = out.contentEdge || {}; out.contentEdge[vpName] = { left: edge, width: vwv - 2 * edge }; }
     out.gutters[vpName] = histogram(gut).slice(0, 3).map(([value]) => value)[0] ?? null;

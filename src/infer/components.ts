@@ -3,7 +3,7 @@
 import { existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import sharp from 'sharp';
-import { parseColor, rgbaCss, contrast, over } from '../lib/csscolor.js';
+import { parseColor, rgbaCss, contrast, over, normalizeColors, normalizeRadius, colorsIn } from '../lib/csscolor.js';
 import { px } from './tokens.js';
 import type { Evidence, Row, Harvest } from './evidence.js';
 import { visibleRows } from './evidence.js';
@@ -67,6 +67,8 @@ function styleOf(r: Row): Record<string, string> {
   };
   if (r.before) o['::before'] = JSON.stringify(r.before).slice(0, 300);
   if (r.after) o['::after'] = JSON.stringify(r.after).slice(0, 300);
+  if (o.radius) o.radius = normalizeRadius(o.radius);
+  for (const k of ['background', 'border', 'shadow', 'color']) if (o[k]) o[k] = normalizeColors(o[k]);
   for (const k of Object.keys(o)) if (o[k] === 'none' || o[k] === 'normal' || o[k] === 'auto' || o[k] === '0px' || o[k] === 'transparent' && k !== 'background') delete o[k];
   return o;
 }
@@ -147,8 +149,10 @@ export async function inferComponents(ev: Evidence, outDir: string, accent?: str
       const accentBtn = acc ? [...list].filter((v) => near(v) < 40).sort((a, b) => b.count - a.count)[0] : undefined;
       const filled = list.filter((v) => v.style.background && v.style.background !== 'transparent');
       const pageBg = parseColor(ev.pages[0].harvests.desktop.body.backgroundColor)?.a ? parseColor(ev.pages[0].harvests.desktop.body.backgroundColor)! : parseColor(ev.pages[0].harvests.desktop.body.htmlBackground) || { r: 255, g: 255, b: 255, a: 1 };
-      const strength = (v: ComponentVariant) => { const c = parseColor(v.style.background); return c ? contrast(c.a < 1 ? over(c, pageBg) : c, pageBg) * Math.min(1, c.a * 2) : 0; };
-      const primary = accentBtn || [...filled].sort((a, b) => strength(b) - strength(a))[0];
+      // a gradient fill counts by its first stop; small chips (nav pills, <32px) are not the primary action
+      const fillOf = (v: ComponentVariant) => parseColor(v.style.background) || parseColor(colorsIn(v.style.background || '')[0]);
+      const strength = (v: ComponentVariant) => { const c = fillOf(v); if (!c) return 0; const k = contrast(c.a < 1 ? over(c, pageBg) : c, pageBg) * Math.min(1, c.a * 2); return k * (v.size.height >= 32 ? 1 : 0.2); };
+      const primary = accentBtn && accentBtn.size.height >= 32 ? accentBtn : [...filled].sort((a, b) => strength(b) - strength(a))[0];
       let n = 1;
       for (const v of list) {
         if (v === primary) v.name = 'button-primary';

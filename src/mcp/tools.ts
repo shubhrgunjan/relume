@@ -2,8 +2,9 @@
 // the catalogue. One server per request (HTTP) or per process (stdio).
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join, normalize } from 'node:path';
+import { existsSync, readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
+import { join, normalize, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { crawlSite, DEFAULT_VIEWPORTS } from '../crawl/crawl.js';
 import { buildDna } from '../infer/dna.js';
@@ -12,7 +13,10 @@ import { checkStyle, pitfalls, reportMd } from '../verify/check.js';
 import { compareDna } from '../verify/compare.js';
 import { entryDir, listEntries, readJson, slugFor, CATALOG } from '../catalog/catalog.js';
 
-export const VERSION = '0.1.0';
+// version + the newest source file's time, so a client can tell a stale server from a fresh one (issue 2)
+export const BUILT = (() => { try { const root = join(dirname(fileURLToPath(import.meta.url)), '..'); let t = 0; const walk = (d: string) => { for (const f of readdirSync(d, { withFileTypes: true })) { const p = join(d, f.name); if (f.isDirectory()) walk(p); else t = Math.max(t, statSync(p).mtimeMs); } }; walk(root); return new Date(t).toISOString().slice(0, 16).replace(/[-:T]/g, ''); } catch { return 'unknown'; } })();
+export const VERSION = `0.1.0+${BUILT}`;
+export const STARTED = new Date().toISOString();
 type Content = { type: 'text'; text: string } | { type: 'image'; data: string; mimeType: string };
 const text = (t: string): Content => ({ type: 'text', text: t });
 const json = (v: unknown): Content => text(JSON.stringify(v, null, 1));
@@ -162,6 +166,22 @@ export function buildServer(baseUrl: string, authHeader?: string) {
     if (crop) { const t = Math.min(Math.max(0, crop.top), meta.height! - 1); img = img.extract({ left: 0, top: t, width: meta.width!, height: Math.min(crop.height, meta.height! - t) }); }
     const buf = await img.resize({ width: Math.min(meta.width!, 1280), withoutEnlargement: true }).jpeg({ quality: 80 }).toBuffer();
     return { content: [{ type: 'image', data: buf.toString('base64'), mimeType: 'image/jpeg' }, text(crop ? `page height ${meta.height}px; showing ${crop.top}–${crop.top + crop.height}` : component!)] };
+  }));
+
+  server.registerTool('see_behaviour', {
+    title: 'See a section move', description: 'A filmstrip (six moments of the section held still in view) plus its measured behaviour: what types, cycles, dims, drifts, follows or loops, with speeds and periods. Look at this before building any section that moves on its own.',
+    inputSchema: { slug: z.string(), page: z.string().optional().describe('page key (default: home)'), section: z.number().int().min(1).describe('section number, as in blueprint.md') }, annotations: RO,
+  }, wrap(async ({ slug, page, section }) => {
+    if (!has(slug)) return fail(`no entry ${slug}`);
+    const dna = readJson(join(entryDir(slug), 'dna.json'));
+    const pg = (dna.composition?.pages || []).find((p: any) => p.key === (page || dna.composition.pages[0]?.key));
+    const sec = pg?.sections?.[section - 1];
+    if (!sec) return fail(`no section ${section} on ${page || 'the first page'}`);
+    const content: Content[] = [];
+    const film = sec.behaviour?.filmstrip ? join(entryDir(slug), sec.behaviour.filmstrip) : null;
+    if (film && existsSync(film)) content.push({ type: 'image', data: (await sharp(film).jpeg({ quality: 80 }).toBuffer()).toString('base64'), mimeType: 'image/jpeg' });
+    content.push(json({ section: section, kind: sec.kind, narrative: sec.behaviour?.narrative || ['Nothing moves on its own here.'], measured: sec.behaviour?.items || [] }));
+    return { content };
   }));
 
   server.registerTool('check_style', {

@@ -6,6 +6,7 @@ import { inferColors, inferTypography, inferSpacing, inferShape, inferLayout } f
 import { inferComponents, attachStates } from './components.js';
 import { inferMotion } from './motion.js';
 import { blueprint } from './sections.js';
+import { pageBehaviour } from './behaviour.js';
 import sharp from 'sharp';
 import { existsSync, mkdirSync } from 'node:fs';
 import { parseColor, contrast } from '../lib/csscolor.js';
@@ -38,9 +39,23 @@ export async function buildDna(dir: string, slug: string) {
         const top = Math.max(0, Math.round(s.box[1])), height = Math.min(Math.round(s.box[3]), (meta.height || 0) - top, 1800);
         if (height < 24 || top >= (meta.height || 0)) continue;
         const file = `sections/${p.key}-${String(s.index).padStart(2, '0')}.jpg`;
-        try { await sharp(shot).extract({ left: 0, top, width: meta.width!, height }).resize({ width: 960 }).jpeg({ quality: 78 }).toFile(join(dir, file)); (s as any).crop = file; } catch {}
+        try { await sharp(shot).extract({ left: 0, top, width: meta.width!, height }).resize({ width: 960 }).jpeg({ quality: 78 }).toFile(join(dir, file)); (s as any).crop = file; (s as any).palette = await artPalette(join(dir, file)); } catch {}
+        // each visual block gets its own crop, so an agent can see what it actually is (a render, line art, a photo)
+        let n = 0;
+        for (const b of s.blocks) {
+          if (!['image', 'illustration', 'ui-mock', 'dataviz', 'code', 'testimonial', 'video'].includes(b.kind) || n >= 8) continue;
+          const left = Math.max(0, Math.round(b.box[0])), btop = Math.max(0, Math.round(b.box[1]));
+          const width = Math.min(Math.round(b.box[2]) + Math.min(0, Math.round(b.box[0])), (meta.width || 0) - left), bh = Math.min(Math.round(b.box[3]), (meta.height || 0) - btop, 1600);
+          if (width < 40 || bh < 40) continue;
+          const bf = `sections/${p.key}-${String(s.index).padStart(2, '0')}-${b.kind}-${n++}.jpg`;
+          try { await sharp(shot).extract({ left, top: btop, width, height: bh }).resize({ width: Math.min(720, width) }).jpeg({ quality: 80 }).toFile(join(dir, bf)); b.crop = bf; if (b.kind === 'image' || b.kind === 'illustration') b.palette = await artPalette(join(dir, bf)); } catch {}
+        }
       }
     }
+    // behaviour: what each section does while you watch it (dwell pass, scroll pass, video)
+    const beh = pageBehaviour(p, bp, dir);
+    bp.sections.forEach((s, i) => { if (beh.sections[i]) (s as any).behaviour = beh.sections[i]; });
+    (bp as any).parallax = beh.page;
     composition.pages.push({ key: p.key, url: p.url, ...bp });
   }
   const feel = feelOf({ color, typography, spacing, shape, layout, motion });
@@ -90,4 +105,19 @@ function feelOf(d: any) {
   if (metrics.sectionPadding) notes.push(`Generous vertical rhythm: sections breathe with ~${metrics.sectionPadding}px padding on desktop.`);
   if (pats.length) notes.push(`${entrance.length ? `Entrances run ~${avgDur}ms` : 'Few entrances'}${springs ? `, with spring physics (${springs} spring curves)` : ''}${metrics.smoothScroll ? `; scrolling is smoothed (${d.motion.scroll.library}, lerp ${d.motion.scroll.lerp ?? '?'})` : '; native scrolling'}.`);
   return { metrics, notes };
+}
+
+/** The colours pixels actually use (image art, painted backgrounds): coarse buckets, each with its share. */
+async function artPalette(file: string): Promise<{ hex: string; share: number }[]> {
+  const { data, info } = await sharp(file).resize(96, 96, { fit: 'fill' }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const buckets = new Map<number, { n: number; r: number; g: number; b: number }>();
+  const px = info.width * info.height;
+  for (let i = 0; i < data.length; i += 3) {
+    const k = ((data[i] >> 4) << 8) | ((data[i + 1] >> 4) << 4) | (data[i + 2] >> 4);
+    const e = buckets.get(k) || { n: 0, r: 0, g: 0, b: 0 };
+    e.n++; e.r += data[i]; e.g += data[i + 1]; e.b += data[i + 2]; buckets.set(k, e);
+  }
+  const h = (v: number) => Math.round(v).toString(16).padStart(2, '0');
+  return [...buckets.values()].sort((a, b) => b.n - a.n).filter((e) => e.n / px >= 0.02).slice(0, 8)
+    .map((e) => ({ hex: `#${h(e.r / e.n)}${h(e.g / e.n)}${h(e.b / e.n)}`, share: +(e.n / px).toFixed(3) }));
 }

@@ -5,7 +5,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
-import { buildServer } from './tools.js';
+import { buildServer, VERSION, STARTED } from './tools.js';
 import { entryDir, readJson } from '../catalog/catalog.js';
 import { skillName } from '../skill/compile.js';
 import { catalogPage } from './site.js';
@@ -52,7 +52,7 @@ function handleSkill(res: ServerResponse, slug: string) {
 createServer(async (req, res) => {
   try {
     const url = new URL(req.url ?? '/', BASE);
-    if (url.pathname === '/health') { res.writeHead(200).end('ok'); return; }
+    if (url.pathname === '/health') { res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify({ ok: true, version: VERSION, started: STARTED })); return; }
     if (url.pathname === '/') { res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }).end(readFileSync(LANDING)); return; }
     if (url.pathname === '/catalog') { res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }).end(catalogPage()); return; }
     const shot = url.pathname.match(/^\/shot\/([a-z0-9.-]+)\/([a-z0-9-]+)\/([a-z-]+)\.jpg$/);
