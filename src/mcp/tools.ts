@@ -2,7 +2,7 @@
 // the catalogue. One server per request (HTTP) or per process (stdio).
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, normalize } from 'node:path';
 import sharp from 'sharp';
 import { crawlSite, DEFAULT_VIEWPORTS } from '../crawl/crawl.js';
@@ -71,19 +71,20 @@ export function buildServer(baseUrl: string, authHeader?: string) {
   }));
 
   server.registerTool('extract_site', {
-    title: 'Measure a site', description: 'Crawl a website and compile its design language into the catalogue and a skill. Runs as a job (typically 2–8 minutes for 4 pages); poll job_status. Re-extracting an existing slug refreshes it.',
-    inputSchema: { url: z.string().url(), pages: z.number().int().min(1).max(10).optional().describe('representative pages to crawl (default 4)'), slug: z.string().optional() },
+    title: 'Measure a site', description: 'Crawl a website and compile its design language into a skill. Runs as a job (typically 2–8 minutes for 4 pages); poll job_status. By default the result joins the public catalogue; pass catalog: false to keep it private (every tool still works on its slug). Re-extracting an existing slug refreshes it.',
+    inputSchema: { url: z.string().url(), pages: z.number().int().min(1).max(10).optional().describe('representative pages to crawl (default 4)'), slug: z.string().optional(), catalog: z.boolean().optional().describe('false keeps this entry out of the catalogue') },
     annotations: { readOnlyHint: false, idempotentHint: false, openWorldHint: true },
-  }, wrap(async ({ url, pages, slug }) => {
+  }, wrap(async ({ url, pages, slug, catalog }) => {
     const s = slug || slugFor(url);
     const job: Job = { id: 'x' + Date.now().toString(36), kind: 'extract', slug: s, url, state: 'running', log: [], started: Date.now() };
+    if (catalog === false) writeFileSync(join(entryDir(s), 'private.json'), JSON.stringify({ private: true, at: new Date().toISOString() }));
     enqueue(job, async (log) => {
       await crawlSite(url, entryDir(s), { maxPages: pages ?? 4, viewports: DEFAULT_VIEWPORTS, dark: true, hoverLimit: 25, log });
       const dna = await buildDna(entryDir(s), s);
       const out = compileSkill(dna, entryDir(s));
       return { slug: s, skill: skillName(dna), notes: dna.feel.notes, skillDir: out };
     });
-    return { content: [json({ job: job.id, slug: s, state: 'running', next: 'job_status' })] };
+    return { content: [json({ job: job.id, slug: s, state: 'running', private: catalog === false, next: 'job_status' })] };
   }));
 
   server.registerTool('job_status', {

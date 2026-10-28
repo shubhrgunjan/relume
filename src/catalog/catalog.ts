@@ -31,10 +31,13 @@ export function readJson<T = any>(path: string): T {
   return JSON.parse(readFileSync(path, 'utf8'));
 }
 
-export function listEntries() {
+/** A private entry works with every tool but never appears in the catalogue (search, pages, exports). */
+export const isPrivate = (slug: string) => existsSync(join(CATALOG, slug, 'private.json'));
+
+export function listEntries(opts: { includePrivate?: boolean } = {}) {
   if (!existsSync(CATALOG)) return [];
   return readdirSync(CATALOG)
-    .filter((s) => existsSync(join(CATALOG, s, 'crawl.json')))
+    .filter((s) => existsSync(join(CATALOG, s, 'crawl.json')) && (opts.includePrivate || !isPrivate(s)))
     .map((slug) => {
       const c = readJson(join(CATALOG, slug, 'crawl.json'));
       const dna = existsSync(join(CATALOG, slug, 'dna.json')) ? readJson(join(CATALOG, slug, 'dna.json')) : null;
