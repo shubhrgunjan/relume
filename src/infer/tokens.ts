@@ -4,6 +4,16 @@ import { de2000, rgbToLab, type Lab } from '../lib/color.js';
 import { parseColor, rgbaCss, rgbaHex, colorsIn, over, contrast, type RGBA } from '../lib/csscolor.js';
 import type { Evidence, Harvest, Row } from './evidence.js';
 import { visibleRows } from './evidence.js';
+import { readFileSync } from 'node:fs';
+
+const GOOGLE = new Map<string, string>((JSON.parse(readFileSync(new URL('./google-fonts.json', import.meta.url), 'utf8')) as string[]).map((f) => [f.toLowerCase(), f]));
+/** The Google Fonts family a computed name refers to: "Inter Variable", "GeistSans", "anton-regular" all resolve. */
+export function googleFamily(name: string): string | undefined {
+  const b = name.replace(/[-_]?(variable|vf|var|web|regular|webfont)$/i, '').replace(/[-_]/g, ' ').trim();
+  const split = b.replace(/([a-z])([A-Z])/g, '$1 $2');
+  for (const c of [name, b, split, split.replace(/\s+(sans|text|display)$/i, ''), b.replace(/\s+(text|display)$/i, '')]) { const hit = GOOGLE.get(c.toLowerCase().trim()); if (hit) return hit; }
+  return undefined;
+}
 
 export const px = (v: string | undefined) => (v && /px$/.test(v) ? parseFloat(v) : v === '0' ? 0 : NaN);
 const r1 = (v: number) => Math.round(v * 10) / 10;
@@ -318,7 +328,8 @@ export function inferTypography(ev: Evidence) {
     const weights = [...new Set(styles.filter((s) => s.family === family).map((s) => s.weight))].sort((a, b) => a - b);
     const loaded = ev.pages[0].harvests.desktop.fonts.some((f) => f.family.toLowerCase() === family.toLowerCase() && f.status === 'loaded');
     const roles = styles.filter((s) => s.family === family).map((s) => s.name);
-    return { family, share: r1(share), weights, roles, host: faces[0]?.host || (loaded ? 'unknown' : 'system'), license: licenseOf(family, faces[0]?.host), substitute: substituteFor(family) };
+    const google = googleFamily(family);
+    return { family, share: r1(share), weights, roles, host: faces[0]?.host || (loaded ? 'unknown' : 'system'), google, license: google ? 'open (Google Fonts) — load it from Google Fonts or self-host' : licenseOf(family, faces[0]?.host), substitute: google ? undefined : substituteFor(family) };
   });
 
   const sizes = [...new Set(styles.map((s) => s.size))].sort((a, b) => a - b);

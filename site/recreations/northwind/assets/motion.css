@@ -1,0 +1,158 @@
+/* motion measured from https://vercel.com. Reveal: add data-reveal="<name>" (and style="--i: n" for stagger order); motion.js adds .is-in. */
+@media (prefers-reduced-motion: reduce) { [data-reveal], [data-intro] { transition: none !important; animation: none !important; opacity: 1 !important; transform: none !important; filter: none !important; } }
+/* intro-tint-1: summary.flex.min-h-11 “Products” (×2) */
+@keyframes intro-tint-1 {
+  from { color: rgb(77, 77, 77); }
+  to { color: rgb(23, 23, 23); }
+}
+[data-intro="intro-tint-1"] { animation: intro-tint-1 150ms cubic-bezier(0.4, 0, 0.2, 1) both; animation-delay: calc(0ms); }
+/* intro-strokedashoffset-2: path (×2) */
+@keyframes intro-strokedashoffset-2 {
+  from { stroke-dashoffset: 1px; }
+  to { stroke-dashoffset: 0px; }
+}
+[data-intro="intro-strokedashoffset-2"] { animation: intro-strokedashoffset-2 260ms linear both; animation-delay: calc(0ms); }
+/* intro-fade-3: canvas.absolute.inset-0 1080×720 (×1) */
+@keyframes intro-fade-3 {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+[data-intro="intro-fade-3"] { animation: intro-fade-3 1200ms linear both; animation-delay: calc(0ms); }
+/* intro-fade-out-4: div.absolute.inset-0 1080×720 (×1) */
+@keyframes intro-fade-out-4 {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+[data-intro="intro-fade-out-4"] { animation: intro-fade-out-4 700ms linear both; animation-delay: calc(0ms); }
+/* intro-fade-5: span.block.whitespace-nowrap “npm i ai” 64×28 (×1) */
+@keyframes intro-fade-5 { 0%{opacity:0} to{opacity:1} }
+[data-intro="intro-fade-5"] { animation: intro-fade-5 200ms ease-out both; animation-delay: calc(0ms); }
+/* intro-fade-6: span.pointer-events-none.absolute 304×62 (×1) */
+@keyframes intro-fade-6 {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+[data-intro="intro-fade-6"] { animation: intro-fade-6 300ms cubic-bezier(0.4, 0, 0.2, 1) both; animation-delay: calc(0ms); }
+/* intro-tint-7: div.pointer-events-none.absolute “fallback” 68×22 (×1) */
+@keyframes intro-tint-7 {
+  from { background-color: rgb(255, 255, 255); box-shadow: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px, rgba(0, 0, 0, 0.04) 0px 2px 2px 0px, rgb(25; color: rgb(77, 77, 77); }
+  to { background-color: rgb(23, 23, 23); box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0; color: rgb(255, 255, 255); }
+}
+[data-intro="intro-tint-7"] { animation: intro-tint-7 300ms cubic-bezier(0.4, 0, 0.2, 1) both; animation-delay: calc(0ms); }
+/* reveal-fade-out-8: div.col-start-1.row-start-1 (×8) */
+[data-reveal="reveal-fade-out-8"] { opacity: 1; transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1); transition-delay: calc(0ms + var(--i, 0) * 444ms); }
+[data-reveal="reveal-fade-out-8"].is-in { opacity: 0; }
+/* reveal-tint-9: h3.text-heading-24.transition-colors “Text” 43×32 (×7) */
+[data-reveal="reveal-tint-9"] { color: rgb(23, 23, 23); transition: color 300ms cubic-bezier(0.4, 0, 0.2, 1); }
+[data-reveal="reveal-tint-9"].is-in { color: rgb(77, 77, 77); }
+/* reveal-tint-10: h3.text-heading-24.transition-colors “Image” 64×32 (×7) */
+[data-reveal="reveal-tint-10"] { color: rgb(77, 77, 77); transition: color 300ms cubic-bezier(0.4, 0, 0.2, 1); }
+[data-reveal="reveal-tint-10"].is-in { color: rgb(23, 23, 23); }
+/* reveal-fade-11: div.sticky.grid 1392×145 (×5) */
+[data-reveal="reveal-fade-11"] { opacity: 0.4; transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1); }
+[data-reveal="reveal-fade-11"].is-in { opacity: 1; }
+/* reveal-fade-12: div.flex.w-full (×4) */
+[data-reveal="reveal-fade-12"] { opacity: 0; transition: opacity 400ms ease-out; transition-delay: calc(0ms + var(--i, 0) * 151ms); }
+[data-reveal="reveal-fade-12"].is-in { opacity: 1; }
+/* reveal-fade-tint-13: span.opacity-0.text-gray-900 “You” (×4) */
+[data-reveal="reveal-fade-tint-13"] { color: rgb(77, 77, 77); opacity: 0; transition: color 500ms cubic-bezier(0.4, 0, 0.2, 1), opacity 500ms cubic-bezier(0.4, 0, 0.2, 1); transition-delay: calc(0ms + var(--i, 0) * 108ms); }
+[data-reveal="reveal-fade-tint-13"].is-in { color: rgb(23, 23, 23); opacity: 1; }
+/* reveal-fade-out-14: span.status-dot.shrink-0 (×2) */
+[data-reveal="reveal-fade-out-14"] { opacity: 1; width: 10px; height: 10px; transition: opacity 0ms steps(1, end), width 0ms steps(1, end), height 0ms steps(1, end); }
+[data-reveal="reveal-fade-out-14"].is-in { opacity: 0; width: 0px; height: 0px; }
+/* reveal-fade-out-15: p.status-text.text-copy-14 “All systems normal.” (×2) */
+[data-reveal="reveal-fade-out-15"] { opacity: 1; width: 133px; height: 20px; transition: opacity 0ms steps(1, end), width 0ms steps(1, end), height 0ms steps(1, end); }
+[data-reveal="reveal-fade-out-15"].is-in { opacity: 0; width: 0px; height: 0px; }
+/* reveal-fade-16: span.col-start-1.row-start-1 “Onboard your agent” 148×24 (×1) */
+[data-reveal="reveal-fade-16"] { opacity: 0; transition: opacity 200ms ease-out; }
+[data-reveal="reveal-fade-16"].is-in { opacity: 1; }
+/* reveal-fade-17: div.transition-all.duration-500 632×40 (×1) */
+[data-reveal="reveal-fade-17"] { opacity: 0; translate: 0px 8px; transition: opacity 500ms cubic-bezier(0, 0, 0.2, 1), translate 500ms cubic-bezier(0, 0, 0.2, 1); }
+[data-reveal="reveal-fade-17"].is-in { opacity: 1; translate: 0px; }
+/* reveal-fade-18: button.flex.size-11 (×1) */
+[data-reveal="reveal-fade-18"] { opacity: 0; transition: opacity 500ms ease-out; }
+[data-reveal="reveal-fade-18"].is-in { opacity: 1; }
+/* reveal-tint-19: span.opacity-0.text-gray-900 “You” (×1) */
+[data-reveal="reveal-tint-19"] { color: rgb(69, 69, 69); transition: color 67ms cubic-bezier(0.4, 0, 0.2, 1); }
+[data-reveal="reveal-tint-19"].is-in { color: rgb(77, 77, 77); }
+/* reveal-tint-20: span.opacity-0.text-gray-900 “can” (×1) */
+[data-reveal="reveal-tint-20"] { color: rgb(48, 48, 48); transition: color 270ms cubic-bezier(0.4, 0, 0.2, 1); }
+[data-reveal="reveal-tint-20"].is-in { color: rgb(77, 77, 77); }
+/* reveal-tint-21: span.opacity-0.text-gray-900 “build” (×1) */
+[data-reveal="reveal-tint-21"] { color: rgb(72, 72, 72); transition: color 42ms cubic-bezier(0.4, 0, 0.2, 1); }
+[data-reveal="reveal-tint-21"].is-in { color: rgb(77, 77, 77); }
+/* reveal-fade-out-scale-22: div.origin-left.scale-x-0 (×1) */
+[data-reveal="reveal-fade-out-scale-22"] { transform: scale(0); opacity: 1; height: 4px; transition: transform 22ms ease-in, opacity 22ms ease-in, height 22ms ease-in; }
+[data-reveal="reveal-fade-out-scale-22"].is-in { transform: scale(1); opacity: 0; height: 0px; }
+/* reveal-fade-out-23: canvas (×1) */
+[data-reveal="reveal-fade-out-23"] { opacity: 1; width: 128px; height: 128px; transition: opacity 0ms steps(1, end), width 0ms steps(1, end), height 0ms steps(1, end); }
+[data-reveal="reveal-fade-out-23"].is-in { opacity: 0; width: 0px; height: 0px; }
+/* reveal-fade-out-24: div.absolute.inset-y-0 (×1) */
+[data-reveal="reveal-fade-out-24"] { opacity: 1; width: 5.2px; height: 4px; transition: opacity 0ms steps(1, end), width 0ms steps(1, end), height 0ms steps(1, end); }
+[data-reveal="reveal-fade-out-24"].is-in { opacity: 0; width: 0px; height: 0px; }
+/* hover hover-tint-25: a.outline-none.border-0 100×32 — background-color: rgb(255, 255, 255); → background-color: rgb(242, 242, 242); */
+.hover-tint-25 { transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1); }
+/* hover hover-fade-26: span 27×437 — opacity: 0; → opacity: 0.67; */
+.hover-fade-26 { transition: opacity 1000ms ease-out; }
+/* hover hover-tint-27: a.flex.flex-col 330×238 — border-bottom-color: rgb(230, 230, 230); border-left-color: rgb(230, 230, 230); border-right-color: rgb(230, 230, 230); border-color: rgb(230, 230, 230); → border-bottom-color: rgb(201, 201, 201); border-left-color: rgb(201, 201, 201); border-right-color: rgb(201, 201, 201); border-color: rgb(201, 201, 201); */
+.hover-tint-27 { transition: border-bottom-color 150ms cubic-bezier(0.4, 0, 0.2, 1), border-left-color 150ms cubic-bezier(0.4, 0, 0.2, 1), border-right-color 150ms cubic-bezier(0.4, 0, 0.2, 1), border-color 150ms cubic-bezier(0.4, 0, 0.2, 1); }
+/* hover hover-tint-28: a.cursor-pointer.focus-visible:outline-2 “AI SDK” 51×24 — color: rgb(77, 77, 77); → color: rgb(23, 23, 23); */
+.hover-tint-28 { transition: color 100ms cubic-bezier(0.4, 0, 0.2, 1); }
+/* hover hover-tint-29: button.text-gray-600.rounded-full 28×28 — color: rgb(168, 168, 168); → color: rgb(77, 77, 77); */
+.hover-tint-29 { transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1); }
+/* hover hover-up-30: span.absolute.inset-y-0 109×68 — transform: translate(-180%) skew(-12deg, 0deg); → transform: translate(280%) skew(-12deg, 0deg); */
+.hover-up-30 { transition: transform 1000ms ease-in-out; }
+/* hover hover-tint-31: span.flex.size-6 24×24 — background-color: rgb(255, 255, 255); box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0; → background-color: rgb(242, 242, 242); box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0; */
+.hover-tint-31 { transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1); }
+/* hover hover-tint-32: a.cursor-pointer.focus-visible:outline-2 “Connect” 105×24 — color: rgb(52, 52, 52); → color: rgb(77, 77, 77); */
+.hover-tint-32 { transition: color 46ms cubic-bezier(0.4, 0, 0.2, 1); }
+/* hover hover-fade-33: button.outline-none.border-0 32×32 — opacity: 0; box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0; → opacity: 1; box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0; */
+.hover-fade-33 { transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1); }
+/* hover hover-tint-34: button.vF3MAa_lineNumber “1” 32×20 — color: rgb(168, 168, 168); → color: rgb(23, 23, 23); */
+.hover-tint-34 { transition: color 125ms ease-out; }
+/* hover hover-fade-35: div.transition-all.duration-500 632×59 — opacity: 0; translate: 0px 8px; → opacity: 1; translate: 0px; */
+.hover-fade-35 { transition: opacity 500ms cubic-bezier(0, 0, 0.2, 1), translate 500ms cubic-bezier(0, 0, 0.2, 1); }
+/* hover hover-tint-36: p.text-heading-16.@sm:text-heading-24 “AI SDK UI” 443×32 — color: rgb(143, 143, 143); → color: rgb(23, 23, 23); */
+.hover-tint-36 { transition: color 250ms cubic-bezier(0.4, 0, 0.2, 1); }
+/* hover hover-tint-37: a.flex.flex-col 330×238 — border-bottom-color: rgb(225, 225, 225); border-left-color: rgb(225, 225, 225); border-right-color: rgb(225, 225, 225); border-color: rgb(225, 225, 225); → border-bottom-color: rgb(230, 230, 230); border-left-color: rgb(230, 230, 230); border-right-color: rgb(230, 230, 230); border-color: rgb(230, 230, 230); */
+.hover-tint-37 { transition: border-bottom-color 26ms cubic-bezier(0.4, 0, 0.2, 1), border-left-color 26ms cubic-bezier(0.4, 0, 0.2, 1), border-right-color 26ms cubic-bezier(0.4, 0, 0.2, 1), border-color 26ms cubic-bezier(0.4, 0, 0.2, 1); }
+/* hover hover-fade-38: div.font-normal.rounded-lg “View as Agent” — opacity: 0; → opacity: 1; */
+.hover-fade-38 { transition: opacity 100ms ease-in; }
+/* hover hover-wipe-39: div.absolute.inset-0 685×580 — clip-path: polygon(0px 0px, 100% 0px, 100% calc(100% - 114.89px), calc(100% - 113.63px) 100%, 0px 100%); → clip-path: polygon(0px 0px, 100% 0px, 100% calc(100% - 112px), calc(100% - 112px) 100%, 0px 100%); */
+.hover-wipe-39 { transition: clip-path 1684ms linear; }
+/* hover hover-down-spin-wipe-40: div.absolute.top-96 580×685 — transform: translate(-114.89px, -113.63px) rotate(-90.63deg); clip-path: polygon(100% calc(100% - 114.89px), 100% 100%, calc(100% - 113.63px) 100%); width: 587.5px; height: 691.3px; → transform: translate(-112px, -112px) rotate(-90deg); clip-path: polygon(100% calc(100% - 112px), 100% 100%, calc(100% - 112px) 100%); width: 580px; height: 685px; */
+.hover-down-spin-wipe-40 { transition: transform 193ms ease, clip-path 193ms ease, width 193ms ease, height 193ms ease; }
+/* hover hover-wipe-41: div.absolute.inset-0 685×580 — clip-path: polygon(0px 0px, 100% 0px, 100% calc(100% - 112.43px), calc(100% - 112.24px) 100%, 0px 100%); → clip-path: polygon(0px 0px, 100% 0px, 100% calc(100% - 112px), calc(100% - 112px) 100%, 0px 100%); */
+.hover-wipe-41 { transition: clip-path 1725ms linear; }
+/* hover hover-down-spin-wipe-42: div.absolute.top-96 580×685 — transform: translate(-112.43px, -112.24px) rotate(-90.1deg); clip-path: polygon(100% calc(100% - 112.43px), 100% 100%, calc(100% - 112.24px) 100%); width: 581.2px; height: 686px; → transform: translate(-112px, -112px) rotate(-90deg); clip-path: polygon(100% calc(100% - 112px), 100% 100%, calc(100% - 112px) 100%); width: 580px; height: 685px; */
+.hover-down-spin-wipe-42 { transition: transform 78ms linear, clip-path 78ms linear, width 78ms linear, height 78ms linear; }
+/* hover hover-fade-43: div.min-w-max.transition-opacity — opacity: 0; → opacity: 1; */
+.hover-fade-43 { transition: opacity 150ms cubic-bezier(0.3, 0.57, 0.07, 0.95); }
+/* hover hover-tint-44: a.flex.flex-col 448×214 — border-bottom-color: rgb(206, 206, 206); border-left-color: rgb(206, 206, 206); border-right-color: rgb(206, 206, 206); border-color: rgb(206, 206, 206); → border-bottom-color: rgb(230, 230, 230); border-left-color: rgb(230, 230, 230); border-right-color: rgb(230, 230, 230); border-color: rgb(230, 230, 230); */
+.hover-tint-44 { transition: border-bottom-color 126ms cubic-bezier(0.4, 0, 0.2, 1), border-left-color 126ms cubic-bezier(0.4, 0, 0.2, 1), border-right-color 126ms cubic-bezier(0.4, 0, 0.2, 1), border-color 126ms cubic-bezier(0.4, 0, 0.2, 1); }
+/* hover hover-tint-45: span.relative.inline-flex 122×32 — color: rgb(67, 67, 67); → color: rgb(77, 77, 77); */
+.hover-tint-45 { transition: color 26ms cubic-bezier(0.4, 0, 0.2, 1); }
+/* hover hover-tint-46: a.cursor-pointer.focus-visible:outline-2 448×240 — background-color: rgba(31, 31, 31, 0.06); border-bottom-color: rgb(202, 202, 202); border-left-color: rgb(202, 202, 202); border-right-color: rgb(202, 202, 202); border-color: rgb(202, 202, 202); → background-color: rgb(255, 255, 255); border-bottom-color: rgb(230, 230, 230); border-left-color: rgb(230, 230, 230); border-right-color: rgb(230, 230, 230); border-color: rgb(230, 230, 230); */
+.hover-tint-46 { transition: background-color 149ms cubic-bezier(0.4, 0, 0.2, 1), border-bottom-color 149ms cubic-bezier(0.4, 0, 0.2, 1), border-left-color 149ms cubic-bezier(0.4, 0, 0.2, 1), border-right-color 149ms cubic-bezier(0.4, 0, 0.2, 1), border-color 149ms cubic-bezier(0.4, 0, 0.2, 1); }
+/* hover hover-tint-47: a.cursor-pointer.focus-visible:outline-2 448×240 — background-color: rgba(252, 252, 252, 0.83); → background-color: rgb(255, 255, 255); */
+.hover-tint-47 { transition: background-color 26ms cubic-bezier(0.4, 0, 0.2, 1); }
+/* hover hover-translate-48: svg.-translate-x-1.transition-transform 12×12 — translate: -4px; → translate: 0px; */
+.hover-translate-48 { transition: translate 150ms cubic-bezier(0.4, 0, 0.2, 1); }
+/* loop-transform-49: span.block.rounded-[5px] */
+@keyframes loop-transform-49 { to{transform:translate(-50%)} }
+.loop-transform-49 { animation: loop-transform-49 1500ms ease-in-out infinite; }
+/* loop-scale-50: span 27×437 */
+@keyframes loop-scale-50 { 0%{transform:scaleX(1)} to{transform:scaleX(var(--gateway-glow-pulse-scale,1.5))} }
+.loop-scale-50 { animation: loop-scale-50 1200ms ease-in-out infinite; }
+/* loop-fade-out-51: div.absolute.top-1/2 */
+@keyframes loop-fade-out-51 { 0%{opacity:1} to{opacity:.15} }
+.loop-fade-out-51 { animation: loop-fade-out-51 1000ms linear infinite; }
+/* loop-backgroundpositionx-52: span.w-[var(--size)].h-[var(--size)] 16×16 */
+@keyframes loop-backgroundpositionx-52 { 0%{background-position:200% 0} to{background-position:-200% 0} }
+.loop-backgroundpositionx-52 { animation: loop-backgroundpositionx-52 8000ms ease-in-out infinite; }
+/* loop-scale-53: span.w-[4.5px].rounded-full */
+@keyframes loop-scale-53 { 0%,to{transform:scaleY(1)} 50%{transform:scaleY(.4)} }
+.loop-scale-53 { animation: loop-scale-53 800ms ease-in-out infinite; }
+/* loop-opacity-54: span.ml-0.5.inline-block */
+@keyframes loop-opacity-54 { 50%{opacity:.5} }
+.loop-opacity-54 { animation: loop-opacity-54 2000ms cubic-bezier(0.4, 0, 0.6, 1) infinite; }

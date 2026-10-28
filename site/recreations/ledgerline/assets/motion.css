@@ -1,0 +1,298 @@
+/* motion measured from https://stripe.com. Reveal: add data-reveal="<name>" (and style="--i: n" for stagger order); motion.js adds .is-in. */
+@media (prefers-reduced-motion: reduce) { [data-reveal], [data-intro] { transition: none !important; animation: none !important; opacity: 1 !important; transform: none !important; filter: none !important; } }
+/* intro-fade-out-1: svg.RefreshedHoverArrow (×79) */
+@keyframes intro-fade-out-1 {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+[data-intro="intro-fade-out-1"] { animation: intro-fade-out-1 150ms cubic-bezier(0.25, 1, 0.5, 1) both; animation-delay: calc(0ms); }
+/* intro-fade-out-2: span 290×86 (×34) */
+@keyframes intro-fade-out-2 { 0%{opacity:0} }
+[data-intro="intro-fade-out-2"] { animation: intro-fade-out-2 250ms ease both; animation-delay: calc(0ms); }
+/* intro-up-3: div 154×30 (×17) */
+@keyframes intro-up-3 {
+  from { transform: translateY(0%); }
+  to { transform: translateY(-100%); }
+}
+[data-intro="intro-up-3"] { animation: intro-up-3 1420ms ease-in-out both; animation-delay: calc(4000ms); }
+/* intro-fade-scale-4: div 28×88 (×10) */
+@keyframes intro-fade-scale-4 {
+  from { transform: scaleY(0); opacity: 0; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+[data-intro="intro-fade-scale-4"] { animation: intro-fade-scale-4 1300ms ease-out both; animation-delay: calc(200ms); }
+/* intro-tint-5: p.hds-text.hds-text--xxl “US$1.9tn” 182×48 (×6) */
+@keyframes intro-tint-5 {
+  from { color: rgb(100, 128, 178); }
+  to { color: rgb(125, 139, 164); }
+}
+[data-intro="intro-tint-5"] { animation: intro-tint-5 300ms cubic-bezier(0.25, 1, 0.5, 1) both; animation-delay: calc(0ms); }
+/* intro-tint-6: a.hds-button.customer-story-button 40×40 (×6) */
+@keyframes intro-tint-6 {
+  from { background-color: rgba(0, 0, 0, 0); border-bottom-color: rgb(214, 217, 252); border-left-color: rgb(214, 217, 252); border-right-color: rgb(214, 217, 252); border-color: rgb(214, 217, 252); width: 50pxpx; }
+  to { background-color: rgb(226, 228, 255); border-bottom-color: rgb(226, 228, 255); border-left-color: rgb(226, 228, 255); border-right-color: rgb(226, 228, 255); border-color: rgb(226, 228, 255); width: 40pxpx; }
+}
+[data-intro="intro-tint-6"] { animation: intro-tint-6 400ms cubic-bezier(0.3, 0, 0.2, 1) both; animation-delay: calc(0ms); }
+/* intro-fade-7: div.lazy-animation.lazy-animation--loaded 826×684 (×6) */
+@keyframes intro-fade-7 {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+[data-intro="intro-fade-7"] { animation: intro-fade-7 500ms cubic-bezier(0.33, 1, 0.68, 1) both; animation-delay: calc(0ms); }
+/* intro-fade-8: svg 9×9 (×5) */
+@keyframes intro-fade-8 {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+[data-intro="intro-fade-8"] { animation: intro-fade-8 1420ms ease-in-out both; animation-delay: calc(4000ms); }
+/* intro-fade-9: div.bento-overlay-gradient.bento-overlay-payments 1440×900 (×4) */
+@keyframes intro-fade-9 { 0%{opacity:0} to{opacity:1} }
+[data-intro="intro-fade-9"] { animation: intro-fade-9 800ms ease both; animation-delay: calc(0ms); }
+/* intro-down-wipe-10: div 241×65 (×4) */
+@keyframes intro-down-wipe-10 {
+  from { transform: translateY(-65px); clip-path: inset(0px 0px 100%); }
+  to { transform: translateY(0px); clip-path: inset(0px 0px 0%); }
+}
+[data-intro="intro-down-wipe-10"] { animation: intro-down-wipe-10 1420ms ease-in-out both; animation-delay: calc(4000ms); }
+/* intro-fade-out-11: div 121×16 (×3) */
+@keyframes intro-fade-out-11 {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+[data-intro="intro-fade-out-11"] { animation: intro-fade-out-11 400ms cubic-bezier(0.3, 0, 0.2, 1) both; animation-delay: calc(0ms); }
+/* intro-fade-12: div 12×12 (×3) */
+@keyframes intro-fade-12 {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+[data-intro="intro-fade-12"] { animation: intro-fade-12 400ms cubic-bezier(0.3, 0, 0.2, 1) both; animation-delay: calc(0ms); }
+/* intro-fade-13: div.phone-graphic.bento-dialog-reveal 266×543 (×3) */
+@keyframes intro-fade-13 { 0%{opacity:0;transform:translate3d(0,30px,0)} to{opacity:1;transform:translateZ(0)} }
+[data-intro="intro-fade-13"] { animation: intro-fade-13 750ms cubic-bezier(0.2, 0, 0, 1) both; animation-delay: calc(0ms); }
+/* intro-slide-14: div 178×98 (×3) */
+@keyframes intro-slide-14 {
+  from { transform: translateX(0%); }
+  to { transform: translateX(-100%); }
+}
+[data-intro="intro-slide-14"] { animation: intro-slide-14 1420ms ease-in-out both; animation-delay: calc(4000ms); }
+/* intro-down-15: div 241×10 (×3) */
+@keyframes intro-down-15 {
+  from { transform: translateY(-168px); }
+  to { transform: translateY(-236px); }
+}
+[data-intro="intro-down-15"] { animation: intro-down-15 1420ms ease-in-out both; animation-delay: calc(4000ms); }
+/* intro-width-16: button 1152×24 (×3) */
+@keyframes intro-width-16 {
+  from { width: 1142px; }
+  to { width: 1152px; }
+}
+[data-intro="intro-width-16"] { animation: intro-width-16 0ms steps(1, end) both; animation-delay: calc(0ms); }
+/* intro-fade-17: div 296×440 (×2) */
+@keyframes intro-fade-17 { 0%{opacity:0} to{opacity:1} }
+[data-intro="intro-fade-17"] { animation: intro-fade-17 500ms cubic-bezier(0.33, 1, 0.68, 1) both; animation-delay: calc(0ms); }
+/* intro-tint-18: p.hds-text.hds-text--xxl “135+” 96×48 (×2) */
+@keyframes intro-tint-18 {
+  from { color: rgb(255, 255, 255); }
+  to { color: rgb(6, 27, 49); }
+}
+[data-intro="intro-tint-18"] { animation: intro-tint-18 300ms cubic-bezier(0.25, 1, 0.5, 1) both; animation-delay: calc(0ms); }
+/* intro-width-19: a.hds-button.customer-story-button 171×40 (×2) */
+@keyframes intro-width-19 {
+  from { width: 50pxpx; }
+  to { width: 171pxpx; }
+}
+[data-intro="intro-width-19"] { animation: intro-width-19 400ms cubic-bezier(0.3, 0, 0.2, 1) both; animation-delay: calc(0ms); }
+/* intro-up-20: div 154×15 (×2) */
+@keyframes intro-up-20 {
+  from { transform: translateY(0%); }
+  to { transform: translateY(-100%); }
+}
+[data-intro="intro-up-20"] { animation: intro-up-20 1420ms cubic-bezier(0.78, 0, 0.22, 1) both; animation-delay: calc(4000ms); }
+/* intro-fade-out-21: div 270×1 (×2) */
+@keyframes intro-fade-out-21 {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+[data-intro="intro-fade-out-21"] { animation: intro-fade-out-21 500ms cubic-bezier(0.165, 0.84, 0.44, 1) both; animation-delay: calc(0ms); }
+/* intro-scale-22: div 270×1 (×2) */
+@keyframes intro-scale-22 {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+[data-intro="intro-scale-22"] { animation: intro-scale-22 7000ms linear both; animation-delay: calc(300ms); }
+/* intro-tint-23: h2.hds-heading.hds-heading--xxl “The backbone of global c” 476×115 (×1) */
+@keyframes intro-tint-23 {
+  from { color: rgb(255, 255, 255); }
+  to { color: rgb(6, 27, 49); }
+}
+[data-intro="intro-tint-23"] { animation: intro-tint-23 1200ms cubic-bezier(0.65, 0, 0.35, 1) both; animation-delay: calc(0ms); }
+/* intro-tint-24: a.hds-link.hds-link--secondary “historical uptime” 125×21 (×1) */
+@keyframes intro-tint-24 {
+  from { background-color: rgb(100, 128, 178); }
+  to { background-color: rgb(125, 139, 164); }
+}
+[data-intro="intro-tint-24"] { animation: intro-tint-24 500ms cubic-bezier(0.25, 1, 0.5, 1) both; animation-delay: calc(0ms); }
+/* intro-maxheight-25: div 1232×625 (×1) */
+@keyframes intro-maxheight-25 {
+  from { max-height: 0px; }
+  to { max-height: 625px; }
+}
+[data-intro="intro-maxheight-25"] { animation: intro-maxheight-25 500ms cubic-bezier(0.65, 0, 0.35, 1) both; animation-delay: calc(0ms); }
+/* intro-fade-26: div 1440×977 (×1) */
+@keyframes intro-fade-26 {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+[data-intro="intro-fade-26"] { animation: intro-fade-26 1200ms cubic-bezier(0.65, 0, 0.35, 1) both; animation-delay: calc(0ms); }
+/* intro-tint-27: a.hds-link.hds-link--secondary “historical uptime” 125×21 (×1) */
+@keyframes intro-tint-27 {
+  from { color: rgb(120, 137, 167); }
+  to { color: rgb(125, 139, 164); }
+}
+[data-intro="intro-tint-27"] { animation: intro-tint-27 300ms cubic-bezier(0.25, 1, 0.5, 1) both; animation-delay: calc(0ms); }
+/* intro-fade-out-28: div 1392×975 (×1) */
+@keyframes intro-fade-out-28 {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+[data-intro="intro-fade-out-28"] { animation: intro-fade-out-28 250ms linear both; animation-delay: calc(0ms); }
+/* intro-transform-29: div 753×753 (×1) */
+@keyframes intro-transform-29 {
+  from {  }
+  to { transform: translate3d(0px, -338px, 0px) scale(1); }
+}
+[data-intro="intro-transform-29"] { animation: intro-transform-29 1000ms cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: calc(0ms); }
+/* intro-tint-30: div 1440×900 (×1) */
+@keyframes intro-tint-30 { 0%{background-color:rgba(229,237,245,0)} to{background-color:rgba(229,237,245,.7)} }
+[data-intro="intro-tint-30"] { animation: intro-tint-30 1ms ease both; animation-delay: calc(0ms); }
+/* intro-fade-out-31: div.section-background.modular-solutions-bg 1440×2196 (×1) */
+@keyframes intro-fade-out-31 {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+[data-intro="intro-fade-out-31"] { animation: intro-fade-out-31 150ms cubic-bezier(0.33, 1, 0.68, 1) both; animation-delay: calc(0ms); }
+/* intro-fade-32: div 1440×900 (×1) */
+@keyframes intro-fade-32 {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+[data-intro="intro-fade-32"] { animation: intro-fade-32 250ms ease both; animation-delay: calc(0ms); }
+/* intro-up-33: div.hds-dialog.bento-dialog 1184×2628 (×1) */
+@keyframes intro-up-33 {
+  from { transform: translateY(200px); }
+  to { transform: translateY(0px); }
+}
+[data-intro="intro-up-33"] { animation: intro-up-33 800ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(0ms); }
+/* intro-slide-34: svg 7×8 (×1) */
+@keyframes intro-slide-34 {
+  from { transform: translateX(0px); }
+  to { transform: translateX(5px); }
+}
+[data-intro="intro-slide-34"] { animation: intro-slide-34 1420ms ease-in-out both; animation-delay: calc(4000ms); }
+/* intro-down-35: div 241×34 (×1) */
+@keyframes intro-down-35 {
+  from { transform: translateY(-168px); }
+  to { transform: translateY(-202px); }
+}
+[data-intro="intro-down-35"] { animation: intro-down-35 1420ms ease-in-out both; animation-delay: calc(4000ms); }
+/* intro-down-36: div 241×35 (×1) */
+@keyframes intro-down-36 {
+  from { transform: translateY(-65px); }
+  to { transform: translateY(-133px); }
+}
+[data-intro="intro-down-36"] { animation: intro-down-36 1420ms ease-in-out both; animation-delay: calc(4000ms); }
+/* intro-up-37: div 80×160 (×1) */
+@keyframes intro-up-37 {
+  from { transform: translate(0px, 0px); }
+  to { transform: translate(0px, -96px); }
+}
+[data-intro="intro-up-37"] { animation: intro-up-37 7028ms cubic-bezier(1,1.15,0.93,0.31) both; animation-delay: calc(0ms); }
+/* intro-up-38: span 84×100 (×1) */
+@keyframes intro-up-38 {
+  from { transform: translate(0px, 0px); }
+  to { transform: translate(0px, -60px); }
+}
+[data-intro="intro-up-38"] { animation: intro-up-38 6527ms cubic-bezier(0,0.51,1,0.52) both; animation-delay: calc(0ms); }
+/* intro-up-39: div 102×130 (×1) */
+@keyframes intro-up-39 {
+  from { transform: translate(0px, 0px); }
+  to { transform: translate(0px, -78px); }
+}
+[data-intro="intro-up-39"] { animation: intro-up-39 6414ms cubic-bezier(0,0.54,1,0.49) both; animation-delay: calc(0ms); }
+/* intro-slide-40: div 250×259 (×1) */
+@keyframes intro-slide-40 {
+  from { transform: translate(0px, 0px); }
+  to { transform: translate(-750px, 0px); }
+}
+[data-intro="intro-slide-40"] { animation: intro-slide-40 6380ms cubic-bezier(0,0.55,1,0.48) both; animation-delay: calc(0ms); }
+/* intro-up-41: div 107×104 (×1) */
+@keyframes intro-up-41 {
+  from { transform: translate(0px, 0px); }
+  to { transform: translate(0px, -52px); }
+}
+[data-intro="intro-up-41"] { animation: intro-up-41 6257ms cubic-bezier(0.03,1.26,1,-0.24) both; animation-delay: calc(0ms); }
+/* intro-width-42: span 91×18 (×1) */
+@keyframes intro-width-42 {
+  from { width: 88.5px; }
+  to { width: 90.5px; }
+}
+[data-intro="intro-width-42"] { animation: intro-width-42 5048ms ease both; animation-delay: calc(0ms); }
+/* intro-slide-43: ul 6192×72 (×1) */
+@keyframes intro-slide-43 {
+  from { transform: translate(0px, 0px); }
+  to { transform: translate(-726.97px, 0px); }
+}
+[data-intro="intro-slide-43"] { animation: intro-slide-43 32899ms cubic-bezier(0.46,0.85,0,-0.63) both; animation-delay: calc(0ms); }
+/* intro-tint-44: a.Link “Standard pricing” 123×28 (×1) */
+@keyframes intro-tint-44 {
+  from { color: rgb(10, 37, 64); }
+  to { color: rgb(99, 91, 255); }
+}
+[data-intro="intro-tint-44"] { animation: intro-tint-44 150ms cubic-bezier(0.215, 0.61, 0.355, 1) both; animation-delay: calc(0ms); }
+/* intro-slide-45: div 270×398 (×1) */
+@keyframes intro-slide-45 {
+  from { transform: translateX(0%); }
+  to { transform: translateX(-100%); }
+}
+[data-intro="intro-slide-45"] { animation: intro-slide-45 350ms cubic-bezier(0.4, 0, 0.2, 1) both; animation-delay: calc(0ms); }
+/* reveal-tint-46: a.Link “Payments” 71×27 (×8) */
+[data-reveal="reveal-tint-46"] { color: rgb(99, 91, 255); transition: color 150ms cubic-bezier(0.215, 0.61, 0.355, 1); }
+[data-reveal="reveal-tint-46"].is-in { color: rgb(63, 75, 102); }
+/* reveal-tint-47: a.Link “Money management” 222×19 (×5) */
+[data-reveal="reveal-tint-47"] { color: rgb(10, 37, 64); transition: color 150ms cubic-bezier(0.215, 0.61, 0.355, 1); }
+[data-reveal="reveal-tint-47"].is-in { color: rgb(99, 91, 255); }
+/* reveal-tint-48: a.Link “Global payments” 222×19 (×4) */
+[data-reveal="reveal-tint-48"] { color: rgb(99, 91, 255); transition: color 150ms cubic-bezier(0.215, 0.61, 0.355, 1); }
+[data-reveal="reveal-tint-48"].is-in { color: rgb(10, 37, 64); }
+/* reveal-tint-49: a.Link “Money management” 222×19 (×2) */
+[data-reveal="reveal-tint-49"] { color: rgb(97, 90, 251); transition: color 147ms cubic-bezier(0.215, 0.61, 0.355, 1); }
+[data-reveal="reveal-tint-49"].is-in { color: rgb(10, 37, 64); }
+/* reveal-fade-down-50: nav.FixedNav 1440×64 (×1) */
+[data-reveal="reveal-fade-down-50"] { transform: translateY(-100%); opacity: 0; transition: transform 250ms ease, opacity 250ms ease; }
+[data-reveal="reveal-fade-down-50"].is-in { opacity: 1; }
+/* reveal-slide-51: div 270×398 (×1) */
+[data-reveal="reveal-slide-51"] { transform: translateX(-100%); transition: transform 350ms cubic-bezier(0.4, 0, 0.2, 1); }
+[data-reveal="reveal-slide-51"].is-in { transform: translateX(-200%); }
+/* reveal-fade-52: div 270×1 (×1) */
+[data-reveal="reveal-fade-52"] { opacity: 0; transition: opacity 500ms cubic-bezier(0.165, 0.84, 0.44, 1); }
+[data-reveal="reveal-fade-52"].is-in { opacity: 1; }
+/* reveal-scale-53: div 270×1 (×1) */
+[data-reveal="reveal-scale-53"] { transform: scaleX(0); transition: transform 7000ms linear 300ms; }
+[data-reveal="reveal-scale-53"].is-in { transform: scaleX(1); }
+/* reveal-wipe-54: div 1440×3 (×1) */
+[data-reveal="reveal-wipe-54"] { clip-path: inset(0px 99.105% 0px 0px); transition: clip-path 10877ms linear; }
+[data-reveal="reveal-wipe-54"].is-in { clip-path: inset(0px 0% 0px 0px); }
+/* hover hover-tint-55: a.hds-link.hds-link--callout “Read the story” 119×21 — color: rgb(83, 58, 253); → color: rgb(46, 43, 140); */
+.hover-tint-55 { transition: color 300ms cubic-bezier(0.25, 1, 0.5, 1); }
+/* hover hover-fade-56: div 1112×64 — opacity: 0; → opacity: 1; */
+.hover-fade-56 { transition: opacity 240ms cubic-bezier(0.45, 0.05, 0.55, 0.95); }
+/* hover hover-transform-57: svg 7×7 —  → transform: rotate(-90deg); */
+.hover-transform-57 { transition: transform 400ms cubic-bezier(0.4, 0, 0.2, 1); }
+/* hover hover-tint-58: a.CtaButton.variant--Button “Contact sales” 146×33 — background-color: rgb(99, 91, 255); → background-color: rgb(3, 19, 35); */
+.hover-tint-58 { transition: background-color 300ms cubic-bezier(0.25, 1, 0.5, 1); }
+/* hover hover-fill-59: path — fill: rgb(10, 37, 64); → fill: rgb(3, 19, 35); */
+.hover-fill-59 { transition: fill 300ms cubic-bezier(0.25, 1, 0.5, 1); }
+/* hover hover-slide-60: div 1264×595 — transform: translateX(-50%) translateX(0px); → transform: translateX(-50%) translateX(-20%); */
+.hover-slide-60 { transition: transform 500ms cubic-bezier(0.4, 0, 0.2, 1); }
+/* hover hover-fade-61: path — opacity: 0; → opacity: 1; */
+.hover-fade-61 { transition: opacity 150ms cubic-bezier(0.215, 0.61, 0.355, 1); }

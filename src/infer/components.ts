@@ -141,7 +141,10 @@ export async function inferComponents(ev: Evidence, outDir: string, accent?: str
   // names: primary = the button filled with the accent (or the strongest fill), secondary/ghost by fill and border
   for (const [kind, list] of byKind) {
     if (kind === 'button') {
-      const accentBtn = accent ? list.find((v) => v.style.background === accent) : undefined;
+      // the primary action wears the brand colour: the filled button nearest the accent, if one is close
+      const acc = accent ? parseColor(accent) : null;
+      const near = (v: ComponentVariant) => { const c = parseColor(v.style.background); return c && acc && c.a > 0.9 ? Math.hypot(c.r - acc.r, c.g - acc.g, c.b - acc.b) : Infinity; };
+      const accentBtn = acc ? [...list].filter((v) => near(v) < 40).sort((a, b) => b.count - a.count)[0] : undefined;
       const filled = list.filter((v) => v.style.background && v.style.background !== 'transparent');
       const pageBg = parseColor(ev.pages[0].harvests.desktop.body.backgroundColor)?.a ? parseColor(ev.pages[0].harvests.desktop.body.backgroundColor)! : parseColor(ev.pages[0].harvests.desktop.body.htmlBackground) || { r: 255, g: 255, b: 255, a: 1 };
       const strength = (v: ComponentVariant) => { const c = parseColor(v.style.background); return c ? contrast(c.a < 1 ? over(c, pageBg) : c, pageBg) * Math.min(1, c.a * 2) : 0; };

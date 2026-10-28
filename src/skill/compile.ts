@@ -54,7 +54,7 @@ export function compileSkill(dna: DNA, entryDir: string) {
 function skillMd(dna: DNA, name: string, host: string, recipes: Recipe[]) {
   const t = (role: string) => dna.color.tokens.find((x) => x.role === role);
   const fam = dna.typography.families;
-  const famLine = fam.map((f) => `**${f.family}**${f.substitute ? ` (use **${f.substitute}** unless you hold a licence)` : ''} for ${f.roles.slice(0, 4).join(', ')}`).join('; ');
+  const famLine = fam.map((f) => `**${f.family}**${(f as any).google && (f as any).google !== f.family ? ` (= ${(f as any).google} on Google Fonts)` : ''}${f.substitute ? ` (use **${f.substitute}** unless you hold a licence)` : ''} for ${f.roles.slice(0, 4).join(', ')} — \`var(${fontVar(dna, f.family)})\``).join('; ');
   const radii = dna.shape.radii.slice(0, 5).map((r) => r.css).join(', ');
   const durations = dna.motion.durations.slice(0, 5).map((d) => d.ms + 'ms').join(', ');
   const easings = dna.motion.easings.filter((e) => !e.spring).slice(0, 3).map((e) => '`' + e.css + '`').join(', ');
@@ -98,7 +98,7 @@ ${dna.feel.notes.map((n) => `- ${n}`).join('\n')}
 - Type scale ${dna.typography.scale.ratio ? `≈${dna.typography.scale.ratio}${dna.typography.scale.name ? ` (${dna.typography.scale.name})` : ''} from ${dna.typography.scale.base}px` : 'custom'}: ${dna.typography.styles.slice(0, 8).map((s) => `${s.name} ${s.size}/${s.weight}`).join(', ')}.
 - Radii ${radii}. Spacing grid ${dna.spacing.base}px. Container ${dna.layout.containers.desktop?.[0]?.value ?? '—'}px, gutters ${dna.layout.gutters.desktop ?? '—'} / ${dna.layout.gutters.tablet ?? '—'} / ${dna.layout.gutters.mobile ?? '—'}px (desktop / tablet / mobile).
 - Motion: ${durations}; curves ${easings}${springs ? ` plus ${springs} spring curve${springs === 1 ? '' : 's'} (kept exact as \`linear()\`)` : ''}. Scroll: ${sc ? (sc.kind === 'native' ? 'native' : `smoothed (${sc.library}, lerp ${sc.lerp}, settles in ${sc.settleMs}ms)`) : 'not measured'}.
-${btn ? `- Primary action: ${btn.style.background} / ${btn.style.color}, radius ${btn.style.radius}, ${btn.style.font}${btn.hover ? `; on hover ${Object.entries(btn.hover.changes).map(([k, v]) => `${k} → ${v[1]}`).join(', ')}` : ''}.` : ''}
+${btn ? `- Primary action: ${btn.style.background} / ${btn.style.color}, radius ${btn.style.radius ?? "0"}, ${btn.style.font}${btn.hover ? `; on hover ${Object.entries(btn.hover.changes).map(([k, v]) => `${k} → ${v[1]}`).join(', ')}` : ''}.` : ''}
 
 ## Do
 ${dos.map((d) => `- ${d}`).join('\n')}
@@ -124,11 +124,29 @@ ${recipes.filter((r) => r.trigger !== 'loop').slice(0, 6).map((r) => `- **${r.na
 `;
 }
 
+/** One CSS variable per family: the body family is --font-sans, a mono family --font-mono, others by name. */
+export function fontVar(dna: DNA, family: string) {
+  const f = dna.typography.families.find((x) => x.family === family);
+  if (!f) return '--font-sans';
+  const body = dna.typography.styles.find((s) => s.name === 'body')?.family;
+  if (family === body) return '--font-sans';
+  if (f.roles.some((r) => r.startsWith('mono')) || /mono|code/i.test(family)) return '--font-mono';
+  return cssVarName('font-' + baseFamily(family));
+}
+
 function googleFonts(dna: DNA) {
-  const fams = dna.typography.families.map((f) => (f.substitute || baseFamily(f.family))).filter((n) => /open|system/.test(dna.typography.families.find((f) => (f.substitute || baseFamily(f.family)) === n)!.license) || dna.typography.families.some((f) => f.substitute === n));
-  const uniq = [...new Set(fams)].filter((n) => !/^(system-ui|-apple-system|helvetica|arial|sans-serif)/i.test(n));
-  if (!uniq.length) return '';
-  return `<link href="https://fonts.googleapis.com/css2?${uniq.map((n) => `family=${n.replace(/ /g, '+')}:wght@300..800`).join('&')}&display=swap" rel="stylesheet">`;
+  // exact weights in use (rounded to the hundreds Google serves); a range would fail the whole request for a
+  // single-weight family such as Anton
+  const want = new Map<string, Set<number>>();
+  for (const f of dna.typography.families) {
+    const name = (f as any).google || f.substitute;
+    if (!name || /^(system-ui|-apple-system|helvetica|arial|sans-serif)/i.test(name)) continue;
+    const w = want.get(name) || new Set<number>();
+    for (const x of f.weights) w.add(Math.min(900, Math.max(100, Math.round(x / 100) * 100)));
+    want.set(name, w);
+  }
+  if (!want.size) return '';
+  return `<link href="https://fonts.googleapis.com/css2?${[...want].map(([n, w]) => `family=${n.replace(/ /g, '+')}:wght@${[...w].sort((a, b) => a - b).join(';')}`).join('&')}&display=swap" rel="stylesheet">`;
 }
 
 // ------------------------------------------------------------------ CSS
@@ -137,9 +155,9 @@ function tokensCss(dna: DNA) {
   const L: string[] = [`/* ${dna.source.url} — measured by relume on ${dna.source.crawledAt.slice(0, 10)} */`, ':root {'];
   for (const t of dna.color.tokens) L.push(`  ${cssVarName('color-' + t.name)}: ${t.value};${t.aliases.length ? ` /* source: ${t.aliases.slice(0, 2).join(', ')} */` : ''}`);
   for (const f of dna.typography.families) {
-    const names = [...new Set([f.substitute, f.family, baseFamily(f.family)].filter(Boolean) as string[])];
+    const names = [...new Set([(f as any).google, f.substitute, f.family, baseFamily(f.family)].filter(Boolean) as string[])];
     const mono = f.roles.some((r) => r.startsWith('mono'));
-    L.push(`  ${cssVarName('font-' + (f.roles.includes('body') ? 'sans' : mono ? 'mono' : f.family))}: ${names.map((n) => JSON.stringify(n)).join(', ')}, ${mono ? 'ui-monospace, monospace' : 'ui-sans-serif, system-ui, sans-serif'};`);
+    L.push(`  ${fontVar(dna, f.family)}: ${names.map((n) => JSON.stringify(n)).join(', ')}, ${mono ? 'ui-monospace, monospace' : 'ui-sans-serif, system-ui, sans-serif'};`);
   }
   for (const s of dna.typography.styles) {
     const size = s.fluid?.css?.startsWith('clamp') ? s.fluid.css : `${s.size / 16}rem`;
@@ -171,7 +189,7 @@ function tokensCss(dna: DNA) {
   if (dna.spacing.sections.desktop?.median) L.push(`.section { padding-block: ${dna.spacing.sections.desktop.median}px; }${dna.spacing.sections.mobile?.median ? ` @media (max-width: ${bpM}px) { .section { padding-block: ${dna.spacing.sections.mobile.median}px; } }` : ''}`);
   L.push('', '/* text styles */');
   for (const s of dna.typography.styles) {
-    const famVar = s.stack && /mono|code/i.test(s.stack) ? 'var(--font-mono)' : 'var(--font-sans)';
+    const famVar = `var(${fontVar(dna, s.family)})`;
     L.push(`.text-${s.name} { font-family: ${famVar}; font-size: var(${cssVarName('text-' + s.name)}); font-weight: ${s.weight}; line-height: ${s.lineHeight === 'normal' ? 'normal' : s.lineHeightRatio}; letter-spacing: ${s.letterSpacingEm}em;${s.transform !== 'none' ? ` text-transform: ${s.transform};` : ''}${s.features ? ` font-feature-settings: ${s.features};` : ''} }`);
     if (s.fluid && !s.fluid.css.startsWith('clamp')) {
       const bp = dna.layout.breakpoints.find((b: { kind: string; value: number }) => b.kind === 'max')?.value ?? 768;
@@ -188,7 +206,7 @@ function tokensCss(dna: DNA) {
     if (st.border) d.push(`border: ${st.border}`);
     if (st.radius) d.push(`border-radius: ${st.radius}`);
     if (st.shadow) d.push(`box-shadow: ${st.shadow}`);
-    if (st.font) d.push(`font: ${st.font} ${/mono|code/i.test(st.family || '') ? 'var(--font-mono)' : 'var(--font-sans)'}`);
+    if (st.font) d.push(`font: ${st.font} var(${fontVar(dna, st.family || '')})`);
     if (st.letterSpacing) d.push(`letter-spacing: ${st.letterSpacing}`);
     if (st.textTransform) d.push(`text-transform: ${st.textTransform}`);
     if (st.padding && c.kind !== 'card') d.push(`padding: ${st.padding}`);

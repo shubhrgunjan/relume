@@ -7,6 +7,7 @@ import { checkStyle, reportMd } from './verify/check.js';
 import { compareDna } from './verify/compare.js';
 import { readJson } from './catalog/catalog.js';
 import { join } from 'node:path';
+import { writeFileSync } from 'node:fs';
 
 const [cmd, ...rest] = process.argv.slice(2);
 const flags: Record<string, string> = {};
@@ -57,6 +58,15 @@ async function main() {
     case 'check': {
       const { report } = await checkStyle(args[0], args[1], log);
       log(reportMd(report));
+      break;
+    }
+    case 'recompare': {
+      // re-score a stored check with the current comparer (no re-crawl): recompare <slug> <check-id>
+      const dir = join(entryDir(args[0]), 'checks', args[1]);
+      const r = compareDna(readJson(join(entryDir(args[0]), 'dna.json')), readJson(join(dir, 'dna.json')));
+      writeFileSync(join(dir, 'report.json'), JSON.stringify(r, null, 1));
+      writeFileSync(join(dir, 'report.md'), reportMd(r));
+      log(reportMd(r));
       break;
     }
     case 'compare': {

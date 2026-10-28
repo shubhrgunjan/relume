@@ -61,7 +61,8 @@ export function compareDna(src: DNA, cand: DNA): Report {
   }
 
   // ---- typography: share of candidate text set in one of the source's styles
-  const srcFam = new Set(src.typography.families.flatMap((f) => [f.family.toLowerCase(), (f.substitute || '').toLowerCase()]).filter(Boolean));
+  // a source family is matched by its own name, its Google Fonts name or its open substitute
+  const srcFam = new Set(src.typography.families.flatMap((f) => [f.family, (f as any).google || '', f.substitute || '', f.family.replace(/\s+(variable|vf|var)$/i, '')].map((x) => x.toLowerCase())).filter(Boolean));
   let tOn = 0, tTot = 0;
   for (const s of cand.typography.styles) {
     tTot += s.share;
@@ -119,7 +120,9 @@ export function compareDna(src: DNA, cand: DNA): Report {
   // the language is the motion on text, controls, cards and sections; illustration and menu internals are content
   const isContent = (p: any) => /^(circle|path|svg|g|rect|line|polyline|polygon|canvas|img|video)\b/.test(p.targets[0] || '') || /^nav\b/.test(p.targets[0] || '') && p.trigger === 'hover';
   const seenKey = new Set<string>();
-  const important = explode((src.motion.patterns as any[]).filter((p) => ['load', 'scroll', 'hover', 'scroll-linked'].includes(p.trigger) && !isContent(p)))
+  // an instant flip (0ms, steps()) is a state change such as a menu unmounting, not motion anyone feels
+  const isInstant = (p: any) => p.duration === 0 || /^steps\(/.test(p.easing);
+  const important = explode((src.motion.patterns as any[]).filter((p) => ['load', 'scroll', 'hover', 'scroll-linked'].includes(p.trigger) && !isContent(p) && !isInstant(p)))
     .sort((a, b) => b.count - a.count).filter((p) => { if (seenKey.has(p.key)) return false; seenKey.add(p.key); return true; }).slice(0, 12);
   for (const p of important) {
     const c = candByKind.get(p.key);

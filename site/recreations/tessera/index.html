@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tessera — incident tracking for hardware teams</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&family=JetBrains+Mono:wght@300..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/motion.css">
+<style>
+  body { margin: 0; }
+  header.top { position: sticky; top: 0; z-index: 10; height: 64px; display: flex; align-items: center; background: var(--color-black-a80); backdrop-filter: blur(20px); border-bottom: 1px solid var(--color-border); }
+  header.top .container { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+  header.top nav { display: flex; gap: 4px; }
+  .brand { color: var(--color-text); text-decoration: none; display: flex; align-items: center; gap: 8px; }
+  .brand i { width: 18px; height: 18px; border-radius: 4px; background: var(--color-text); }
+  .hero h1 { margin: 0; max-width: 900px; }
+  .hero h1 span { display: block; }
+  .hero p { margin: 24px 0 32px; max-width: 560px; color: var(--color-text-tertiary); }
+  .actions { display: flex; gap: 12px; align-items: center; }
+  .shot { margin-top: 64px; height: 420px; }
+  .shot .rows { padding: 16px; display: grid; gap: 8px; }
+  .shot .row { display: grid; grid-template-columns: 80px 1fr 120px 90px; gap: 16px; align-items: center; height: 36px; padding: 0 12px; border-radius: 6px; border: 1px solid var(--color-border); color: var(--color-text-secondary); }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 48px; }
+  @media (max-width: 834px) { .grid3 { grid-template-columns: 1fr; } }
+  .feature { padding: 24px; min-height: 220px; display: flex; flex-direction: column; justify-content: space-between; }
+  .feature p { color: var(--color-text-tertiary); margin: 8px 0 0; }
+  h2 { margin: 0; max-width: 720px; }
+  .lede { color: var(--color-text-tertiary); max-width: 560px; margin: 16px 0 0; }
+  .plan { padding: 32px; display: flex; flex-direction: column; gap: 16px; }
+  .plan ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; color: var(--color-text-secondary); }
+  .log { margin-top: 48px; border-top: 1px solid var(--color-border); }
+  .log div { display: grid; grid-template-columns: 140px 1fr; gap: 24px; padding: 24px 0; border-bottom: 1px solid var(--color-border); }
+  .log time { color: var(--color-text-quaternary); }
+  footer { padding: 64px 0; border-top: 1px solid var(--color-border-2); color: var(--color-text-quaternary); }
+</style>
+</head>
+<body>
+<header class="top" data-reveal="reveal-tint-15">
+  <div class="container">
+    <a class="brand text-body-medium" href="#"><i></i>Tessera</a>
+    <nav><a class="link" href="#features">Features</a><a class="link" href="#pricing">Pricing</a><a class="link" href="#changelog">Changelog</a></nav>
+    <div class="actions"><a class="link" href="#">Log in</a><a class="button-primary" href="#">Start free</a></div>
+  </div>
+</header>
+
+<main>
+  <section class="section hero">
+    <div class="container">
+      <span class="badge-3" data-intro="intro-fade-5">New · firmware rollback tracking</span>
+      <h1 class="text-display" style="margin-top:24px">
+        <span data-intro="intro-fade-blur-up-1" style="--i:0">Hardware breaks in the field.</span>
+        <span data-intro="intro-fade-blur-up-1" style="--i:1">Tessera tells you why.</span>
+      </h1>
+      <p class="text-body" data-intro="intro-fade-blur-up-1" style="--i:2">Every device incident, from first report to shipped fix, linked to the build, the batch and the board revision that caused it.</p>
+      <div class="actions" data-intro="intro-fade-blur-up-1" style="--i:3"><a class="button-primary" href="#">Start free</a><a class="button-secondary-3" href="#">Talk to an engineer</a></div>
+      <div class="card shot" data-intro="intro-fade-6">
+        <div class="rows">
+          <div class="row text-small-regular"><span class="text-mono-sm-regular">HW-2041</span><span>Thermal throttling on rev C boards above 41°C</span><span class="badge">batch 0912</span><span>Investigating</span></div>
+          <div class="row text-small-regular"><span class="text-mono-sm-regular">HW-2038</span><span>BLE drops after firmware 3.4.1 OTA</span><span class="badge">fw 3.4.1</span><span>Fix shipped</span></div>
+          <div class="row text-small-regular"><span class="text-mono-sm-regular">HW-2033</span><span>Connector J4 intermittent on 2% of units</span><span class="badge">supplier B</span><span>Triage</span></div>
+          <div class="row text-small-regular"><span class="text-mono-sm-regular">HW-2027</span><span>Battery gauge reports 0% at 18% charge</span><span class="badge">rev B</span><span>Backlog</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="features">
+    <div class="container">
+      <h2 class="text-h2-medium">Built for the teams who ship atoms, not just bits.</h2>
+      <p class="lede text-body">Software trackers stop at the commit. Tessera follows a fault through manufacturing, firmware and the field.</p>
+      <div class="grid3">
+        <article class="card feature" data-reveal="reveal-fade-blur-12" style="--i:0"><span class="text-h3-medium">Batch lineage</span><p class="text-body-regular">Every unit's serial maps to its line, lot and component suppliers.</p></article>
+        <article class="card feature" data-reveal="reveal-fade-blur-12" style="--i:1"><span class="text-h3-medium">Firmware blame</span><p class="text-body-regular">Bisect incidents across OTA releases, with rollback in one action.</p></article>
+        <article class="card feature" data-reveal="reveal-fade-blur-12" style="--i:2"><span class="text-h3-medium">Field telemetry</span><p class="text-body-regular">Crash dumps and sensor traces attach themselves to the right issue.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="pricing">
+    <div class="container">
+      <h2 class="text-h2-medium">Pricing that scales with fleets.</h2>
+      <div class="grid3">
+        <article class="card-5 plan"><span class="text-h3-medium">Prototype</span><span class="text-title-lg">Free</span><ul class="text-small-regular"><li>Up to 500 devices</li><li>3 product lines</li><li>Community support</li></ul><a class="button-secondary-3" href="#">Start</a></article>
+        <article class="card-5 plan"><span class="text-h3-medium">Production</span><span class="text-title-lg">$16 / seat</span><ul class="text-small-regular"><li>Unlimited devices</li><li>Supplier portal</li><li>OTA integrations</li></ul><a class="button-primary" href="#">Start trial</a></article>
+        <article class="card-5 plan"><span class="text-h3-medium">Fleet</span><span class="text-title-lg">Custom</span><ul class="text-small-regular"><li>On-prem telemetry</li><li>Compliance exports</li><li>Dedicated engineer</li></ul><a class="button-secondary-3" href="#">Contact sales</a></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="changelog">
+    <div class="container">
+      <h2 class="text-h2-medium">Changelog</h2>
+      <div class="log text-body">
+        <div data-reveal="reveal-fade-blur-12"><time class="text-small-regular">Oct 21</time><span>Firmware rollback tracking, with blast radius by batch.</span></div>
+        <div data-reveal="reveal-fade-blur-12"><time class="text-small-regular">Oct 7</time><span>Supplier portal: share incidents with a component vendor in one link.</span></div>
+        <div data-reveal="reveal-fade-blur-12"><time class="text-small-regular">Sep 30</time><span>Telemetry ingestion is 4× faster for fleets over 100k devices.</span></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer><div class="container text-small-regular">Tessera, a fictional product built to test the measured linear.app language.</div></footer>
+<script type="module" src="assets/motion.js"></script>
+</body>
+</html>
