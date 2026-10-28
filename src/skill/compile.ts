@@ -4,6 +4,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { DNA } from '../infer/dna.js';
 import { parseColor } from '../lib/csscolor.js';
+import { baseFamily } from '../infer/tokens.js';
 import { buildRecipes, type Recipe } from './motion-recipes.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -88,9 +89,9 @@ Measured from ${dna.source.url} (${dna.source.pages.length} page${dna.source.pag
 ${dna.feel.notes.map((n) => `- ${n}`).join('\n')}
 
 ## Setup
-1. Copy \`assets/tokens.css\` (plain CSS variables, text styles, component classes) into the project; with Tailwind v4 also import \`assets/tailwind.css\` after \`@import "tailwindcss"\`.
+1. Copy \`assets/tokens.css\` (plain CSS variables, text styles, component classes, \`.container\` and \`.section\` with the measured width, gutters and rhythm — use them, don't re-derive) into the project; with Tailwind v4 also import \`assets/tailwind.css\` after \`@import "tailwindcss"\`.
 2. Add \`assets/motion.css\` and \`assets/motion.js\` (scroll reveals, intro choreography, stagger and scroll feel, all with measured timings).
-3. Fonts: ${famLine}.
+3. Fonts: ${famLine}.${googleFonts(dna) ? `\n   Load the open ones: \`${googleFonts(dna)}\`` : ''}
 
 ## Core tokens
 - Background ${fmt(t('background')?.value)}, text ${fmt(t('text')?.value)} / ${fmt(t('text-secondary')?.value)} / ${fmt(t('text-tertiary')?.value)}, accent ${fmt(t('accent')?.value)}, surface ${fmt(t('surface')?.value)}, border ${fmt(t('border')?.value)}.${dna.color.darkMode.supported ? ` A dark scheme exists (${dna.color.darkMode.strategy}).` : ''}
@@ -123,12 +124,23 @@ ${recipes.filter((r) => r.trigger !== 'loop').slice(0, 6).map((r) => `- **${r.na
 `;
 }
 
+function googleFonts(dna: DNA) {
+  const fams = dna.typography.families.map((f) => (f.substitute || baseFamily(f.family))).filter((n) => /open|system/.test(dna.typography.families.find((f) => (f.substitute || baseFamily(f.family)) === n)!.license) || dna.typography.families.some((f) => f.substitute === n));
+  const uniq = [...new Set(fams)].filter((n) => !/^(system-ui|-apple-system|helvetica|arial|sans-serif)/i.test(n));
+  if (!uniq.length) return '';
+  return `<link href="https://fonts.googleapis.com/css2?${uniq.map((n) => `family=${n.replace(/ /g, '+')}:wght@300..800`).join('&')}&display=swap" rel="stylesheet">`;
+}
+
 // ------------------------------------------------------------------ CSS
 
 function tokensCss(dna: DNA) {
   const L: string[] = [`/* ${dna.source.url} — measured by relume on ${dna.source.crawledAt.slice(0, 10)} */`, ':root {'];
   for (const t of dna.color.tokens) L.push(`  ${cssVarName('color-' + t.name)}: ${t.value};${t.aliases.length ? ` /* source: ${t.aliases.slice(0, 2).join(', ')} */` : ''}`);
-  for (const f of dna.typography.families) L.push(`  ${cssVarName('font-' + (f.roles.includes('body') ? 'sans' : f.roles.some((r) => r.startsWith('mono')) ? 'mono' : f.family))}: ${JSON.stringify(f.substitute || f.family)}${f.substitute ? `, ${JSON.stringify(f.family)}` : ''}, ui-sans-serif, system-ui, sans-serif;`);
+  for (const f of dna.typography.families) {
+    const names = [...new Set([f.substitute, f.family, baseFamily(f.family)].filter(Boolean) as string[])];
+    const mono = f.roles.some((r) => r.startsWith('mono'));
+    L.push(`  ${cssVarName('font-' + (f.roles.includes('body') ? 'sans' : mono ? 'mono' : f.family))}: ${names.map((n) => JSON.stringify(n)).join(', ')}, ${mono ? 'ui-monospace, monospace' : 'ui-sans-serif, system-ui, sans-serif'};`);
+  }
   for (const s of dna.typography.styles) {
     const size = s.fluid?.css?.startsWith('clamp') ? s.fluid.css : `${s.size / 16}rem`;
     L.push(`  ${cssVarName('text-' + s.name)}: ${size};`);
@@ -150,6 +162,13 @@ function tokensCss(dna: DNA) {
     L.push(dna.color.darkMode.strategy === 'class' ? '}' : '} }');
   }
   L.push('', `html { background: var(--color-background); color: var(--color-text); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }`);
+  // the measured content width is a border-box width: the container includes its gutters
+  const bpT = dna.layout.breakpoints.find((b: { kind: string; value: number }) => b.kind === 'max' && b.value >= 700 && b.value <= 1100)?.value ?? 834;
+  const bpM = dna.layout.breakpoints.find((b: { kind: string; value: number }) => b.kind === 'max' && b.value < 700)?.value ?? 640;
+  L.push(`.container { box-sizing: border-box; width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: var(--gutter-desktop); }`);
+  L.push(`@media (max-width: ${bpT}px) { .container { padding-inline: var(--gutter-tablet); } }`);
+  L.push(`@media (max-width: ${bpM}px) { .container { padding-inline: var(--gutter-mobile); } }`);
+  if (dna.spacing.sections.desktop?.median) L.push(`.section { padding-block: ${dna.spacing.sections.desktop.median}px; }${dna.spacing.sections.mobile?.median ? ` @media (max-width: ${bpM}px) { .section { padding-block: ${dna.spacing.sections.mobile.median}px; } }` : ''}`);
   L.push('', '/* text styles */');
   for (const s of dna.typography.styles) {
     const famVar = s.stack && /mono|code/i.test(s.stack) ? 'var(--font-mono)' : 'var(--font-sans)';
@@ -169,12 +188,12 @@ function tokensCss(dna: DNA) {
     if (st.border) d.push(`border: ${st.border}`);
     if (st.radius) d.push(`border-radius: ${st.radius}`);
     if (st.shadow) d.push(`box-shadow: ${st.shadow}`);
-    if (st.font) d.push(`font: ${st.font.replace(/ ([^ ]+)$/, ' var(--font-sans)')}`);
+    if (st.font) d.push(`font: ${st.font} ${/mono|code/i.test(st.family || '') ? 'var(--font-mono)' : 'var(--font-sans)'}`);
     if (st.letterSpacing) d.push(`letter-spacing: ${st.letterSpacing}`);
     if (st.textTransform) d.push(`text-transform: ${st.textTransform}`);
     if (st.padding && c.kind !== 'card') d.push(`padding: ${st.padding}`);
     if (c.kind === 'button' || c.kind === 'badge') d.push('display: inline-flex', 'align-items: center', `gap: ${st.gap || '8px'}`, `height: ${c.size.height}px`);
-    if (st.transition) d.push(`transition: ${st.transition.trim()}`);
+    if (st.transition) d.push(`transition: ${st.transition}`);
     if (st.backdrop) d.push(`backdrop-filter: ${st.backdrop}`);
     L.push(`.${c.name} { ${d.join('; ')}; }`);
     if (c.hover) {

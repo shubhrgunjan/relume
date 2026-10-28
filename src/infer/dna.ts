@@ -41,7 +41,7 @@ function feelOf(d: any) {
   const chromatic = d.color.tokens.filter((t: any) => { const c = parseColor(t.value); if (!c) return false; const l = rgbToLab(Math.round(c.r), Math.round(c.g), Math.round(c.b)); return Math.hypot(l[1], l[2]) > 18; });
   const chromaShare = +chromatic.reduce((s: number, t: any) => s + t.share, 0).toFixed(1);
   const radii = d.shape.radii.filter((r: any) => r.value !== 9999);
-  const surfaceRadius = radii.find((r: any) => r.on.includes('surface'))?.value ?? radii[0]?.value ?? 0;
+  const surfaceRadius = d.shape.surfaceRadius ?? radii.find((r: any) => r.on.includes('surface'))?.value ?? 0;
   const pill = d.shape.radii.some((r: any) => r.value === 9999 && r.on.includes('button'));
   const heading = d.typography.styles.find((s: any) => /^(display|h1)$/.test(s.name)) || d.typography.styles[0];
   const body = d.typography.styles.find((s: any) => s.name === 'body');

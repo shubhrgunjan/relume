@@ -21,6 +21,32 @@ export interface ComponentVariant {
 
 const col = (v: string) => { const c = parseColor(v); return c && c.a > 0.02 ? rgbaCss(c) : 'transparent'; };
 
+/** Split a computed list on top-level commas (cubic-bezier(…) keeps its own). */
+export function splitList(v: string): string[] {
+  const out: string[] = [];
+  let depth = 0, cur = '';
+  for (const ch of v) {
+    if (ch === '(') depth++;
+    if (ch === ')') depth--;
+    if (ch === ',' && depth === 0) { out.push(cur.trim()); cur = ''; } else cur += ch;
+  }
+  if (cur.trim()) out.push(cur.trim());
+  return out;
+}
+
+/** Zip computed transition-* lists into a valid shorthand; 'none' when nothing actually transitions. */
+export function transitionCss(s: Record<string, string>): string {
+  const props = splitList(s.transitionProperty || ''), durs = splitList(s.transitionDuration || ''), fns = splitList(s.transitionTimingFunction || ''), dels = splitList(s.transitionDelay || '');
+  const parts: string[] = [];
+  props.forEach((p, i) => {
+    const d = durs[i % durs.length] || '0s';
+    if (parseFloat(d) === 0 || p === 'none') return;
+    const del = dels[i % dels.length] || '0s';
+    parts.push(`${p} ${d} ${fns[i % fns.length] || 'ease'}${parseFloat(del) ? ' ' + del : ''}`);
+  });
+  return parts.length ? parts.join(', ') : 'none';
+}
+
 function styleOf(r: Row): Record<string, string> {
   const s = r.s;
   const o: Record<string, string> = {
@@ -29,12 +55,13 @@ function styleOf(r: Row): Record<string, string> {
     border: px(s.borderTopWidth) > 0 && s.borderTopStyle !== 'none' ? `${s.borderTopWidth} ${s.borderTopStyle} ${col(s.borderTopColor)}` : 'none',
     radius: s.borderTopLeftRadius,
     shadow: s.boxShadow,
-    font: `${s.fontWeight} ${s.fontSize}/${s.lineHeight} ${s.fontFamily.split(',')[0].replace(/["']/g, '')}`,
+    font: `${s.fontWeight} ${s.fontSize}/${s.lineHeight}`,
+    family: s.fontFamily.split(',')[0].replace(/["']/g, '').trim(),
     letterSpacing: s.letterSpacing,
     textTransform: s.textTransform,
     padding: `${s.paddingTop} ${s.paddingRight} ${s.paddingBottom} ${s.paddingLeft}`,
     gap: s.columnGap,
-    transition: s.transitionProperty !== 'all' || s.transitionDuration !== '0s' ? `${s.transitionProperty} ${s.transitionDuration} ${s.transitionTimingFunction} ${s.transitionDelay}` : 'none',
+    transition: transitionCss(s),
     backdrop: s.backdropFilter,
     cursor: s.cursor,
   };

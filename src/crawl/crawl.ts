@@ -293,6 +293,8 @@ export async function crawlSite(home: string, outDir: string, opt: CrawlOptions)
     const sigs = new Set<string>();
     for (const [i, url] of pages.entries()) {
       if (summary.filter((s) => s.ok).length >= opt.maxPages) break;
+      // two URLs can share a key (/ and /home); never let the second one touch the first one's evidence
+      if (summary.some((s) => s.key === pageKey(url))) continue;
       const dir = join(outDir, 'pages', pageKey(url));
       opt.log(`[${summary.filter((s) => s.ok).length + 1}/${opt.maxPages}] ${url}`);
       try {

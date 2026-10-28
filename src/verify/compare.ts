@@ -110,15 +110,19 @@ export function compareDna(src: DNA, cand: DNA): Report {
     else if (ss.kind === 'smooth') { const d = Math.abs((ss.settleMs || 0) - (cs.settleMs || 0)) / Math.max(1, ss.settleMs || 1); mScore.push(Math.max(0, 100 - d * 150)); if (d > 0.15) F.push({ dimension: 'motion', severity: 6, message: `scroll settles in ${cs.settleMs}ms; source ${ss.settleMs}ms`, fix: `lerp ${ss.lerp}` }); }
     else mScore.push(100);
   }
-  const sig = (p: any) => {
-    const keys = [...new Set(p.props.map((x: string) => (/^(x|y|transform|scale|rotate)$/.test(x) ? 'transform' : x)))].sort().join(',');
-    return `${p.trigger}:${keys}`;
-  };
+  // one animation may carry several properties (CSS @keyframes) where the source ran one per property (WAAPI):
+  // compare per property so packaging never counts as a difference
+  const norm = (x: string) => (/^(x|y|transform|scale|rotate|translate)$/.test(x) ? 'transform' : x);
+  const explode = (list: any[]) => list.flatMap((p) => [...new Set((p.props as string[]).map(norm))].map((prop) => ({ ...p, props: [prop], key: `${p.trigger}:${prop}` })));
   const candByKind = new Map<string, any[]>();
-  for (const p of cand.motion.patterns as any[]) { const k = sig(p); if (!candByKind.has(k)) candByKind.set(k, []); candByKind.get(k)!.push(p); }
-  const important = (src.motion.patterns as any[]).filter((p) => ['load', 'scroll', 'hover', 'scroll-linked'].includes(p.trigger)).sort((a, b) => b.count - a.count).slice(0, 12);
+  for (const p of explode(cand.motion.patterns as any[])) { if (!candByKind.has(p.key)) candByKind.set(p.key, []); candByKind.get(p.key)!.push(p); }
+  // the language is the motion on text, controls, cards and sections; illustration and menu internals are content
+  const isContent = (p: any) => /^(circle|path|svg|g|rect|line|polyline|polygon|canvas|img|video)\b/.test(p.targets[0] || '') || /^nav\b/.test(p.targets[0] || '') && p.trigger === 'hover';
+  const seenKey = new Set<string>();
+  const important = explode((src.motion.patterns as any[]).filter((p) => ['load', 'scroll', 'hover', 'scroll-linked'].includes(p.trigger) && !isContent(p)))
+    .sort((a, b) => b.count - a.count).filter((p) => { if (seenKey.has(p.key)) return false; seenKey.add(p.key); return true; }).slice(0, 12);
   for (const p of important) {
-    const c = candByKind.get(sig(p));
+    const c = candByKind.get(p.key);
     const label = `${p.trigger} ${p.props.join('+')} on ${p.targets[0]}`;
     if (!c?.length) {
       // only behaviours the source uses repeatedly are part of its language
@@ -129,7 +133,7 @@ export function compareDna(src: DNA, cand: DNA): Report {
     let s = 100;
     if (best.dd > 0.1) { s -= Math.min(50, best.dd * 100); F.push({ dimension: 'motion', severity: 5, message: `${label}: ${best.x.duration}ms; source ${p.duration}ms`, fix: `duration ${p.duration}ms` }); }
     if (best.de > 0.06) { s -= Math.min(40, best.de * 200); F.push({ dimension: 'motion', severity: 5, message: `${label}: curve ${best.x.easing.slice(0, 50)}; source ${p.easing.slice(0, 50)} (differs by ${r1(best.de * 100)}%)`, fix: `easing ${p.easing.length > 80 ? 'var(--ease-spring-…) from tokens.css' : p.easing}` }); }
-    if (p.stagger && Math.abs((best.x.stagger || 0) - p.stagger) > Math.max(10, p.stagger * 0.25)) { s -= 15; F.push({ dimension: 'motion', severity: 3, message: `${label}: stagger ${best.x.stagger ?? 0}ms; source ${p.stagger}ms`, fix: `--i stagger ${p.stagger}ms` }); }
+    if (p.stagger && p.trigger !== 'hover' && Math.abs((best.x.stagger || 0) - p.stagger) > Math.max(10, p.stagger * 0.25)) { s -= 15; F.push({ dimension: 'motion', severity: 3, message: `${label}: stagger ${best.x.stagger ?? 0}ms; source ${p.stagger}ms`, fix: `--i stagger ${p.stagger}ms` }); }
     if (p.entry !== undefined && best.x.entry !== undefined && Math.abs(p.entry - best.x.entry) > 0.12) { s -= 10; F.push({ dimension: 'motion', severity: 3, message: `${label}: starts at ${Math.round(best.x.entry * 100)}% of viewport; source ${Math.round(p.entry * 100)}%`, fix: 'use motion.js reveal entry' }); }
     for (const k of ['opacity', 'y', 'x', 'scale', 'filter']) {
       const a = p.from[k], b = best.x.from[k];

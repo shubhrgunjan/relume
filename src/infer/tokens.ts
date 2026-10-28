@@ -328,7 +328,7 @@ export function inferTypography(ev: Evidence) {
 const OPEN = /^(inter|inter display|geist|geist mono|manrope|dm sans|dm mono|dm serif.*|space grotesk|space mono|ibm plex.*|roboto.*|open sans|lato|poppins|montserrat|work sans|figtree|plus jakarta sans|outfit|sora|jetbrains mono|fira.*|source.*|noto.*|instrument sans|instrument serif|fraunces|playfair display|lora|merriweather|syne|archivo.*|bricolage grotesque|onest|hanken grotesk|schibsted grotesk|nunito.*|raleway|rubik|karla|libre.*|eb garamond|cormorant.*|crimson.*|spectral|newsreader|mona sans|hubot sans|public sans|be vietnam pro|urbanist|lexend.*|red hat.*|albert sans|epilogue|unbounded|familjen grotesk|chivo.*|commit mono|martian mono)$/i;
 const FREE_NONOPEN = /^(satoshi|general sans|cabinet grotesk|clash display|clash grotesk|switzer|supreme|zodiak|erode|chillax|ranade|sentient|gambarino|boska|author|panchang|tanker|excon|bespoke.*)$/i;
 
-const baseFamily = (f: string) => f.replace(/\s+(variable|vf|var|web|text|display)$/i, '').trim();
+export const baseFamily = (f: string) => f.replace(/\s+(variable|vf|var|web|text|display)$/i, '').trim();
 
 function licenseOf(family: string, host?: string) {
   family = baseFamily(family);
@@ -445,7 +445,20 @@ export function inferShape(ev: Evidence) {
     if (s.backdropFilter && s.backdropFilter !== 'none') blurs.push(s.backdropFilter);
   }
   const rh = histogram(radii);
+  // the radius a viewer reads as "the" surface radius: area-weighted over large painted surfaces
+  const surf: [number, number][] = [];
+  for (const p of ev.pages) for (const r of visibleRows(p.harvests.desktop)) {
+    const area = r.box[2] * r.box[3], rad = px(r.s.borderTopLeftRadius);
+    const paints = (parseColor(r.s.backgroundColor)?.a || 0) > 0.02 || px(r.s.borderTopWidth) > 0 || r.s.boxShadow !== 'none';
+    // cards and panels, not page-wide bands (those are square by nature and would drown every card)
+    if (paints && area > 20000 && r.box[2] < p.harvests.desktop.viewport[0] * 0.9 && rad < Math.min(r.box[2], r.box[3]) / 2 - 0.5) surf.push([rad, area]);
+  }
+  surf.sort((a, b) => a[0] - b[0]);
+  const half = surf.reduce((t, x) => t + x[1], 0) / 2;
+  let acc = 0, surfaceRadius = 0;
+  for (const [rad, a] of surf) { acc += a; if (acc >= half) { surfaceRadius = r1(rad); break; } }
   return {
+    surfaceRadius,
     radii: rh.filter(([, c], i) => i < 3 || c >= 3).slice(0, 8).map(([value, count]) => ({ value, css: value === 9999 ? '9999px' : `${value}px`, count, on: [...(radiusTags.get(String(value)) || [])] })),
     borders: histogram(borders as any).slice(0, 8).map(([value, count]) => ({ value: value as unknown as string, count })),
     shadows: [...shadows.entries()].sort((a, b) => b[1].count - a[1].count).slice(0, 8).map(([value, e]) => ({ value, count: e.count, on: [...e.tags].slice(0, 5) })),
