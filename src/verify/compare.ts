@@ -165,7 +165,28 @@ export function compareDna(src: DNA, cand: DNA): Report {
   if (fm.scheme !== cm.scheme) { feel -= 40; F.push({ dimension: 'feel', severity: 10, message: `${cm.scheme} page; source is ${fm.scheme}`, fix: `Use the ${fm.scheme} scheme tokens` }); }
   S.feel = Math.max(0, Math.round(feel));
 
-  const W: Record<string, number> = { color: 0.2, type: 0.2, spacing: 0.1, shape: 0.1, layout: 0.1, motion: 0.2, feel: 0.1 };
+  // ---- composition: is the page built out of the same kinds of things, in the same proportions?
+  const sc0 = (src as any).composition?.pages?.[0], cc0 = (cand as any).composition?.pages?.[0];
+  if (sc0 && cc0) {
+    const coarse = (k: string) => k.replace(/^feature: split intro \+ product UI|^product UI showcase/, 'product-ui').replace(/^hero.*/, 'hero').replace(/ with illustrations/, '');
+    const a = sc0.sections.map((x: any) => coarse(x.kind)), b = cc0.sections.map((x: any) => coarse(x.kind));
+    // sequence similarity: edit distance over section kinds
+    const D = Array.from({ length: a.length + 1 }, (_, i) => Array.from({ length: b.length + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)));
+    for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) D[i][j] = Math.min(D[i - 1][j] + 1, D[i][j - 1] + 1, D[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    const seq = 1 - D[a.length][b.length] / Math.max(a.length, b.length);
+    const vis = Math.min(1, cc0.totals.visualShare / Math.max(0.05, sc0.totals.visualShare));
+    const dens = Math.min(1, cc0.totals.elementsPerScreen / Math.max(1, sc0.totals.elementsPerScreen));
+    const kindsSrc = Object.keys(sc0.totals.kinds).filter((k) => !['avatar', 'form', 'image'].includes(k));
+    const covered = kindsSrc.filter((k) => cc0.totals.kinds[k]).length / Math.max(1, kindsSrc.length);
+    S.composition = Math.round((seq * 0.3 + vis * 0.3 + dens * 0.15 + covered * 0.25) * 100);
+    if (vis < 0.7) F.push({ dimension: 'composition', severity: 9, message: `visuals cover ${Math.round(cc0.totals.visualShare * 100)}% of the page; the source covers ${Math.round(sc0.totals.visualShare * 100)}% with product UI, illustrations and data`, fix: 'Build the visual blocks the blueprint lists for each section' });
+    for (const k of kindsSrc.filter((k) => !cc0.totals.kinds[k])) F.push({ dimension: 'composition', severity: k === 'ui-mock' ? 9 : 6, message: `no ${k} anywhere; the source has ${sc0.totals.kinds[k]}`, fix: k === 'ui-mock' ? 'Build product UI in HTML using the measured UI grammar (blueprint.md)' : `Add ${k} where the blueprint places them` });
+    if (seq < 0.7) F.push({ dimension: 'composition', severity: 7, message: `section sequence differs: source ${a.join(' → ')}; yours ${b.join(' → ')}`, fix: 'Follow the section order in blueprint.md' });
+    if (dens < 0.6) F.push({ dimension: 'composition', severity: 6, message: `${cc0.totals.elementsPerScreen} elements per screen; the source has ${sc0.totals.elementsPerScreen}`, fix: 'Match the source density: every section carries detailed content, not only headings' });
+  }
+  const W: Record<string, number> = S.composition !== undefined
+    ? { color: 0.12, type: 0.12, spacing: 0.08, shape: 0.08, layout: 0.08, motion: 0.15, feel: 0.07, composition: 0.3 }
+    : { color: 0.2, type: 0.2, spacing: 0.1, shape: 0.1, layout: 0.1, motion: 0.2, feel: 0.1 };
   const overall = Math.round(Object.entries(W).reduce((s, [k, w]) => s + (S[k] ?? 0) * w, 0));
   const findings = F.sort((a, b) => b.severity - a.severity).slice(0, 40);
   return { source: src.source.url, candidate: cand.source.url, at: new Date().toISOString(), scores: S, overall, pass: Object.values(S).every((v) => v >= 85) && !findings.some((f) => f.severity >= 8), findings };

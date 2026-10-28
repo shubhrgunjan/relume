@@ -257,7 +257,9 @@ export function inferMotion(ev: Evidence) {
         for (const s of seg) { const p = (s[2] - y0) / dist; const t = s[0] - moveStart; if (p > 0.02 && p < 0.97 && t > 0) { sxy += t * Math.log(1 - p); sxx += t * t; } }
         tau = sxx > 0 ? -sxx / sxy : undefined;
         // Lenis-style damping is frame-rate independent: x += (target - x)·(1 - e^(-60·lerp·dt)), so τ = 1/(60·lerp)
-        if (tau) lerp = r2(1000 / (60 * tau));
+        // calibrated against Lenis at known lerp 0.1 and 0.2 (bench/fixtures): the probe samples scrollY one
+        // frame callback ahead of the scroller's own, which shortens τ by a constant ~12.5ms
+        if (tau) { tau += 12.5; lerp = r2(1000 / (60 * tau)); }
         const fit = fitTiming(seg.map((s) => (s[0] - moveStart) / 1000), seg.map((s) => (s[2] - y0) / dist), 1 / 60);
         if (fit) curve = `${r0(fit.duration * 1000)}ms ${fit.easing}`;
       }

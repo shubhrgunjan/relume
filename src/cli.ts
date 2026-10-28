@@ -63,7 +63,8 @@ async function main() {
     case 'recompare': {
       // re-score a stored check with the current comparer (no re-crawl): recompare <slug> <check-id>
       const dir = join(entryDir(args[0]), 'checks', args[1]);
-      const r = compareDna(readJson(join(entryDir(args[0]), 'dna.json')), readJson(join(dir, 'dna.json')));
+      // re-infer the candidate from its stored evidence so new measurements (composition…) apply too
+      const r = compareDna(readJson(join(entryDir(args[0]), 'dna.json')), await buildDna(dir, args[0] + '-check'));
       writeFileSync(join(dir, 'report.json'), JSON.stringify(r, null, 1));
       writeFileSync(join(dir, 'report.md'), reportMd(r));
       log(reportMd(r));

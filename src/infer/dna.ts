@@ -5,6 +5,9 @@ import { loadEvidence } from './evidence.js';
 import { inferColors, inferTypography, inferSpacing, inferShape, inferLayout } from './tokens.js';
 import { inferComponents, attachStates } from './components.js';
 import { inferMotion } from './motion.js';
+import { blueprint } from './sections.js';
+import sharp from 'sharp';
+import { existsSync, mkdirSync } from 'node:fs';
 import { parseColor, contrast } from '../lib/csscolor.js';
 import { rgbToLab } from '../lib/color.js';
 import { readJson } from '../catalog/catalog.js';
@@ -23,11 +26,28 @@ export async function buildDna(dir: string, slug: string) {
   const motion = inferMotion(ev);
   const accent = color.tokens.find((t) => t.role === 'accent')?.value;
   const components = attachStates(await inferComponents(ev, dir, accent), motion.hover);
+  // composition: every page as an ordered blueprint of sections, with a crop of each for the skill
+  const composition = { pages: [] as any[] };
+  mkdirSync(join(dir, 'sections'), { recursive: true });
+  for (const p of ev.pages) {
+    const bp = blueprint(p.harvests.desktop);
+    const shot = join(p.dir, 'shot-desktop.jpg');
+    if (existsSync(shot)) {
+      const meta = await sharp(shot).metadata();
+      for (const s of bp.sections) {
+        const top = Math.max(0, Math.round(s.box[1])), height = Math.min(Math.round(s.box[3]), (meta.height || 0) - top, 1800);
+        if (height < 24 || top >= (meta.height || 0)) continue;
+        const file = `sections/${p.key}-${String(s.index).padStart(2, '0')}.jpg`;
+        try { await sharp(shot).extract({ left: 0, top, width: meta.width!, height }).resize({ width: 960 }).jpeg({ quality: 78 }).toFile(join(dir, file)); (s as any).crop = file; } catch {}
+      }
+    }
+    composition.pages.push({ key: p.key, url: p.url, ...bp });
+  }
   const feel = feelOf({ color, typography, spacing, shape, layout, motion });
   const dna = {
     version: 1,
     source: { url: ev.home, slug, crawledAt: crawl.at, pages: ev.pages.map((p) => ({ key: p.key, url: p.url, title: p.harvests.desktop.title })), viewports: Object.keys(ev.pages[0].harvests) },
-    color, typography, spacing, shape, layout, components, motion, feel,
+    color, typography, spacing, shape, layout, components, motion, composition, feel,
   };
   writeFileSync(join(dir, 'dna.json'), JSON.stringify(dna, null, 1));
   return dna;

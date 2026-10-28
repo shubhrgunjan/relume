@@ -38,6 +38,9 @@ export function compileSkill(dna: DNA, entryDir: string) {
   writeFileSync(join(out, 'references', 'components.md'), componentsMd(dna));
   writeFileSync(join(out, 'references', 'motion.md'), motionMd(dna, recipes));
   writeFileSync(join(out, 'references', 'layout.md'), layoutMd(dna));
+  writeFileSync(join(out, 'references', 'blueprint.md'), blueprintMd(dna));
+  mkdirSync(join(out, 'assets', 'reference', 'sections'), { recursive: true });
+  for (const pg of (dna as any).composition?.pages || []) for (const sec of pg.sections) if (sec.crop && existsSync(join(entryDir, sec.crop))) copyFileSync(join(entryDir, sec.crop), join(out, 'assets', 'reference', sec.crop));
   writeFileSync(join(out, 'scripts', 'lint.mjs'), readFileSync(join(HERE, 'lint-template.mjs'), 'utf8'));
   // reference shots: the look, for the agent's eyes only — never ship them in a build
   for (const p of dna.source.pages.slice(0, 3)) for (const vp of ['desktop', 'mobile']) {
@@ -88,6 +91,9 @@ Measured from ${dna.source.url} (${dna.source.pages.length} page${dna.source.pag
 ## The feel
 ${dna.feel.notes.map((n) => `- ${n}`).join('\n')}
 
+## Build to the blueprint first
+This language is not only its tokens. ${blueprintLead(dna)} Read \`references/blueprint.md\` before anything else: it lists every section of the source in order, with a crop, its layout, and what it is made of. A new page must have the same kinds of sections in the same order, filled with the same kinds of things for your product: product UI built in real HTML with the measured UI grammar, illustrations in the source's style, data visualisations, logo rows, testimonial cards. Headings over empty boxes are not this language, and the checker fails them.
+
 ## Setup
 1. Copy \`assets/tokens.css\` (plain CSS variables, text styles, component classes, \`.container\` and \`.section\` with the measured width, gutters and rhythm — use them, don't re-derive) into the project; with Tailwind v4 also import \`assets/tailwind.css\` after \`@import "tailwindcss"\`.
 2. Add \`assets/motion.css\` and \`assets/motion.js\` (scroll reveals, intro choreography, stagger and scroll feel, all with measured timings).
@@ -113,9 +119,10 @@ ${recipes.filter((r) => r.trigger !== 'loop').slice(0, 6).map((r) => `- **${r.na
 1. Read \`references/tokens.md\` and \`references/components.md\` before writing UI; open the images in \`assets/reference/\` to see the look.
 2. Build with the component classes and text styles; take motion from \`references/motion.md\` (exact CSS per pattern).
 3. Run \`node scripts/lint.mjs <your files…>\` and fix every off-system colour, size, radius, duration and curve it reports.
-4. If the relume MCP server is connected, call \`check_style\` with your page's URL: it re-measures your page and compares its DNA (tokens and motion) with this one. Fix what it reports until it passes.
+4. If the relume MCP server is connected, call \`check_style\` with your page's URL: it re-measures your page and compares its DNA (composition, tokens and motion) with this one. Fix what it reports until it passes.
 
 ## References
+- \`references/blueprint.md\` — the page, section by section: order, layout, contents, density, crops, and the UI grammar of the product mock-ups.
 - \`references/tokens.md\` — every colour (with dark values and the source’s own variable names), text style (with fluid sizes), spacing, radius, border, shadow, gradient.
 - \`references/components.md\` — buttons, links, inputs, cards, badges, navigation, footer: resting style, hover/focus states and transitions.
 - \`references/motion.md\` — scroll feel, intro choreography, scroll reveals, hover motion, loops; exact CSS.
@@ -493,4 +500,47 @@ function designMd(dna: DNA, host: string) {
   }
   y.push('---', '', `# ${host}`, '', '## Overview', dna.feel.notes.join(' '), '', '## Colors', dna.color.tokens.slice(0, 10).map((t) => `- **${t.name}** \`${t.value}\` — ${t.role}`).join('\n'), '', '## Typography', dna.typography.families.map((f) => `- ${f.family}${f.substitute ? ` (open substitute: ${f.substitute})` : ''}`).join('\n'), '', '## Motion', `Durations ${dna.motion.durations.slice(0, 5).map((d) => d.ms + 'ms').join(', ')}; curves ${dna.motion.easings.filter((e) => !e.spring).slice(0, 3).map((e) => e.css).join(', ')}.`, '', "## Do's and Don'ts", '- Use the tokens above only.', '- Keep motion within the measured durations and curves.', '- Never reuse the source brand’s logo, imagery or copy.', '');
   return y.join('\n');
+}
+
+// ------------------------------------------------------------------ blueprint
+
+function blueprintLead(dna: DNA) {
+  const pg = (dna as any).composition?.pages?.[0];
+  if (!pg) return '';
+  return `Its home page is ${Math.round(pg.pageHeight / pg.viewport[1])} screens of ${pg.sections.length} sections; ${Math.round(pg.totals.visualShare * 100)}% of it is covered by visuals (${Object.entries(pg.totals.kinds).map(([k, n]) => `${n} ${k}`).join(', ')}), at ~${pg.totals.elementsPerScreen} painted elements per screen.`;
+}
+
+function blueprintMd(dna: DNA) {
+  const pages = (dna as any).composition?.pages || [];
+  if (!pages.length) return '# Blueprint\n\nNot measured.\n';
+  const L: string[] = ['# Blueprint', '', 'Every section of the measured pages, top to bottom. Build the same kinds of sections in the same order for your product. "Made of" is what fills the section; recreate each block in kind (your content, the source\'s grammar). Crops are in `assets/reference/sections/`.', ''];
+  const first = pages[0];
+  if (first.ui) {
+    const u = first.ui;
+    L.push('## UI grammar (product mock-ups)', `Measured inside ${u.panels} product UI panels. Build mock-ups as real HTML with these numbers, never as a picture or an empty box.`, '');
+    L.push(table(['what', 'measured'], [
+      ['panel surface', u.panelSurface ? `background ${u.panelSurface.background}, radius ${u.panelSurface.radius}, border ${u.panelSurface.border}${u.panelSurface.shadow !== 'none' ? `, shadow ${u.panelSurface.shadow}` : ''}` : ''],
+      ['label sizes (px, count)', u.fontSizes.map(([s, n]: number[]) => `${s} (${n})`).join(', ')],
+      ['list row heights (px, count)', u.rowHeights.map(([s, n]: number[]) => `${s} (${n})`).join(', ')],
+      ['icon sizes (px, count)', u.iconSizes.map(([s, n]: number[]) => `${s} (${n})`).join(', ')],
+      ['avatar', u.avatar ? `${u.avatar}px round` : ''],
+      ['chips', u.chips ? `${u.chips.height}px tall, radius ${u.chips.radius}, ${u.chips.font}; e.g. ${u.chips.samples.join(' · ')}` : ''],
+      ['sidebar width', u.sidebarWidth ? `${u.sidebarWidth}px` : ''],
+      ['text colours (count)', u.textColors.map(([c, n]: [string, number]) => `${c} (${n})`).join(', ')],
+      ['status colours', u.statusColors.join(', ')],
+    ]), '');
+  }
+  for (const pg of pages) {
+    L.push(`## ${pg.key} — ${Math.round(pg.pageHeight)}px, ${pg.sections.length} sections, visuals ${Math.round(pg.totals.visualShare * 100)}%, ${pg.totals.elementsPerScreen} elements/screen`, '');
+    for (const s of pg.sections) {
+      L.push(`### ${String(s.index + 1).padStart(2, '0')} · ${s.kind}`);
+      if (s.crop) L.push(`![${s.kind}](../assets/reference/${s.crop})`);
+      L.push(`- layout: **${s.layout}**${s.columns > 1 ? `, ${s.columns} columns` : ''}; ${Math.round(s.box[3])}px tall; visuals cover ${Math.round(s.visualShare * 100)}%; ${s.elements} painted elements${s.background ? `; background ${s.background}` : ''}`);
+      if (s.heading) L.push(`- heading: “${s.heading.text}” — ${s.heading.size}px / ${s.heading.weight}, at x ${Math.round(s.heading.x)}, ${Math.round(s.heading.width)}px wide`);
+      if (s.blocks.length) L.push(`- made of: ${s.blocks.map((b: any) => `**${b.kind}** (${b.detail}, at ${b.box.map((v: number) => Math.round(v)).join('/')})`).join('; ')}`);
+      else L.push(`- made of: text only (${s.copyChars} characters)`);
+      L.push('');
+    }
+  }
+  return L.join('\n');
 }
