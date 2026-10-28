@@ -24,7 +24,8 @@
   /* ---------- fixed layers ---------- */
   .loader { position: fixed; inset: 0; z-index: 50; background: var(--color-text-secondary); display: grid; place-items: center; pointer-events: none; }
   .loader svg { width: 96px; height: 96px; }
-  #sky { position: fixed; inset: 0; width: 100%; height: 100vh; z-index: 3; pointer-events: none; }
+  .sky { position: fixed; inset: 0; height: 100vh; z-index: 3; pointer-events: none; }
+  #sky { display: block; width: 100%; height: 100%; }
   .progress { position: fixed; top: 0; left: 0; height: 4px; width: 100%; z-index: 30; background: var(--color-text-secondary); transform-origin: 0 50%; transform: scaleX(0); }
   .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 20; height: 56px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 40px; gap: 24px; color: var(--color-text); transition: color 600ms cubic-bezier(0.19, 1, 0.22, 1); }
   body.is-light .nav { color: var(--color-background); }
@@ -59,10 +60,9 @@
   .why { position: relative; min-height: 2759px; display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; margin-bottom: 640px; }
   .why__head { grid-column: 4 / 7; position: sticky; top: 160px; align-self: start; padding-top: 0; }
   .why__body { grid-column: 9 / 13; display: flex; flex-direction: column; gap: 320px; padding-top: 56px; padding-bottom: 320px; }
-  .why__intro { color: var(--color-gray-600); }
   .why__block h3 { margin-bottom: 24px; color: var(--color-text-secondary); }
   .why__block p + p { margin-top: 16px; }
-  .why__fig { margin-top: 32px; border: 1px solid var(--color-gray-600); border-radius: 12px; padding: 16px; background: var(--color-surface); }
+  .why__fig { margin-top: 32px; border: 1px solid var(--color-gray-600); padding: 16px; background: var(--color-surface); }
   .why__fig svg { display: block; width: 100%; height: auto; }
   code { font: 400 var(--text-caption)/1 var(--font-sans); background: var(--color-surface); border: 1px solid var(--color-gray-600); border-radius: 4px; padding: 0 6px; }
 
@@ -81,20 +81,11 @@
   .rail__more { width: 480px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
   .rail__more .cta { width: 322px; }
 
-  /* mini sites (the carousels people built with Drift) */
-  .mock { position: relative; width: 480px; height: 360px; border-radius: 12px; overflow: hidden; border: 1px solid var(--color-surface); }
-  .mock__bar { position: absolute; left: 0; right: 0; top: 0; height: 32px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font: 900 8px/1 var(--font-sans); text-transform: uppercase; z-index: 2; }
-  .mock__bar i { font-style: normal; display: flex; gap: 8px; }
-  .mt { position: absolute; left: 24px; display: flex; gap: 12px; will-change: transform; }
-  .mock .button-primary { position: absolute; left: 12px; bottom: 12px; z-index: 3; }
-  .mock svg { display: block; }
-  .m-dark { background: var(--color-surface); color: var(--color-text); }
-  .m-black { background: var(--color-background); color: var(--color-text); }
-  .m-light { background: var(--color-text); color: var(--color-background); }
-  .m-pink { background: var(--color-text-secondary); color: var(--color-background); }
-  .tile { flex: none; border-radius: 4px; overflow: hidden; position: relative; }
-  .tile b { position: absolute; left: 8px; bottom: 8px; font: 900 8px/1 var(--font-sans); text-transform: uppercase; }
-  .mock__big { position: absolute; left: 12px; right: 12px; font-family: var(--font-anton); text-transform: uppercase; line-height: 0.9; white-space: nowrap; }
+  /* site reels: recordings of carousels built with Drift (source: sites.html) */
+  .mock { position: relative; width: 480px; height: 360px; border-radius: 4px; overflow: hidden; background: var(--color-surface); }
+  .mock video, .mock img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .rail__filters { position: absolute; right: 40px; top: 88px; display: flex; gap: 8px; }
+  .rail__filters .button-secondary, .rail__filters .button-secondary-5 { border-radius: 9999px; }
 
   /* ---------- 04 so we built ---------- */
   .built { position: relative; height: 1000vh; }
@@ -120,8 +111,9 @@
   .stack__pin { position: sticky; top: 0; height: 100vh; overflow: hidden; }
   .stack__head { position: absolute; right: 40px; top: 64px; text-align: right; z-index: 3; }
   .hand { position: absolute; left: 50%; bottom: -8vh; height: 112vh; width: auto; translate: -20% 0; transform-origin: 50% 100%; will-change: transform; z-index: 1; }
-  .feat { position: absolute; width: 437px; height: 437px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; z-index: 2; opacity: 0; translate: 100% 100%; transition: opacity 1200ms cubic-bezier(0.19, 1, 0.22, 1), translate 1200ms cubic-bezier(0.19, 1, 0.22, 1); }
-  .feat.is-on { opacity: 1; translate: none; }
+  .feat { position: absolute; width: 437px; height: 437px; z-index: 2; }
+  .feat .card { height: 100%; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: border-color 400ms cubic-bezier(0.19, 1, 0.22, 1), translate 400ms cubic-bezier(0.19, 1, 0.22, 1); }
+  .feat .card:hover { border-color: var(--color-text-secondary); translate: 0 -8px; }
   .feat .text-display-regular { color: var(--color-text-secondary); }
   .feat .text-title { color: var(--color-background); }
 
@@ -193,7 +185,7 @@
 </svg>
 
 <div class="loader" data-intro="intro-translate-3" aria-hidden="true"><svg><use href="#mark"/></svg></div>
-<canvas id="sky" aria-hidden="true"></canvas>
+<div class="sky" aria-hidden="true"><canvas id="sky"></canvas></div>
 <div class="progress" id="progress" aria-hidden="true"></div>
 
 <header class="nav">
@@ -297,150 +289,64 @@
   <section class="rail" aria-label="Sites built with Drift">
     <div class="rail__pin" id="rail">
       <p class="rail__hint text-micro"><span class="button-primary">Live</span> Grab the row and throw it</p>
+      <div class="rail__filters" role="group" aria-label="Filter showcase">
+        <button class="button-secondary-5" type="button" aria-pressed="true">All</button>
+        <button class="button-secondary" type="button">Commerce</button>
+        <button class="button-secondary" type="button">Editorial</button>
+        <button class="button-secondary" type="button">Portfolio</button>
+        <button class="button-secondary" type="button">Event</button>
+        <button class="button-secondary" type="button">Tools</button>
+      </div>
       <div class="rail__track" id="railTrack">
 
         <article class="site">
-          <div class="mock m-dark">
-            <div class="mock__bar"><span>Aster Records</span><i><span>Shop</span><span>Tour</span><span class="pink">Cart 2</span></i></div>
-            <div class="mock__big text-display-regular" style="top:40px;color:var(--color-gray-600)">New pressings</div>
-            <div class="mt" data-slide="172" style="top:148px">
-              <svg class="tile" width="160" height="160" viewBox="0 0 160 160"><rect width="160" height="160" fill="#000000"/><circle cx="80" cy="80" r="70" fill="#101010" stroke="#8c8c8c"/><circle cx="80" cy="80" r="52" fill="none" stroke="#8c8c8c" stroke-dasharray="1 3"/><circle cx="80" cy="80" r="20" fill="#ff98a2"/></svg>
-              <svg class="tile" width="160" height="160" viewBox="0 0 160 160"><rect width="160" height="160" fill="#efefef"/><circle cx="80" cy="80" r="70" fill="#000000"/><circle cx="80" cy="80" r="44" fill="none" stroke="#8c8c8c" stroke-dasharray="1 3"/><circle cx="80" cy="80" r="20" fill="#efefef"/></svg>
-              <svg class="tile" width="160" height="160" viewBox="0 0 160 160"><rect width="160" height="160" fill="#ff98a2"/><circle cx="80" cy="80" r="70" fill="#000000"/><circle cx="80" cy="80" r="56" fill="none" stroke="#8c8c8c" stroke-dasharray="1 3"/><circle cx="80" cy="80" r="20" fill="#ff98a2"/></svg>
-              <svg class="tile" width="160" height="160" viewBox="0 0 160 160"><rect width="160" height="160" fill="#101010"/><rect x="20" y="20" width="120" height="120" fill="none" stroke="#efefef"/><circle cx="80" cy="80" r="30" fill="#efefef"/></svg>
-              <svg class="tile" width="160" height="160" viewBox="0 0 160 160"><rect width="160" height="160" fill="#efefef"/><circle cx="80" cy="80" r="70" fill="#101010"/><circle cx="80" cy="80" r="20" fill="#ff98a2"/></svg>
-            </div>
-          </div>
+          <div class="mock"><video src="assets/sites/00.webm" width="480" height="360" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video></div>
           <div class="site__meta"><a class="link-2" href="#showcase">Vinyl shelf for Aster Records</a><a class="link" href="#showcase">Grooves Studio</a></div>
         </article>
 
         <article class="site">
-          <div class="mock m-light">
-            <div class="mock__bar"><span>NORRA</span><i><span>Men</span><span>Women</span><span>Trail</span></i></div>
-            <div class="mt" data-slide="148" style="top:56px">
-              <div class="tile" style="width:136px;height:220px;background:var(--color-surface)"><svg width="136" height="180" viewBox="0 0 136 180"><path d="M30 150 L68 40 L106 150 Z" fill="#8c8c8c"/><path d="M68 40 L68 150" stroke="#efefef"/></svg><b style="color:var(--color-text)">Ridge tent · 420</b></div>
-              <div class="tile" style="width:136px;height:220px;background:var(--color-gray-600)"><svg width="136" height="180" viewBox="0 0 136 180"><path d="M40 40 h56 l20 30 -16 8 v80 h-64 v-80 l-16 -8 z" fill="#000000"/></svg><b>Shell jacket · 280</b></div>
-              <div class="tile" style="width:136px;height:220px;background:var(--color-text-secondary)"><svg width="136" height="180" viewBox="0 0 136 180"><rect x="44" y="40" width="48" height="110" rx="16" fill="#000000"/><rect x="52" y="56" width="32" height="12" fill="#ff98a2"/></svg><b>Flask 1L · 45</b></div>
-              <div class="tile" style="width:136px;height:220px;background:var(--color-surface)"><svg width="136" height="180" viewBox="0 0 136 180"><path d="M30 120 q38 -70 76 0 z" fill="#efefef"/><rect x="30" y="120" width="76" height="16" fill="#8c8c8c"/></svg><b style="color:var(--color-text)">Dome cap · 38</b></div>
-              <div class="tile" style="width:136px;height:220px;background:var(--color-gray-600)"><svg width="136" height="180" viewBox="0 0 136 180"><path d="M30 130 l20 -80 h36 l20 80 z" fill="#000000"/></svg><b>Pack 30L · 190</b></div>
-            </div>
-            <div style="position:absolute;left:24px;right:24px;bottom:24px;display:flex;justify-content:space-between" class="text-micro"><span>Autumn trail 26</span><span>01 / 05</span></div>
-          </div>
+          <div class="mock"><video src="assets/sites/01.webm" width="480" height="360" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video></div>
           <div class="site__meta"><a class="link-2" href="#showcase">Norra — Autumn Trail</a><a class="link" href="#showcase">Fjell Digital</a></div>
         </article>
 
         <article class="site">
-          <div class="mock m-black">
-            <div class="mock__bar"><span>Field Notes Quarterly</span><i><span>Issue 14</span></i></div>
-            <div class="mock__big text-display" style="top:36px">Field notes</div>
-            <div class="mt" data-slide="212" style="top:188px">
-              <svg class="tile" width="200" height="140" viewBox="0 0 200 140"><rect width="200" height="140" fill="#101010"/><path d="M0 110 L50 50 L80 80 L120 30 L200 110 V140 H0Z" fill="#8c8c8c"/><circle cx="160" cy="34" r="12" fill="#ff98a2"/></svg>
-              <svg class="tile" width="200" height="140" viewBox="0 0 200 140"><rect width="200" height="140" fill="#efefef"/><path d="M0 100 Q50 60 100 100 T200 100 V140 H0Z" fill="#000000"/><path d="M0 116 Q50 80 100 116 T200 116" stroke="#8c8c8c" fill="none"/></svg>
-              <svg class="tile" width="200" height="140" viewBox="0 0 200 140"><rect width="200" height="140" fill="#8c8c8c"/><path d="M20 140 V60 h20 v80 M60 140 V30 h24 v110 M100 140 V80 h20 v60 M140 140 V50 h30 v90" fill="#000000"/></svg>
-              <svg class="tile" width="200" height="140" viewBox="0 0 200 140"><rect width="200" height="140" fill="#101010"/><circle cx="100" cy="70" r="44" fill="none" stroke="#efefef"/><circle cx="100" cy="70" r="6" fill="#ff98a2"/></svg>
-            </div>
-          </div>
+          <div class="mock"><video src="assets/sites/02.webm" width="480" height="360" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video></div>
           <div class="site__meta"><a class="link-2" href="#showcase">Field Notes Quarterly</a><a class="link" href="#showcase">Paper Weight</a></div>
         </article>
 
         <article class="site">
-          <div class="mock m-pink">
-            <div class="mock__bar"><span>Pellucid®</span><i><span>Work</span><span>Info</span></i></div>
-            <div class="mt" data-slide="440" style="top:40px;left:0">
-              <div class="text-h1" style="white-space:nowrap;padding-left:12px">Pellucid · Pellucid · Pellucid</div>
-            </div>
-            <div class="mt" data-slide="300" style="top:200px">
-              <div class="tile" style="width:140px;height:100px;background:var(--color-background)"></div>
-              <div class="tile" style="width:140px;height:100px;background:var(--color-text)"></div>
-              <div class="tile" style="width:140px;height:100px;background:var(--color-background)"></div>
-              <div class="tile" style="width:140px;height:100px;background:var(--color-surface)"></div>
-            </div>
-            <span class="button-primary" style="background:var(--color-background);color:var(--color-text-secondary)">Featured</span>
-          </div>
+          <div class="mock"><video src="assets/sites/03.webm" width="480" height="360" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video></div>
           <div class="site__meta"><a class="link-2" href="#showcase">Pellucid — Studio Reel</a><a class="link" href="#showcase">Pellucid®</a></div>
         </article>
 
         <article class="site">
-          <div class="mock m-dark">
-            <div class="mock__bar"><span>Orbit Weather</span><i><span>Lisbon</span><span class="pink">Live</span></i></div>
-            <div class="mt" data-slide="152" style="top:52px">
-              <svg class="tile" width="140" height="250" viewBox="0 0 140 250"><rect width="140" height="250" fill="#000000"/><text x="12" y="28" fill="#8c8c8c" font-size="10" font-family="Roboto">MON</text><text x="12" y="90" fill="#efefef" font-size="48" font-family="Anton">21°</text><g fill="#ff98a2"><rect x="12" y="180" width="12" height="50"/><rect x="32" y="160" width="12" height="70"/><rect x="52" y="190" width="12" height="40"/><rect x="72" y="150" width="12" height="80"/><rect x="92" y="200" width="12" height="30"/><rect x="112" y="170" width="12" height="60"/></g></svg>
-              <svg class="tile" width="140" height="250" viewBox="0 0 140 250"><rect width="140" height="250" fill="#000000"/><text x="12" y="28" fill="#8c8c8c" font-size="10" font-family="Roboto">TUE</text><text x="12" y="90" fill="#efefef" font-size="48" font-family="Anton">18°</text><path d="M12 220 C 40 160 60 200 80 170 S 120 150 128 180" stroke="#ff98a2" stroke-width="2" fill="none"/></svg>
-              <svg class="tile" width="140" height="250" viewBox="0 0 140 250"><rect width="140" height="250" fill="#000000"/><text x="12" y="28" fill="#8c8c8c" font-size="10" font-family="Roboto">WED</text><text x="12" y="90" fill="#efefef" font-size="48" font-family="Anton">24°</text><circle cx="70" cy="180" r="40" fill="none" stroke="#8c8c8c"/><path d="M70 140 A40 40 0 0 1 110 180" stroke="#ff98a2" stroke-width="4" fill="none"/></svg>
-              <svg class="tile" width="140" height="250" viewBox="0 0 140 250"><rect width="140" height="250" fill="#000000"/><text x="12" y="28" fill="#8c8c8c" font-size="10" font-family="Roboto">THU</text><text x="12" y="90" fill="#efefef" font-size="48" font-family="Anton">16°</text><g fill="#8c8c8c"><rect x="12" y="200" width="12" height="30"/><rect x="32" y="180" width="12" height="50"/><rect x="52" y="170" width="12" height="60"/><rect x="72" y="190" width="12" height="40"/></g></svg>
-              <svg class="tile" width="140" height="250" viewBox="0 0 140 250"><rect width="140" height="250" fill="#000000"/><text x="12" y="28" fill="#8c8c8c" font-size="10" font-family="Roboto">FRI</text><text x="12" y="90" fill="#ff98a2" font-size="48" font-family="Anton">27°</text></svg>
-            </div>
-          </div>
+          <div class="mock"><video src="assets/sites/04.webm" width="480" height="360" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video></div>
           <div class="site__meta"><a class="link-2" href="#showcase">Orbit — Seven-day forecast</a><a class="link" href="#showcase">Isobar Labs</a></div>
         </article>
 
         <article class="site">
-          <div class="mock m-light">
-            <div class="mock__bar"><span>Kiln & Co.</span><i><span>Bowls</span><span>Vases</span></i></div>
-            <div class="mock__big text-display-regular" style="top:40px">Fired slow</div>
-            <div class="mt" data-slide="164" style="top:150px">
-              <svg class="tile" width="152" height="180" viewBox="0 0 152 180"><rect width="152" height="180" fill="#8c8c8c"/><path d="M26 80 q50 70 100 0 z" fill="#101010"/><ellipse cx="76" cy="80" rx="50" ry="8" fill="#000000"/><rect x="36" y="140" width="80" height="40" fill="#efefef"/></svg>
-              <svg class="tile" width="152" height="180" viewBox="0 0 152 180"><rect width="152" height="180" fill="#101010"/><path d="M56 40 h40 q-10 20 10 60 q8 30 -30 40 q-38 -10 -30 -40 q20 -40 10 -60z" fill="#ff98a2"/></svg>
-              <svg class="tile" width="152" height="180" viewBox="0 0 152 180"><rect width="152" height="180" fill="#8c8c8c"/><path d="M36 70 q40 90 80 0 z" fill="#efefef"/><ellipse cx="76" cy="70" rx="40" ry="6" fill="#101010"/></svg>
-              <svg class="tile" width="152" height="180" viewBox="0 0 152 180"><rect width="152" height="180" fill="#101010"/><rect x="50" y="50" width="52" height="90" rx="12" fill="#efefef"/></svg>
-            </div>
-          </div>
+          <div class="mock"><video src="assets/sites/05.webm" width="480" height="360" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video></div>
           <div class="site__meta"><a class="link-2" href="#showcase">Kiln & Co. — Spring firing</a><a class="link" href="#showcase">Clay Office</a></div>
         </article>
 
         <article class="site">
-          <div class="mock m-black">
-            <div class="mock__bar"><span>Tidewater 26</span><i><span>Lineup</span><span class="pink">Tickets</span></i></div>
-            <div class="mt" data-slide="132" style="top:44px">
-              <div class="tile" style="width:120px;height:280px;background:var(--color-text-secondary);color:var(--color-background)"><div class="text-display-regular" style="writing-mode:vertical-rl;padding:12px">Low Tide</div></div>
-              <div class="tile" style="width:120px;height:280px;background:var(--color-text);color:var(--color-background)"><div class="text-display-regular" style="writing-mode:vertical-rl;padding:12px">Salt Kids</div></div>
-              <div class="tile" style="width:120px;height:280px;background:var(--color-surface);color:var(--color-text)"><div class="text-display-regular" style="writing-mode:vertical-rl;padding:12px">Brine</div></div>
-              <div class="tile" style="width:120px;height:280px;background:var(--color-text-secondary);color:var(--color-background)"><div class="text-display-regular" style="writing-mode:vertical-rl;padding:12px">Harbour</div></div>
-              <div class="tile" style="width:120px;height:280px;background:var(--color-text);color:var(--color-background)"><div class="text-display-regular" style="writing-mode:vertical-rl;padding:12px">Moonrise</div></div>
-            </div>
-            <span class="button-primary">Featured</span>
-          </div>
+          <div class="mock"><video src="assets/sites/06.webm" width="480" height="360" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video></div>
           <div class="site__meta"><a class="link-2" href="#showcase">Tidewater Festival 2026</a><a class="link" href="#showcase">Swell Agency</a></div>
         </article>
 
         <article class="site">
-          <div class="mock m-dark">
-            <div class="mock__bar"><span>Halden Architects</span><i><span>Projects</span></i></div>
-            <div class="mt" data-slide="232" style="top:60px">
-              <svg class="tile" width="220" height="240" viewBox="0 0 220 240"><rect width="220" height="240" fill="#000000"/><g fill="none" stroke="#efefef"><path d="M20 220 V100 L110 40 L200 100 V220 Z"/><path d="M60 220 V150 h40 v70 M130 120 h40 v40 h-40z"/></g><path d="M0 220 H220" stroke="#ff98a2"/></svg>
-              <svg class="tile" width="220" height="240" viewBox="0 0 220 240"><rect width="220" height="240" fill="#000000"/><g fill="none" stroke="#efefef"><rect x="30" y="40" width="160" height="180"/><path d="M30 80 h160 M30 120 h160 M30 160 h160 M80 40 v180 M140 40 v180"/></g></svg>
-              <svg class="tile" width="220" height="240" viewBox="0 0 220 240"><rect width="220" height="240" fill="#000000"/><g fill="none" stroke="#efefef"><path d="M20 220 Q110 0 200 220"/><path d="M60 220 Q110 80 160 220"/></g><circle cx="110" cy="70" r="6" fill="#ff98a2"/></svg>
-            </div>
-          </div>
+          <div class="mock"><video src="assets/sites/07.webm" width="480" height="360" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video></div>
           <div class="site__meta"><a class="link-2" href="#showcase">Halden — Selected projects</a><a class="link" href="#showcase">Halden Architects</a></div>
         </article>
 
         <article class="site">
-          <div class="mock m-dark">
-            <div class="mock__bar"><span>Drift Framer Kit</span><i><span class="pink">v2.4</span></i></div>
-            <div style="position:absolute;left:12px;top:44px;width:152px;bottom:12px;border:1px solid var(--color-gray-600);border-radius:4px;padding:12px;display:flex;flex-direction:column;gap:12px" class="text-micro-regular">
-              <span>Friction <b class="pink" style="float:right">0.92</b></span><svg width="126" height="4"><rect width="126" height="4" fill="#8c8c8c"/><rect width="96" height="4" fill="#ff98a2"/></svg>
-              <span>Spring <b class="pink" style="float:right">170</b></span><svg width="126" height="4"><rect width="126" height="4" fill="#8c8c8c"/><rect width="70" height="4" fill="#ff98a2"/></svg>
-              <span>Damping <b class="pink" style="float:right">26</b></span><svg width="126" height="4"><rect width="126" height="4" fill="#8c8c8c"/><rect width="48" height="4" fill="#ff98a2"/></svg>
-              <span>Loop <b style="float:right">on</b></span><span>Snap <b style="float:right">nearest</b></span><span>Axis <b style="float:right">x</b></span>
-            </div>
-            <div style="position:absolute;left:176px;right:12px;top:44px;bottom:12px;border-radius:4px;overflow:hidden;background:var(--color-background)">
-              <div class="mt" data-slide="112" style="top:60px;left:12px">
-                <div class="tile" style="width:100px;height:160px;background:var(--color-text-secondary)"></div>
-                <div class="tile" style="width:100px;height:160px;background:var(--color-text)"></div>
-                <div class="tile" style="width:100px;height:160px;background:var(--color-gray-600)"></div>
-                <div class="tile" style="width:100px;height:160px;background:var(--color-text-secondary)"></div>
-                <div class="tile" style="width:100px;height:160px;background:var(--color-text)"></div>
-              </div>
-            </div>
-            <span class="button-primary" style="left:188px">Featured</span>
-          </div>
+          <div class="mock"><img src="assets/sites/08.jpg" width="480" height="360" alt="Drift Framer Starter Kit editor with friction, spring and damping controls" loading="lazy"></div>
           <div class="site__meta"><a class="link-2" href="#showcase">Drift Framer Starter Kit</a><a class="link" href="#showcase">drift.collective</a></div>
         </article>
 
         <div class="rail__more">
           <p class="text-small grey">Want to see more?</p>
-          <a class="cta" href="#showcase"><span class="cta__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 18 18 6M8 6h10v10"/></svg></span><span class="cta__label">Explore the showcase</span></a>
+          <a class="cta" href="#showcase"><span class="cta__icon" data-reveal="reveal-scale-14" style="--i:1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 18 18 6M8 6h10v10"/></svg></span><span class="cta__label">Explore the showcase</span></a>
           <p class="text-small grey">Need a site like these? <a href="#footer" style="text-decoration:underline">Work with the collective</a></p>
         </div>
       </div>
@@ -476,13 +382,13 @@
       <div class="stack__pin" id="stack">
         <h2 class="stack__head text-display-bold">Drift brings<br><span class="grey">the momentum</span></h2>
         <svg class="hand" id="hand" viewBox="0 0 600 1200" aria-hidden="true"><use href="#hand-art"/></svg>
-        <div class="feat card" style="left:40px;top:48px"><span class="text-display-regular">01</span><span class="text-title">One line setup — new Drift()</span></div>
-        <div class="feat card" style="left:116px;top:76px"><span class="text-display-regular">02</span><span class="text-title">Flicks with real momentum</span></div>
-        <div class="feat card" style="left:192px;top:104px"><span class="text-display-regular">03</span><span class="text-title">Snap points with drift/snap</span></div>
-        <div class="feat card" style="left:268px;top:132px"><span class="text-display-regular">04</span><span class="text-title">Loop any track forever</span></div>
-        <div class="feat card" style="left:344px;top:160px"><span class="text-display-regular">05</span><span class="text-title">Horizontal, vertical or free</span></div>
-        <div class="feat card" style="left:420px;top:188px"><span class="text-display-regular">06</span><span class="text-title">Rubber-band edges</span></div>
-        <div class="feat card" style="left:496px;top:216px"><span class="text-display-regular">07</span><span class="text-title">Lightweight (under 6kb)</span></div>
+        <div class="feat" data-reveal="reveal-fade-20" style="left:40px;top:48px"><div class="card"><span class="text-display-regular">01</span><span class="text-title">One line setup — new Drift()</span></div></div>
+        <div class="feat" data-reveal="reveal-fade-20" style="left:116px;top:76px"><div class="card"><span class="text-display-regular">02</span><span class="text-title">Flicks with real momentum</span></div></div>
+        <div class="feat" data-reveal="reveal-fade-20" style="left:192px;top:104px"><div class="card"><span class="text-display-regular">03</span><span class="text-title">Snap points with drift/snap</span></div></div>
+        <div class="feat" data-reveal="reveal-fade-20" style="left:268px;top:132px"><div class="card"><span class="text-display-regular">04</span><span class="text-title">Loop any track forever</span></div></div>
+        <div class="feat" data-reveal="reveal-fade-20" style="left:344px;top:160px"><div class="card"><span class="text-display-regular">05</span><span class="text-title">Horizontal, vertical or free</span></div></div>
+        <div class="feat" data-reveal="reveal-fade-20" style="left:420px;top:188px"><div class="card"><span class="text-display-regular">06</span><span class="text-title">Rubber-band edges</span></div></div>
+        <div class="feat" data-reveal="reveal-fade-20" style="left:496px;top:216px"><div class="card"><span class="text-display-regular">07</span><span class="text-title">Lightweight (under 6kb)</span></div></div>
       </div>
     </section>
 
@@ -494,7 +400,7 @@
         <span class="clip"><span style="display:block" class="pink" data-reveal="reveal-translate-19">open source</span></span>
       </h2>
       <div class="footer__b">
-        <a class="cta" href="#footer"><span class="cta__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span><span class="cta__label">Become a sponsor</span></a>
+        <a class="cta" href="#footer"><span class="cta__icon" data-reveal="reveal-scale-14" style="--i:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span><span class="cta__label">Become a sponsor</span></a>
         <h2 class="text-display">
           <span class="clip"><span style="display:block" data-reveal="reveal-translate-19">Open to physics</span></span>
           <span class="clip"><span style="display:block" data-reveal="reveal-translate-19">and sponsors</span></span>
@@ -566,8 +472,6 @@
     requestAnimationFrame(sky);
   })(0);
 
-  // mini sites: each track flicks to the next slide and settles on a spring
-  const minis = [...document.querySelectorAll('.mt')].map((el, i) => ({ el, step: +el.dataset.slide, n: Math.max(1, el.children.length - 2), x: 0, v: 0, k: 0, next: 900 + i * 260 }));
   // the rail: scroll moves it, a throw adds momentum, and it springs back to where scroll says it belongs
   const rail = document.getElementById('rail'), railSec = rail.parentElement, track = document.getElementById('railTrack');
   let off = 0, vel = 0, drag = false, lx = 0, lt = 0;
@@ -580,29 +484,36 @@
   const stack = document.getElementById('stack'), feats = [...stack.querySelectorAll('.feat')], hand = document.getElementById('hand');
   const light = document.getElementById('light'), bar = document.getElementById('progress');
   let prev = performance.now();
+  const cache = new WeakMap();
+  const set = (el, prop, v) => { const k = cache.get(el) || {}; if (k[prop] === v) return; k[prop] = v; cache.set(el, k); el.style[prop] = v; };
+  const inView = (el) => { const r = el.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; };
+  let lastScroll = -1;
   (function frame(now) {
     const dt = Math.min(48, now - prev); prev = now;
-    bar.style.transform = `scaleX(${clamp(scrollY / (root.scrollHeight - innerHeight))})`;
-    document.body.classList.toggle('is-light', light.getBoundingClientRect().top < 28);
-
-    for (const m of minis) {
-      m.next -= dt; if (m.next < 0) { m.k = (m.k + 1) % (m.n + 1); m.next = 2200; }
-      const target = -m.k * m.step, h = dt / 1000; m.v += ((target - m.x) * 170 - m.v * 26) * h; m.x += m.v * h;
-      m.el.style.transform = `translate3d(${m.x}px,0,0)`;
+    const moved = scrollY !== lastScroll; lastScroll = scrollY;
+    if (moved) {
+      set(bar, 'transform', `scaleX(${clamp(scrollY / (root.scrollHeight - innerHeight)).toFixed(3)})`);
+      document.body.classList.toggle('is-light', light.getBoundingClientRect().top < 28);
     }
 
-    const p = prog(railSec), start = innerWidth * 0.45, span = track.scrollWidth - innerWidth + start + 40;
-    if (!drag) { off += vel; vel *= 0.92; if (Math.abs(vel) < 0.5) off *= 0.94; }
-    track.style.transform = `translate3d(${start - p * span + off}px,0,0)`;
+    if (inView(railSec)) {
+      const p = prog(railSec), start = innerWidth * 0.45, span = track.scrollWidth - innerWidth + start + 40;
+      if (!drag) { off += vel; vel *= 0.92; if (Math.abs(vel) < 0.5) { vel = 0; off *= 0.94; if (Math.abs(off) < 0.5) off = 0; } }
+      set(track, 'transform', `translate3d(${Math.round(start - p * span + off)}px,0,0)`);
+    }
 
-    const q = prog(built.parentElement);
-    lines.forEach((l, i) => { const a = clamp((q - i * 0.08) / 0.45); l.style.transform = `translate3d(${(1 - a * 1.7) * innerWidth * (i === 1 ? 0.9 : 1)}px,0,0)`; });
-    const e = clamp((q - 0.25) / 0.35); enter.style.transform = `scale(${1 + e * e * 14})`; enter.style.opacity = String(clamp(1 - (q - 0.55) * 8));
-    const w = clamp((q - 0.55) / 0.4); panel.style.width = `${(0.12 + 0.88 * w * w) * 100 * (w > 0 ? 1 : 0)}%`;
+    if (moved && inView(built.parentElement)) {
+      const q = prog(built.parentElement);
+      lines.forEach((l, i) => { const a = clamp((q - i * 0.08) / 0.45); set(l, 'transform', `translate3d(${Math.round((1 - a * 1.7) * innerWidth * (i === 1 ? 0.9 : 1))}px,0,0)`); });
+      const e = clamp((q - 0.25) / 0.35); set(enter, 'transform', `scale(${(1 + e * e * 14).toFixed(2)})`); set(enter, 'opacity', clamp(1 - (q - 0.55) * 8).toFixed(2));
+      const w = clamp((q - 0.55) / 0.4); set(panel, 'width', `${w > 0 ? ((0.12 + 0.88 * w * w) * 100).toFixed(1) : 0}%`);
+    }
 
-    const s = prog(stack.parentElement);
-    feats.forEach((f, i) => f.classList.toggle('is-on', s > 0.04 + i * 0.12));
-    hand.style.transform = `translate3d(${Math.sin(s * 6.28) * 60}px, ${(1 - s) * 40}px, 0) rotate(${-8 + s * 22}deg)`;
+    if (moved && inView(stack.parentElement)) {
+      const s = prog(stack.parentElement);
+      feats.forEach((f, i) => f.classList.toggle('is-in', s > 0.04 + i * 0.12));
+      set(hand, 'transform', `translate3d(${Math.round(Math.sin(s * 6.28) * 60)}px, ${Math.round((1 - s) * 40)}px, 0) rotate(${(-8 + s * 22).toFixed(1)}deg)`);
+    }
     requestAnimationFrame(frame);
   })(prev);
 </script>

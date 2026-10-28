@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drift — site reels</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;900&family=Inter:wght@700&family=Anton:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/tokens.css">
+<style>
+  * { box-sizing: border-box; } html, body { margin: 0; background: var(--color-background); overflow: hidden; }
+  body { font: 500 var(--text-body)/1.328 var(--font-sans); }
+  .pink { color: var(--color-text-secondary); }
+  .grey { color: var(--color-gray-600); }
+  .mock { position: relative; width: 480px; height: 360px; border-radius: 12px; overflow: hidden; border: 1px solid var(--color-surface); }
+  .mock__bar { position: absolute; left: 0; right: 0; top: 0; height: 32px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font: 900 8px/1 var(--font-sans); text-transform: uppercase; z-index: 2; }
+  .mock__bar i { font-style: normal; display: flex; gap: 8px; }
+  .mt { position: absolute; left: 24px; display: flex; gap: 12px; will-change: transform; }
+  .mock .button-primary { position: absolute; left: 12px; bottom: 12px; z-index: 3; }
+  .mock svg { display: block; }
+  .m-dark { background: var(--color-surface); color: var(--color-text); }
+  .m-black { background: var(--color-background); color: var(--color-text); }
+  .m-light { background: var(--color-text); color: var(--color-background); }
+  .m-pink { background: var(--color-text-secondary); color: var(--color-background); }
+  .tile { flex: none; border-radius: 4px; overflow: hidden; position: relative; }
+  .tile b { position: absolute; left: 8px; bottom: 8px; font: 900 8px/1 var(--font-sans); text-transform: uppercase; }
+  .mock__big { position: absolute; left: 12px; right: 12px; font-family: var(--font-anton); text-transform: uppercase; line-height: 0.9; white-space: nowrap; }
+  .mock { display: none; } .mock.is-shown { display: block; position: fixed; left: 0; top: 0; transform-origin: 0 0; border: 0; border-radius: 0; }
+  body.grid { overflow: auto; } body.grid .mock { display: inline-block; margin: 4px; }
+</style></head><body>
+<!-- source for the showcase reels: each mock is recorded to assets/sites/NN.webm -->
+<div class="mock m-dark">
+            <div class="mock__bar"><span>Aster Records</span><i><span>Shop</span><span>Tour</span><span class="pink">Cart 2</span></i></div>
+            <div class="mock__big text-display-regular" style="top:40px;color:var(--color-gray-600)">New pressings</div>
+            <div class="mt" data-slide="172" style="top:148px">
+              <svg class="tile" width="160" height="160" viewBox="0 0 160 160"><rect width="160" height="160" fill="#000000"/><circle cx="80" cy="80" r="70" fill="#101010" stroke="#8c8c8c"/><circle cx="80" cy="80" r="52" fill="none" stroke="#8c8c8c" stroke-dasharray="1 3"/><circle cx="80" cy="80" r="20" fill="#ff98a2"/></svg>
+              <svg class="tile" width="160" height="160" viewBox="0 0 160 160"><rect width="160" height="160" fill="#efefef"/><circle cx="80" cy="80" r="70" fill="#000000"/><circle cx="80" cy="80" r="44" fill="none" stroke="#8c8c8c" stroke-dasharray="1 3"/><circle cx="80" cy="80" r="20" fill="#efefef"/></svg>
+              <svg class="tile" width="160" height="160" viewBox="0 0 160 160"><rect width="160" height="160" fill="#ff98a2"/><circle cx="80" cy="80" r="70" fill="#000000"/><circle cx="80" cy="80" r="56" fill="none" stroke="#8c8c8c" stroke-dasharray="1 3"/><circle cx="80" cy="80" r="20" fill="#ff98a2"/></svg>
+              <svg class="tile" width="160" height="160" viewBox="0 0 160 160"><rect width="160" height="160" fill="#101010"/><rect x="20" y="20" width="120" height="120" fill="none" stroke="#efefef"/><circle cx="80" cy="80" r="30" fill="#efefef"/></svg>
+              <svg class="tile" width="160" height="160" viewBox="0 0 160 160"><rect width="160" height="160" fill="#efefef"/><circle cx="80" cy="80" r="70" fill="#101010"/><circle cx="80" cy="80" r="20" fill="#ff98a2"/></svg>
+            </div>
+          </div><div class="mock m-light">
+            <div class="mock__bar"><span>NORRA</span><i><span>Men</span><span>Women</span><span>Trail</span></i></div>
+            <div class="mt" data-slide="148" style="top:56px">
+              <div class="tile" style="width:136px;height:220px;background:var(--color-surface)"><svg width="136" height="180" viewBox="0 0 136 180"><path d="M30 150 L68 40 L106 150 Z" fill="#8c8c8c"/><path d="M68 40 L68 150" stroke="#efefef"/></svg><b style="color:var(--color-text)">Ridge tent · 420</b></div>
+              <div class="tile" style="width:136px;height:220px;background:var(--color-gray-600)"><svg width="136" height="180" viewBox="0 0 136 180"><path d="M40 40 h56 l20 30 -16 8 v80 h-64 v-80 l-16 -8 z" fill="#000000"/></svg><b>Shell jacket · 280</b></div>
+              <div class="tile" style="width:136px;height:220px;background:var(--color-text-secondary)"><svg width="136" height="180" viewBox="0 0 136 180"><rect x="44" y="40" width="48" height="110" rx="16" fill="#000000"/><rect x="52" y="56" width="32" height="12" fill="#ff98a2"/></svg><b>Flask 1L · 45</b></div>
+              <div class="tile" style="width:136px;height:220px;background:var(--color-surface)"><svg width="136" height="180" viewBox="0 0 136 180"><path d="M30 120 q38 -70 76 0 z" fill="#efefef"/><rect x="30" y="120" width="76" height="16" fill="#8c8c8c"/></svg><b style="color:var(--color-text)">Dome cap · 38</b></div>
+              <div class="tile" style="width:136px;height:220px;background:var(--color-gray-600)"><svg width="136" height="180" viewBox="0 0 136 180"><path d="M30 130 l20 -80 h36 l20 80 z" fill="#000000"/></svg><b>Pack 30L · 190</b></div>
+            </div>
+            <div style="position:absolute;left:24px;right:24px;bottom:24px;display:flex;justify-content:space-between" class="text-micro"><span>Autumn trail 26</span><span>01 / 05</span></div>
+          </div><div class="mock m-black">
+            <div class="mock__bar"><span>Field Notes Quarterly</span><i><span>Issue 14</span></i></div>
+            <div class="mock__big text-display" style="top:36px">Field notes</div>
+            <div class="mt" data-slide="212" style="top:188px">
+              <svg class="tile" width="200" height="140" viewBox="0 0 200 140"><rect width="200" height="140" fill="#101010"/><path d="M0 110 L50 50 L80 80 L120 30 L200 110 V140 H0Z" fill="#8c8c8c"/><circle cx="160" cy="34" r="12" fill="#ff98a2"/></svg>
+              <svg class="tile" width="200" height="140" viewBox="0 0 200 140"><rect width="200" height="140" fill="#efefef"/><path d="M0 100 Q50 60 100 100 T200 100 V140 H0Z" fill="#000000"/><path d="M0 116 Q50 80 100 116 T200 116" stroke="#8c8c8c" fill="none"/></svg>
+              <svg class="tile" width="200" height="140" viewBox="0 0 200 140"><rect width="200" height="140" fill="#8c8c8c"/><path d="M20 140 V60 h20 v80 M60 140 V30 h24 v110 M100 140 V80 h20 v60 M140 140 V50 h30 v90" fill="#000000"/></svg>
+              <svg class="tile" width="200" height="140" viewBox="0 0 200 140"><rect width="200" height="140" fill="#101010"/><circle cx="100" cy="70" r="44" fill="none" stroke="#efefef"/><circle cx="100" cy="70" r="6" fill="#ff98a2"/></svg>
+            </div>
+          </div><div class="mock m-pink">
+            <div class="mock__bar"><span>Pellucid®</span><i><span>Work</span><span>Info</span></i></div>
+            <div class="mt" data-slide="440" style="top:40px;left:0">
+              <div class="text-h1" style="white-space:nowrap;padding-left:12px">Pellucid · Pellucid · Pellucid</div>
+            </div>
+            <div class="mt" data-slide="300" style="top:200px">
+              <div class="tile" style="width:140px;height:100px;background:var(--color-background)"></div>
+              <div class="tile" style="width:140px;height:100px;background:var(--color-text)"></div>
+              <div class="tile" style="width:140px;height:100px;background:var(--color-background)"></div>
+              <div class="tile" style="width:140px;height:100px;background:var(--color-surface)"></div>
+            </div>
+            <span class="button-primary" style="background:var(--color-background);color:var(--color-text-secondary)">Featured</span>
+          </div><div class="mock m-dark">
+            <div class="mock__bar"><span>Orbit Weather</span><i><span>Lisbon</span><span class="pink">Live</span></i></div>
+            <div class="mt" data-slide="152" style="top:52px">
+              <svg class="tile" width="140" height="250" viewBox="0 0 140 250"><rect width="140" height="250" fill="#000000"/><text x="12" y="28" fill="#8c8c8c" font-size="10" font-family="Roboto">MON</text><text x="12" y="90" fill="#efefef" font-size="48" font-family="Anton">21°</text><g fill="#ff98a2"><rect x="12" y="180" width="12" height="50"/><rect x="32" y="160" width="12" height="70"/><rect x="52" y="190" width="12" height="40"/><rect x="72" y="150" width="12" height="80"/><rect x="92" y="200" width="12" height="30"/><rect x="112" y="170" width="12" height="60"/></g></svg>
+              <svg class="tile" width="140" height="250" viewBox="0 0 140 250"><rect width="140" height="250" fill="#000000"/><text x="12" y="28" fill="#8c8c8c" font-size="10" font-family="Roboto">TUE</text><text x="12" y="90" fill="#efefef" font-size="48" font-family="Anton">18°</text><path d="M12 220 C 40 160 60 200 80 170 S 120 150 128 180" stroke="#ff98a2" stroke-width="2" fill="none"/></svg>
+              <svg class="tile" width="140" height="250" viewBox="0 0 140 250"><rect width="140" height="250" fill="#000000"/><text x="12" y="28" fill="#8c8c8c" font-size="10" font-family="Roboto">WED</text><text x="12" y="90" fill="#efefef" font-size="48" font-family="Anton">24°</text><circle cx="70" cy="180" r="40" fill="none" stroke="#8c8c8c"/><path d="M70 140 A40 40 0 0 1 110 180" stroke="#ff98a2" stroke-width="4" fill="none"/></svg>
+              <svg class="tile" width="140" height="250" viewBox="0 0 140 250"><rect width="140" height="250" fill="#000000"/><text x="12" y="28" fill="#8c8c8c" font-size="10" font-family="Roboto">THU</text><text x="12" y="90" fill="#efefef" font-size="48" font-family="Anton">16°</text><g fill="#8c8c8c"><rect x="12" y="200" width="12" height="30"/><rect x="32" y="180" width="12" height="50"/><rect x="52" y="170" width="12" height="60"/><rect x="72" y="190" width="12" height="40"/></g></svg>
+              <svg class="tile" width="140" height="250" viewBox="0 0 140 250"><rect width="140" height="250" fill="#000000"/><text x="12" y="28" fill="#8c8c8c" font-size="10" font-family="Roboto">FRI</text><text x="12" y="90" fill="#ff98a2" font-size="48" font-family="Anton">27°</text></svg>
+            </div>
+          </div><div class="mock m-light">
+            <div class="mock__bar"><span>Kiln & Co.</span><i><span>Bowls</span><span>Vases</span></i></div>
+            <div class="mock__big text-display-regular" style="top:40px">Fired slow</div>
+            <div class="mt" data-slide="164" style="top:150px">
+              <svg class="tile" width="152" height="180" viewBox="0 0 152 180"><rect width="152" height="180" fill="#8c8c8c"/><path d="M26 80 q50 70 100 0 z" fill="#101010"/><ellipse cx="76" cy="80" rx="50" ry="8" fill="#000000"/><rect x="36" y="140" width="80" height="40" fill="#efefef"/></svg>
+              <svg class="tile" width="152" height="180" viewBox="0 0 152 180"><rect width="152" height="180" fill="#101010"/><path d="M56 40 h40 q-10 20 10 60 q8 30 -30 40 q-38 -10 -30 -40 q20 -40 10 -60z" fill="#ff98a2"/></svg>
+              <svg class="tile" width="152" height="180" viewBox="0 0 152 180"><rect width="152" height="180" fill="#8c8c8c"/><path d="M36 70 q40 90 80 0 z" fill="#efefef"/><ellipse cx="76" cy="70" rx="40" ry="6" fill="#101010"/></svg>
+              <svg class="tile" width="152" height="180" viewBox="0 0 152 180"><rect width="152" height="180" fill="#101010"/><rect x="50" y="50" width="52" height="90" rx="12" fill="#efefef"/></svg>
+            </div>
+          </div><div class="mock m-black">
+            <div class="mock__bar"><span>Tidewater 26</span><i><span>Lineup</span><span class="pink">Tickets</span></i></div>
+            <div class="mt" data-slide="132" style="top:44px">
+              <div class="tile" style="width:120px;height:280px;background:var(--color-text-secondary);color:var(--color-background)"><div class="text-display-regular" style="writing-mode:vertical-rl;padding:12px">Low Tide</div></div>
+              <div class="tile" style="width:120px;height:280px;background:var(--color-text);color:var(--color-background)"><div class="text-display-regular" style="writing-mode:vertical-rl;padding:12px">Salt Kids</div></div>
+              <div class="tile" style="width:120px;height:280px;background:var(--color-surface);color:var(--color-text)"><div class="text-display-regular" style="writing-mode:vertical-rl;padding:12px">Brine</div></div>
+              <div class="tile" style="width:120px;height:280px;background:var(--color-text-secondary);color:var(--color-background)"><div class="text-display-regular" style="writing-mode:vertical-rl;padding:12px">Harbour</div></div>
+              <div class="tile" style="width:120px;height:280px;background:var(--color-text);color:var(--color-background)"><div class="text-display-regular" style="writing-mode:vertical-rl;padding:12px">Moonrise</div></div>
+            </div>
+            <span class="button-primary">Featured</span>
+          </div><div class="mock m-dark">
+            <div class="mock__bar"><span>Halden Architects</span><i><span>Projects</span></i></div>
+            <div class="mt" data-slide="232" style="top:60px">
+              <svg class="tile" width="220" height="240" viewBox="0 0 220 240"><rect width="220" height="240" fill="#000000"/><g fill="none" stroke="#efefef"><path d="M20 220 V100 L110 40 L200 100 V220 Z"/><path d="M60 220 V150 h40 v70 M130 120 h40 v40 h-40z"/></g><path d="M0 220 H220" stroke="#ff98a2"/></svg>
+              <svg class="tile" width="220" height="240" viewBox="0 0 220 240"><rect width="220" height="240" fill="#000000"/><g fill="none" stroke="#efefef"><rect x="30" y="40" width="160" height="180"/><path d="M30 80 h160 M30 120 h160 M30 160 h160 M80 40 v180 M140 40 v180"/></g></svg>
+              <svg class="tile" width="220" height="240" viewBox="0 0 220 240"><rect width="220" height="240" fill="#000000"/><g fill="none" stroke="#efefef"><path d="M20 220 Q110 0 200 220"/><path d="M60 220 Q110 80 160 220"/></g><circle cx="110" cy="70" r="6" fill="#ff98a2"/></svg>
+            </div>
+          </div><div class="mock m-dark">
+            <div class="mock__bar"><span>Drift Framer Kit</span><i><span class="pink">v2.4</span></i></div>
+            <div style="position:absolute;left:12px;top:44px;width:152px;bottom:12px;border:1px solid var(--color-gray-600);border-radius:4px;padding:12px;display:flex;flex-direction:column;gap:12px" class="text-micro-regular">
+              <span>Friction <b class="pink" style="float:right">0.92</b></span><svg width="126" height="4"><rect width="126" height="4" fill="#8c8c8c"/><rect width="96" height="4" fill="#ff98a2"/></svg>
+              <span>Spring <b class="pink" style="float:right">170</b></span><svg width="126" height="4"><rect width="126" height="4" fill="#8c8c8c"/><rect width="70" height="4" fill="#ff98a2"/></svg>
+              <span>Damping <b class="pink" style="float:right">26</b></span><svg width="126" height="4"><rect width="126" height="4" fill="#8c8c8c"/><rect width="48" height="4" fill="#ff98a2"/></svg>
+              <span>Loop <b style="float:right">on</b></span><span>Snap <b style="float:right">nearest</b></span><span>Axis <b style="float:right">x</b></span>
+            </div>
+            <div style="position:absolute;left:176px;right:12px;top:44px;bottom:12px;border-radius:4px;overflow:hidden;background:var(--color-background)">
+              <div class="mt" data-slide="112" style="top:60px;left:12px">
+                <div class="tile" style="width:100px;height:160px;background:var(--color-text-secondary)"></div>
+                <div class="tile" style="width:100px;height:160px;background:var(--color-text)"></div>
+                <div class="tile" style="width:100px;height:160px;background:var(--color-gray-600)"></div>
+                <div class="tile" style="width:100px;height:160px;background:var(--color-text-secondary)"></div>
+                <div class="tile" style="width:100px;height:160px;background:var(--color-text)"></div>
+              </div>
+            </div>
+            <span class="button-primary" style="left:188px">Featured</span>
+          </div>
+<script>
+  const all = [...document.querySelectorAll('.mock')];
+  const n = +(location.hash.slice(1) || -1);
+  if (n >= 0) { all[n].classList.add('is-shown'); all[n].style.transform = `scale(${innerWidth / 480})`; } else document.body.classList.add('grid');
+  const minis = [...document.querySelectorAll('.mt')].map((el, i) => ({ el, step: +el.dataset.slide, n: Math.max(1, el.children.length - 2), x: 0, v: 0, k: 0, next: 700 + (i % 3) * 300 }));
+  let prev = performance.now();
+  (function frame(now) {
+    const dt = Math.min(48, now - prev); prev = now;
+    for (const m of minis) {
+      m.next -= dt; if (m.next < 0) { m.k = (m.k + 1) % (m.n + 1); m.next = 1600; }
+      const target = -m.k * m.step, h = dt / 1000; m.v += ((target - m.x) * 170 - m.v * 26) * h; m.x += m.v * h;
+      m.el.style.transform = `translate3d(${m.x}px,0,0)`;
+    }
+    requestAnimationFrame(frame);
+  })(prev);
+</script></body></html>
