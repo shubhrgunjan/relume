@@ -1,0 +1,125 @@
+/* motion measured from https://openhorizon.so/. Reveal: add data-reveal="<name>" (and style="--i: n" for stagger order); motion.js adds .is-in. */
+@media (prefers-reduced-motion: reduce) { [data-intro] { animation-duration: 1ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; } [data-reveal] { transition: none !important; } }
+/* intro-fade-out-1: span.mono.absolute “Reading the last attempt” (×7) */
+@keyframes intro-fade-out-1 {
+  from { filter: none; opacity: 1; }
+  to { filter: blur(3px); opacity: 0; }
+}
+[data-intro="intro-fade-out-1"] { animation: intro-fade-out-1 300ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(0ms + var(--i, 0) * 331ms); }
+/* intro-blur-scale-spin-2: h1.display-hero.animate-enter “Agents for the physical ” 896×200 (×6) */
+@keyframes intro-blur-scale-spin-2 { 0%{opacity:var(--tw-enter-opacity,1);transform:translate3d(var(--tw-enter-translate-x,0),var(--tw-enter-translate-y,0),0)scale3d(var(--tw-enter-scale,1),var(--tw-enter-scale,1),var(--tw-enter-scale,1))rotate(var(--tw-enter-rotate,0));filter:blur(var(--tw-enter-blur,0))} }
+[data-intro="intro-blur-scale-spin-2"] { animation: intro-blur-scale-spin-2 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(0ms); }
+/* intro-fade-3: div.motion-safe:transition-[opacity,translate].motion-safe:duration-700 1152×560 (×2) */
+@keyframes intro-fade-3 {
+  from { opacity: 0; translate: 0px 16px; }
+  to { opacity: 1; translate: none; }
+}
+[data-intro="intro-fade-3"] { animation: intro-fade-3 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(0ms); }
+/* intro-gridtemplaterows-4: div.grid.transition-[grid-template-rows] 284×96 (×1) */
+@keyframes intro-gridtemplaterows-4 {
+  from { grid-template-rows: 12px; }
+  to { grid-template-rows: 12px; }
+}
+[data-intro="intro-gridtemplaterows-4"] { animation: intro-gridtemplaterows-4 500ms cubic-bezier(0, 0, 0.2, 1) both; animation-delay: calc(0ms); }
+/* intro-height-5: div.grid.content-center (×1) */
+@keyframes intro-height-5 {
+  from { height: 0px; }
+  to { height: 44px; }
+}
+[data-intro="intro-height-5"] { animation: intro-height-5 300ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(0ms); }
+/* reveal-fade-6: div.motion-safe:transition-[opacity,translate].motion-safe:duration-700 1152×136 (×31) */
+[data-reveal="reveal-fade-6"] { opacity: 0; translate: 0px 16px; transition: opacity 700ms cubic-bezier(0.2, 0.7, 0.2, 1), translate 700ms cubic-bezier(0.2, 0.7, 0.2, 1); transition-delay: calc(0ms + var(--i, 0) * 80ms); }
+[data-reveal="reveal-fade-6"].is-in { opacity: 1; translate: none; }
+/* reveal-fade-7: div 209×66 (×7) */
+[data-reveal="reveal-fade-7"] { opacity: 0; transition: opacity 280ms cubic-bezier(0.4, 0, 0.2, 1); transition-delay: calc(0ms + var(--i, 0) * 554ms); }
+[data-reveal="reveal-fade-7"].is-in { opacity: 1; }
+/* reveal-fade-blur-8: span.mono.absolute “Recalling past attempts…” (×7) */
+[data-reveal="reveal-fade-blur-8"] { filter: blur(3px); opacity: 0; transition: filter 300ms cubic-bezier(0.22, 1, 0.36, 1), opacity 300ms cubic-bezier(0.22, 1, 0.36, 1); transition-delay: calc(0ms + var(--i, 0) * 348ms); }
+[data-reveal="reveal-fade-blur-8"].is-in { filter: none; opacity: 1; }
+/* reveal-fade-out-9: div.grid.content-center (×4) */
+[data-reveal="reveal-fade-out-9"] { filter: none; opacity: 1; height: 0px; transition: filter 300ms cubic-bezier(0.22, 1, 0.36, 1), opacity 300ms cubic-bezier(0.22, 1, 0.36, 1), height 300ms cubic-bezier(0.22, 1, 0.36, 1); }
+[data-reveal="reveal-fade-out-9"].is-in { filter: blur(3px); opacity: 0; height: 44px; }
+/* reveal-tint-10: li.flex.items-center 207×37 (×3) */
+[data-reveal="reveal-tint-10"] { background-color: oklab(0.984998 -0.00000956655 0.0000230074); transition: background-color 340ms cubic-bezier(0.22, 1, 0.36, 1); }
+[data-reveal="reveal-tint-10"].is-in { background-color: rgba(0, 0, 0, 0); }
+/* reveal-fade-11: div.flex.items-center 196×32 (×2) */
+[data-reveal="reveal-fade-11"] { opacity: 0; transition: opacity 300ms cubic-bezier(0.25, 0.1, 0.35, 1); }
+[data-reveal="reveal-fade-11"].is-in { opacity: 1; }
+/* reveal-width-12: div.h-full.bg-term-max (×1) */
+[data-reveal="reveal-width-12"] { width: 33.3333%; transition: width 700ms cubic-bezier(0, 0, 0.2, 1); }
+[data-reveal="reveal-width-12"].is-in { width: 66.6667%; }
+/* reveal-tint-13: button.flex.cursor-pointer 196×32 (×1) */
+[data-reveal="reveal-tint-13"] { background-color: rgba(0, 0, 0, 0); border-bottom-color: rgba(0, 0, 0, 0); border-left-color: rgba(0, 0, 0, 0); border-right-color: rgba(0, 0, 0, 0); border-color: rgba(0, 0, 0, 0); transition: background-color 340ms cubic-bezier(0.22, 1, 0.36, 1), border-bottom-color 340ms cubic-bezier(0.22, 1, 0.36, 1), border-left-color 340ms cubic-bezier(0.22, 1, 0.36, 1), border-right-color 340ms cubic-bezier(0.22, 1, 0.36, 1), border-color 340ms cubic-bezier(0.22, 1, 0.36, 1); }
+[data-reveal="reveal-tint-13"].is-in { background-color: rgb(255, 255, 255); border-bottom-color: oklab(0.904998 -0.00000870228 0.0000211); border-left-color: oklab(0.904998 -0.00000870228 0.0000211); border-right-color: oklab(0.904998 -0.00000870228 0.0000211); border-color: oklab(0.904998 -0.00000870228 0.0000211); }
+/* reveal-fade-out-blur-tint-14: span.absolute.-bottom-1.5 128×12 (×1) */
+[data-reveal="reveal-fade-out-blur-tint-14"] { background-color: oklab(0.542591 -0.11227 0.0403883 / 0.25); filter: blur(3px); opacity: 1; transition: background-color 500ms cubic-bezier(0.22, 1, 0.36, 1), filter 500ms cubic-bezier(0.22, 1, 0.36, 1), opacity 500ms cubic-bezier(0.22, 1, 0.36, 1); }
+[data-reveal="reveal-fade-out-blur-tint-14"].is-in { background-color: oklab(0.204625 0.00000931323 0.00000409782 / 0.1); filter: blur(4px); opacity: 0; }
+/* reveal-fade-out-15: span.relative.block 183×289 (×1) */
+[data-reveal="reveal-fade-out-15"] { filter: none; opacity: 0.95; transition: filter 500ms cubic-bezier(0.22, 1, 0.36, 1), opacity 500ms cubic-bezier(0.22, 1, 0.36, 1); }
+[data-reveal="reveal-fade-out-15"].is-in { filter: grayscale(1); opacity: 0.45; }
+/* reveal-fade-blur-tint-16: span.absolute.-bottom-1.5 62×12 (×1) */
+[data-reveal="reveal-fade-blur-tint-16"] { background-color: oklab(0.204625 0.00000931323 0.00000409782 / 0.1); filter: blur(4px); opacity: 0; transition: background-color 500ms cubic-bezier(0.22, 1, 0.36, 1), filter 500ms cubic-bezier(0.22, 1, 0.36, 1), opacity 500ms cubic-bezier(0.22, 1, 0.36, 1); }
+[data-reveal="reveal-fade-blur-tint-16"].is-in { background-color: oklab(0.542591 -0.11227 0.0403883 / 0.25); filter: blur(3px); opacity: 1; }
+/* reveal-fade-17: span.relative.block 88×326 (×1) */
+[data-reveal="reveal-fade-17"] { filter: grayscale(1); opacity: 0.45; transition: filter 500ms cubic-bezier(0.22, 1, 0.36, 1), opacity 500ms cubic-bezier(0.22, 1, 0.36, 1); }
+[data-reveal="reveal-fade-17"].is-in { filter: none; opacity: 0.95; }
+/* reveal-tint-18: button.label.flex “Bimanual arm” 111×28 (×1) */
+[data-reveal="reveal-tint-18"] { background-color: rgb(251, 251, 249); color: rgb(23, 23, 23); transition: background-color 340ms cubic-bezier(0.22, 1, 0.36, 1), color 340ms cubic-bezier(0.22, 1, 0.36, 1); }
+[data-reveal="reveal-tint-18"].is-in { background-color: rgba(0, 0, 0, 0); color: rgb(110, 110, 105); }
+/* reveal-tint-19: button.label.flex “Humanoid” 81×28 (×1) */
+[data-reveal="reveal-tint-19"] { background-color: rgba(0, 0, 0, 0); color: rgb(110, 110, 105); transition: background-color 340ms cubic-bezier(0.22, 1, 0.36, 1), color 340ms cubic-bezier(0.22, 1, 0.36, 1); }
+[data-reveal="reveal-tint-19"].is-in { background-color: rgb(251, 251, 249); color: rgb(23, 23, 23); }
+/* reveal-left-20: div.absolute.top-6 284×135 (×1) */
+[data-reveal="reveal-left-20"] { left: calc(12.5% + 64px); transition: left 700ms cubic-bezier(0.4, 0, 0.2, 1); }
+[data-reveal="reveal-left-20"].is-in { left: calc(37.5% + 64px); }
+/* reveal-gridtemplaterows-21: div.grid.transition-[grid-template-rows] 284×96 (×1) */
+[data-reveal="reveal-gridtemplaterows-21"] { grid-template-rows: 12px; transition: grid-template-rows 500ms cubic-bezier(0, 0, 0.2, 1); }
+[data-reveal="reveal-gridtemplaterows-21"].is-in { grid-template-rows: 12px; }
+/* reveal-tint-22: button.flex.shrink-0 “Stop” 74×32 (×1) */
+[data-reveal="reveal-tint-22"] { border-bottom-color: oklab(0.904998 -0.00000870228 0.0000211); border-left-color: oklab(0.904998 -0.00000870228 0.0000211); border-right-color: oklab(0.904998 -0.00000870228 0.0000211); border-color: oklab(0.904998 -0.00000870228 0.0000211); color: oklab(0.509999 -0.00000505149 0.0000118911); transition: border-bottom-color 340ms cubic-bezier(0.22, 1, 0.36, 1), border-left-color 340ms cubic-bezier(0.22, 1, 0.36, 1), border-right-color 340ms cubic-bezier(0.22, 1, 0.36, 1), border-color 340ms cubic-bezier(0.22, 1, 0.36, 1), color 340ms cubic-bezier(0.22, 1, 0.36, 1); }
+[data-reveal="reveal-tint-22"].is-in { border-bottom-color: oklab(0.57701 0.217634 0.112472 / 0.4); border-left-color: oklab(0.57701 0.217634 0.112472 / 0.4); border-right-color: oklab(0.57701 0.217634 0.112472 / 0.4); border-color: oklab(0.57701 0.217634 0.112472 / 0.4); color: oklab(0.57701 0.217634 0.112472); }
+/* reveal-fade-out-23: span.absolute.right-3 “red cube · 0.94” (×1) */
+[data-reveal="reveal-fade-out-23"] { opacity: 1; transition: opacity 300ms cubic-bezier(0.25, 0.1, 0.35, 1); }
+[data-reveal="reveal-fade-out-23"].is-in { opacity: 0; }
+/* reveal-down-24: div.flex.items-center 196×32 (×1) */
+[data-reveal="reveal-down-24"] { transform: translate(0px, -36px); transition: transform 398ms cubic-bezier(0.44,0.02,0.11,0.84); }
+[data-reveal="reveal-down-24"].is-in { transform: translate(0px, 0px); }
+/* reveal-fade-out-25: span.rounded.border “primitive” (×1) */
+[data-reveal="reveal-fade-out-25"] { opacity: 1; width: 68px; height: 19px; transition: opacity 2896ms cubic-bezier(0.38,1.13,1,-1.41), width 2896ms cubic-bezier(0.38,1.13,1,-1.41), height 2896ms cubic-bezier(0.38,1.13,1,-1.41); }
+[data-reveal="reveal-fade-out-25"].is-in { opacity: 0; width: 0px; height: 0px; }
+/* hover hover-tint-26: button.flex.shrink-0 “Stop” 74×32 — color: oklab(0.57701 0.217634 0.112472); → color: oklab(0.509999 -0.00000505149 0.0000118911); */
+.hover-tint-26 { transition: color 340ms cubic-bezier(0.22, 1, 0.36, 1); }
+/* hover hover-tint-27: li.flex.items-center 207×36 — background-color: oklab(0.984998 -0.00000956655 0.0000230074); → background-color: rgba(0, 0, 0, 0); */
+.hover-tint-27 { transition: background-color 340ms cubic-bezier(0.22, 1, 0.36, 1); }
+/* hover hover-fade-blur-28: span.mono.absolute “Loading the map…” — filter: blur(3px); opacity: 0; → filter: none; opacity: 1; */
+.hover-fade-blur-28 { transition: filter 300ms cubic-bezier(0.22, 1, 0.36, 1), opacity 300ms cubic-bezier(0.22, 1, 0.36, 1); }
+/* hover hover-translate-29: svg.lucide.lucide-arrow-right 14×14 — translate: -4px; → translate: 0px; */
+.hover-translate-29 { transition: translate 340ms cubic-bezier(0.22, 1, 0.36, 1); }
+/* hover hover-scale-30: img.absolute.inset-0 640×560 — transform: scale(none); → transform: scale(1.03); */
+.hover-scale-30 { transition: transform 700ms cubic-bezier(0, 0, 0.2, 1); }
+/* hover hover-fade-out-blur-tint-31: span.absolute.-bottom-1.5 173×12 — opacity: 1; filter: blur(3px); background-color: oklab(0.542591 -0.11227 0.0403883 / 0.25); → opacity: 0; filter: blur(4px); background-color: oklab(0.204625 0.00000931323 0.00000409782 / 0.1); */
+.hover-fade-out-blur-tint-31 { transition: opacity 500ms cubic-bezier(0.22, 1, 0.36, 1), filter 500ms cubic-bezier(0.22, 1, 0.36, 1), background-color 500ms cubic-bezier(0.22, 1, 0.36, 1); }
+/* hover hover-boxshadow-32: button.btn-raised-dark.relative “Request invite” 141×32 — box-shadow: oklab(0.999998 -0.00000980496 0.0000234246 / 0.22) 0px 1px 0px 0px inset, oklab(0 0 0 / 0.35) 0px -2px 0px 0px inset, rgb(20, 20, 20) 0px 0px 0px 1px, rgb(15, 15, 15) 0px 2px 0px 0px, rgb(10, 10, 10) 0px 3px 0px 1px, oklab(0 0 0 / 0.38) 0px 8px 14px -4px; translate: 0px; → box-shadow: oklab(0.999998 -0.00000980496 0.0000234246 / 0.22) 0px 1px 0px 0px inset, oklab(0 0 0 / 0.35) 0px -2px 0px 0px inset, rgb(20, 20, 20) 0px 0px 0px 1px, rgb(15, 15, 15) 0px 3px 0px 0px, rgb(10, 10, 10) 0px 4px 0px 1px, oklab(0 0 0 / 0.38) 0px 9px 14px -4px; translate: 0px -1px; */
+.hover-boxshadow-32 { transition: box-shadow 120ms cubic-bezier(0.2, 0.8, 0.2, 1), translate 120ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+/* hover hover-translate-33: a.card-art.group 1152×560 — translate: none; → translate: 0px -4px; */
+.hover-translate-33 { transition: translate 300ms cubic-bezier(0.22, 1, 0.36, 1); }
+/* hover hover-filter-34: button.btn-raised-dark.relative “Request invite” 141×32 — filter: none; → filter: brightness(1.12); */
+.hover-filter-34 { transition: filter 160ms ease; }
+/* hover hover-width-35: div.h-full.bg-term-max — width: 33.3333%; → width: 66.6667%; */
+.hover-width-35 { transition: width 700ms cubic-bezier(0, 0, 0.2, 1); }
+/* hover hover-gridtemplaterows-36: div.grid.transition-[grid-template-rows] 284×96 — grid-template-rows: 12px; → grid-template-rows: 12px; */
+.hover-gridtemplaterows-36 { transition: grid-template-rows 500ms cubic-bezier(0, 0, 0.2, 1); }
+/* hover hover-boxshadow-37: article.card-art.group 1152×668 — box-shadow: oklab(0 0 0 / 0.08) 0px 0px 0px 1px, oklab(0 0 0 / 0.06) 0px 1px 2px 0px; → box-shadow: oklab(0 0 0 / 0.1) 0px 0px 0px 1px, oklab(0 0 0 / 0.25) 0px 14px 28px -14px; */
+.hover-boxshadow-37 { transition: box-shadow 300ms ease-out; }
+/* hover hover-translate-38: span.relative.block 183×289 — translate: none; → translate: 0px -4px; */
+.hover-translate-38 { transition: translate 500ms cubic-bezier(0.22, 1, 0.36, 1); }
+/* hover hover-height-39: div.grid.content-center — height: 0px; → height: 44px; */
+.hover-height-39 { transition: height 300ms cubic-bezier(0.22, 1, 0.36, 1); }
+/* hover hover-fade-out-40: button.flex.size-7 27×28 — opacity: 1; → opacity: 0.4; */
+.hover-fade-out-40 { transition: opacity 340ms cubic-bezier(0.22, 1, 0.36, 1); }
+/* hover hover-left-41: div.absolute.top-6 284×135 — left: calc(62.5% - 64px); → left: calc(87.5% - 64px); */
+.hover-left-41 { transition: left 700ms cubic-bezier(0.4, 0, 0.2, 1); }
+/* hover hover-fade-out-42: span.absolute.-bottom-1.5 128×12 — opacity: 0.28; → opacity: 0; */
+.hover-fade-out-42 { transition: opacity 140ms cubic-bezier(0.22, 1, 0.36, 1); }
+/* hover hover-tint-43: span.tone-2.transition-colors “Field notes →” 254×48 — color: rgb(76, 76, 73); → color: rgb(110, 110, 105); */
+.hover-tint-43 { transition: color 134ms cubic-bezier(0.22, 1, 0.36, 1); }
