@@ -129,11 +129,14 @@ function domBehaviours(m: Motion, rows: Map<number, Row>, t0: number, t1: number
       const stops = new Set(tr.samples.map((s) => `${Math.round(+s[5] / 40)},${Math.round(+s[6] / 40)}`)).size;
       if (stops >= 2) items.push({ kind: 'mover', what: describe(m, rows, tr.id), params: { distancePx: r0(moved), positions: stops, by: transformed ? 'transform' : 'position' }, box: boxOf(tr.id) });
     }
-    const span = Math.max(...ws) - Math.min(...ws);
-    const mono = ws.every((w, i) => i === 0 || w >= ws[i - 1] - 0.5);
-    if (span > 30 && mono && (rows.get(tr.id)?.box[3] ?? 99) <= 8) {
-      const t = tr.samples.filter((s, i) => i > 0 && +s[7] !== +tr.samples[i - 1][7]).map((s) => s[0]);
-      items.push({ kind: 'progress', what: describe(m, rows, tr.id), params: { fromPx: r0(Math.min(...ws)), toPx: r0(Math.max(...ws)), durationMs: t.length ? r0(t[t.length - 1] - t[0]) : 0 }, box: boxOf(tr.id) });
+    // a progress bar fills, then resets for the next run: take the longest stretch where the width only grows
+    let best = [0, 0], a0 = 0;
+    for (let i = 1; i <= ws.length; i++) if (i === ws.length || ws[i] < ws[i - 1] - 0.5) { if (ws[i - 1] - ws[a0] > ws[best[1]] - ws[best[0]]) best = [a0, i - 1]; a0 = i; }
+    const span = ws[best[1]] - ws[best[0]];
+    if (span > 30 && (rows.get(tr.id)?.box[3] ?? 99) <= 8) {
+      const run = tr.samples.slice(best[0], best[1] + 1);
+      const t = run.filter((s, i) => i > 0 && +s[7] !== +run[i - 1][7]).map((s) => s[0]);
+      items.push({ kind: 'progress', what: describe(m, rows, tr.id), params: { fromPx: r0(ws[best[0]]), toPx: r0(ws[best[1]]), durationMs: t.length ? r0(t[t.length - 1] - run[0][0]) : 0 }, box: boxOf(tr.id) });
     }
   }
   // loops: the same element changing again and again on a steady clock
@@ -202,7 +205,8 @@ function driftRegions(f: Frames, pagePxPerFramePx: number): BehaviourItem[] {
     }
     if (vs.length >= 3 && texture > 2) {
       const vx = median(vs.map((v) => v[0])), vy = median(vs.map((v) => v[1]));
-      if ((vx || vy) && vs.filter((v) => Math.sign(v[0]) === Math.sign(vx) && Math.sign(v[1]) === Math.sign(vy)).length >= vs.length * 0.7) {
+      // steady: same direction and nearly the same shift each time (a flicker or a periodic texture is not)
+      if ((vx || vy) && vs.filter((v) => Math.sign(v[0]) === Math.sign(vx) && Math.sign(v[1]) === Math.sign(vy) && Math.abs(v[0] - vx) <= 1 && Math.abs(v[1] - vy) <= 1).length >= vs.length * 0.7) {
         const dt = (f.times[step] - f.times[0]);
         out.push({ x: x0, y: y0, vx: vx / dt, vy: vy / dt });
       }
@@ -220,7 +224,10 @@ function driftRegions(f: Frames, pagePxPerFramePx: number): BehaviourItem[] {
     const dir = Math.abs(vx) >= Math.abs(vy) ? (vx > 0 ? 'right' : 'left') : (vy > 0 ? 'down' : 'up');
     items.push({ kind: 'drift', what: `${g.length} tiles of the viewport (${k})`, params: { direction: dir, pxPerSecond: r0(Math.hypot(vx, vy)), viewportBox: [r0(x0 * pagePxPerFramePx), r0(y0 * pagePxPerFramePx), r0((x1 - x0) * pagePxPerFramePx), r0((y1 - y0) * pagePxPerFramePx)] } });
   }
-  return items;
+  // equal speeds in opposite directions at once is aliasing on a repeating pattern (dotted grid, dashed line)
+  const speedOf = (i: BehaviourItem) => i.params.pxPerSecond as number;
+  const opposite: Record<string, string> = { left: 'right', right: 'left', up: 'down', down: 'up' };
+  return items.filter((a) => !items.some((b) => b !== a && b.params.direction === opposite[a.params.direction] && Math.abs(speedOf(a) - speedOf(b)) <= Math.max(3, speedOf(a) * 0.2)));
 }
 
 /** During the scroll pass: regions whose content moves slower or faster than the page scrolls (parallax). */
@@ -312,6 +319,8 @@ export function pageBehaviour(page: PageEvidence, bp: Blueprint, entryDir: strin
   const vt = (t: number) => t / 1000 + (offset ?? (1.0 - loaded / 1000));
   const scale = vw / 320;
   const secOf = (y: number) => { let best = -1, ov = 0; bp.sections.forEach((s, i) => { const o = Math.min(s.box[1] + s.box[3], y + vh) - Math.max(s.box[1], y); if (o > ov) { ov = o; best = i; } }); return best; };
+  // an element that has a box belongs to the section it sits in, whichever dwell stop happened to see it
+  const secAt = (box?: number[], fallback = -1) => { if (!box) return fallback; let best = fallback, ov = 0; bp.sections.forEach((s, i) => { const o = Math.min(s.box[1] + s.box[3], box[1] + box[3]) - Math.max(s.box[1], box[1]); if (o > ov) { ov = o; best = i; } }); return best; };
   const out: (SectionBehaviour | null)[] = bp.sections.map(() => null);
   const get = (i: number) => (out[i] = out[i] || { narrative: [], items: [] });
   mkdirSync(join(entryDir, 'sections'), { recursive: true });
@@ -330,8 +339,8 @@ export function pageBehaviour(page: PageEvidence, bp: Blueprint, entryDir: strin
       if (mk && /gradient/.test(mk) && r.box[1] < win.y + vh && r.box[1] + r.box[3] > win.y && r.box[2] * r.box[3] > 20000) items.push({ kind: 'mask-fade', what: describe(m, rows, r.id), params: { mask: mk.slice(0, 160) }, box: r.box });
     }
     for (const r of h.rows) if (r.media?.autoplay && r.box[1] < win.y + vh && r.box[1] + r.box[3] > win.y) items.push({ kind: 'autoplay-media', what: describe(m, rows, r.id), params: { loop: !!r.media.loop }, box: r.box });
+    for (const it of items) { const tb = get(secAt(it.box, si)); if (!tb.items.some((x) => x.kind === it.kind && x.what === it.what)) tb.items.push(it); }
     const sb = get(si);
-    for (const it of items) if (!sb.items.some((x) => x.kind === it.kind && x.what === it.what)) sb.items.push(it);
     if (!sb.window) {
       sb.window = [win.t0, win.t1];
       // filmstrip: six moments of the dwell, so an agent can see the section move
@@ -354,19 +363,26 @@ export function pageBehaviour(page: PageEvidence, bp: Blueprint, entryDir: strin
     const dx = +S[S.length - 1][5] - +S[0][5], dy = +S[S.length - 1][6] - +S[0][6];
     const sp = Math.hypot(dx, dy) / ((t1 - t0) / 1000);
     if (sp < 2 || sp > 400) continue;
-    // steady: the middle sample sits near the straight line between the ends (wrap-arounds allowed for loops)
-    const mid = S[S.length >> 1], frac = (mid[0] - t0) / (t1 - t0);
-    const off = Math.hypot(+mid[5] - (+S[0][5] + dx * frac), +mid[6] - (+S[0][6] + dy * frac));
-    if (off > Math.max(30, Math.hypot(dx, dy) * 0.25)) continue;
+    // steady: every eighth of the track sits near the straight line between the ends, and the element moves in
+    // most of those stretches (a follower that jumps now and then, or a progress line riding it, is not a layer)
+    const dist = Math.hypot(dx, dy);
+    let steady = true, moving = 0;
+    for (let q = 1; q <= 8; q++) {
+      const a = S[Math.floor((S.length - 1) * (q - 1) / 8)], b = S[Math.floor((S.length - 1) * q / 8)], frac = (b[0] - t0) / (t1 - t0);
+      if (Math.hypot(+b[5] - (+S[0][5] + dx * frac), +b[6] - (+S[0][6] + dy * frac)) > Math.max(30, dist * 0.25)) steady = false;
+      if (Math.hypot(+b[5] - +a[5], +b[6] - +a[6]) > dist / 16) moving++;
+    }
+    if (!steady || moving < 7) continue;
     const name = describe(m, rows, tr.id);
-    const key = name.replace(/\s\d+×\d+$/, '');
+    // copies of one layer share a name and a speed; two layers can share a class but not a speed
+    const key = name.replace(/\s\d+×\d+$/, '') + '@' + Math.round(Math.log(sp) / Math.log(1.25));
     const L = layers.get(key) || { speeds: [], what: name, box: rows.get(tr.id)?.box };
     L.speeds.push(Math.abs(dx) >= Math.abs(dy) ? Math.sign(dx) * sp : Math.sign(dy) * sp);
     layers.set(key, L);
   }
   const layerItems = [...layers.values()].map((L) => { const v = median(L.speeds); return { kind: 'drift' as const, what: L.what, params: { direction: v < 0 ? 'left' : 'right', pxPerSecond: r0(Math.abs(v)), copies: L.speeds.length, source: 'dom' }, box: L.box }; });
   for (const it of layerItems) {
-    const si = it.box ? secOf(it.box[1] - vh * 0.3) : -1;
+    const si = secAt(it.box);
     if (si >= 0) { const sb = get(si); sb.items.push(it); }
   }
   // several layers at different speeds in one place is depth
@@ -381,7 +397,7 @@ export function pageBehaviour(page: PageEvidence, bp: Blueprint, entryDir: strin
   // dim/active sets run on long cycles (a turn can outlast any one watch): detect them over the whole recording.
   // Members are every element sharing the flipping elements' class signature; the period comes from all flips.
   for (const it of activeSets(m, rows)) {
-    const si = it.box ? secOf(it.box[1] - vh * 0.3) : -1;
+    const si = secAt(it.box);
     if (si >= 0) { const sb = get(si); if (!sb.items.some((x) => x.kind === it.kind && x.what === it.what)) sb.items.push(it); }
   }
 

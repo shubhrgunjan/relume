@@ -139,9 +139,24 @@
 
   // ---- animation ledger -------------------------------------------------------------------------
   const seen = new WeakSet();
+  const retracked = new Map();
   function ledger() {
     let list = [];
     try { list = document.getAnimations(); } catch {}
+    // long or endless animations (drifting layers, marquees) start at load, often off screen, and outlive a
+    // track's sample cap: whenever one is on screen and untracked, record a fresh segment of it
+    const t = now();
+    for (const a of list) {
+      if (!seen.has(a) || a.playState !== 'running') continue;
+      const tg = a.effect && a.effect.target;
+      if (!(tg instanceof Element)) continue;
+      let tm = {}; try { tm = a.effect.getTiming(); } catch {}
+      if (!(tm.iterations === Infinity || +tm.duration > 3000)) continue;
+      const id = idOf(tg);
+      if (id < 0 || R.tracks.has(id) || t - (retracked.get(id) || 0) < 1500) continue;
+      const r = tg.getBoundingClientRect();
+      if (r.bottom > 0 && r.top < innerHeight && r.width > 0) { retracked.set(id, t); track(tg, 'anim-live'); }
+    }
     for (const a of list) {
       if (seen.has(a)) continue;
       seen.add(a);

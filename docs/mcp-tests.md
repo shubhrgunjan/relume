@@ -50,3 +50,31 @@ it as its own dimension. The old build re-scored **63** under the new checker (b
 
 Further fixes found while re-checking: the content edge preferred a narrow centred column (x 393) over the container
 (x 144); `bench/restart-server.sh` failed over plain SSH (node not on PATH).
+
+### Test 1, round 2: fresh extraction and rebuild (29 Oct 2026)
+
+openhorizon.so re-extracted privately through `extract_site` (568s, with the dwell pass). Fitment rebuilt from the
+blueprint's behaviour narratives and `see_behaviour`: a hero sky with two cloud layers drifting at 8 and 12 px/s over
+stepped hills, a four-part demo card (active part shaded, others at 0.46 opacity + grayscale, ~12.5s each), a black
+terminal that moves above the active part, types at 31 chars/s, reveals steps, waits for Run, shows "Running · step n
+of 3" while a bar fills over 4770ms, then a saved state; mask-faded panels; repeating progress lines; a separate blue
+closing band; a footer landscape with cloud layers at 6 and 10 px/s. Art colours come from the measured pixel palettes.
+
+| pass | overall | color | type | spacing | shape | layout | motion | feel | composition | behaviour |
+|---|---|---|---|---|---|---|---|---|---|---|
+| old build | 63 | — | 49 | — | — | 45 | — | — | 92 | 8 |
+| 1 | 85 | 88 | 82 | 100 | 100 | 100 | 87 | 100 | 91 | 58 |
+| 2 | 91 | 100 | 85 | 100 | 100 | 100 | 91 | 100 | 91 | 79 |
+| 3 | 93 | 100 | 85 | 100 | 100 | 100 | 96 | 100 | 91 | 87 |
+| 4 (re-scored) | **95** | 100 | 85 | 100 | 100 | 100 | 96 | 100 | 91 | 95 |
+
+relume issues found and fixed in this round:
+
+| # | where | issue | fix |
+|---|---|---|---|
+| 14 | behaviour | Items were filed under the section whose dwell stop saw them, so the hero's robot set and progress line were reported in sections 3 and 6. | Anything with a box belongs to the section it sits in. |
+| 15 | behaviour | Video drift on a still section: equal speeds in opposite directions (aliasing on a dotted grid / dashed line). | Steady per-step shifts required; opposite equal pairs dropped. |
+| 16 | behaviour | Two cloud layers with the same class merged into one (12px/s lost). | Layers keyed by name and speed. |
+| 17 | behaviour | A progress line riding a moving terminal counted as a 168px/s drift layer. | Steadiness checked along the whole track. |
+| 18 | probe | CSS animations that start off screen (footer layers) were never tracked when scrolled into view; tracks cap at ~15s. | Endless/long animations on screen get a fresh track segment. |
+| 19 | behaviour | A progress bar that resets between runs was not recognised. | Longest growing stretch is used. |

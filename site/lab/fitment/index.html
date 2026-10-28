@@ -29,27 +29,75 @@
   .btn { display: inline-flex; align-items: center; gap: 10px; height: 40px; padding: 0 12px 0 16px; font: 500 14px/20px var(--font-sans); }
   .btn.sm { height: 34px; font-size: 13px; padding: 0 8px 0 12px; }
 
-  /* hero: a pixel road scene, measured cards beneath */
-  .hero { position: relative; height: 1080px; overflow: hidden; background: linear-gradient(var(--color-indigo-400), var(--color-accent) 45%, var(--color-background) 100%); }
-  .hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
-  .hero .copy { position: relative; z-index: 2; padding-top: 168px; text-align: center; color: var(--color-white-1000); display: grid; justify-items: center; gap: 28px; }
-  .hero h1 { margin: 0; max-width: 900px; text-shadow: 0 2px 30px color-mix(in srgb, var(--color-indigo-400) 25%, transparent); }
+  /* hero: a pixel sky over hills; two cloud layers drift left on their own (measured 8 and 12 px/s, looping) */
+  .hero { position: relative; height: 1276px; overflow: hidden; background: #f5f5f2; }
+  .hero .scene { position: absolute; inset: 0 0 auto; height: 1020px; }
+  .hero canvas, .finale canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+  .drift { position: absolute; inset: 0 auto 0 0; width: 200%; display: flex; animation: drift var(--dur, 120s) linear infinite; will-change: transform; }
+  .drift canvas { position: relative; flex: 0 0 50%; width: 50%; height: 100%; }
+  @keyframes drift { to { transform: translateX(-50%); } }
+  .hero .copy { position: relative; z-index: 2; padding-top: 112px; text-align: center; color: var(--color-white-1000); display: grid; justify-items: center; gap: 28px; }
+  .hero h1 { margin: 0; max-width: 900px; animation-duration: 320ms; }
   .hero p { margin: 0; max-width: 620px; color: var(--color-white-a90); }
   .hero .ctas { display: flex; gap: 12px; }
-  .parts { position: absolute; z-index: 3; left: 50%; transform: translateX(-50%); bottom: 64px; width: min(1152px, calc(100% - 48px)); height: 480px; }
-  .parts .card-3 { position: absolute; inset: 0; background-color: var(--color-surface); background-size: 16px 16px; display: grid; grid-template-columns: repeat(5, 1fr); align-items: end; padding: 32px 40px 28px; }
-  .part { display: grid; justify-items: center; gap: 18px; }
-  .part svg { width: 100%; max-width: 190px; height: 300px; }
-  .part .lbl { font: 400 10px/1.5 var(--font-mono); letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-text-tertiary); display: flex; gap: 6px; align-items: center; }
-  .part .lbl.on::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--color-ui-status-1); }
-  .term { position: absolute; z-index: 2; top: 28px; left: 52%; width: 320px; border-radius: 14px; background: var(--color-gray-100); color: var(--color-ui-text-5); padding: 14px 16px 16px; box-shadow: var(--shadow-1), 0 24px 48px -16px var(--color-black-a15); font: 400 11px/1.627 var(--font-mono); }
-  .term b { font-weight: 500; color: var(--color-white-1000); }
-  .term .ok::before { content: "● "; color: var(--color-ui-status-4); }
-  .term .run::before { content: "● "; color: var(--color-ui-status-3); }
-  .term .dim { color: var(--color-text-quaternary); }
+  /* the demo card: four parts, one active (shaded) while the rest are dimmed and greyed (measured 0.95 vs 0.23) */
+  .parts { position: absolute; z-index: 3; left: 50%; transform: translateX(-50%); top: 778px; width: min(1152px, calc(100% - 48px)); height: 498px; }
+  .parts .card-3 { position: absolute; inset: 0; background-color: var(--color-surface); background-size: 16px 16px; display: grid; grid-template-columns: repeat(4, 1fr); align-items: end; padding: 32px 40px 24px; }
+  .parts .card-3::after { content: ""; position: absolute; left: 0; right: 0; bottom: 64px; height: 1px; background: var(--color-border); }
+  .part { position: relative; display: grid; justify-items: center; gap: 22px; opacity: 0.46; filter: grayscale(1); transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1), filter 700ms cubic-bezier(0.22, 1, 0.36, 1); }
+  .part.on { opacity: 1; filter: none; }
+  .part svg { width: 100%; max-width: 210px; height: 300px; overflow: visible; }
+  .part svg .shade :is(circle, rect, ellipse, path) { fill: transparent; transition: fill 700ms ease; }
+  .part.on svg .shade :is(circle, rect, ellipse, path) { fill: url(#metal); }
+  .part svg .mover { transform-box: fill-box; transform-origin: center; }
+  .part.work .spin { animation: spin 1.4s linear infinite; }
+  .part.work .pump { animation: pump 700ms ease-in-out infinite alternate; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pump { to { transform: scaleY(0.9); } }
+  .part::before { content: ""; position: absolute; left: 50%; bottom: 40px; width: 150px; height: 26px; margin-left: -75px; border-radius: 50%; background: radial-gradient(closest-side, rgb(12 132 87 / 0.28), transparent); opacity: 0; transition: opacity 700ms ease; }
+  .part.on::before { opacity: 1; animation: glow 2.4s ease-in-out infinite; }
+  @keyframes glow { 50% { opacity: 0.55; } }
+  .part .lbl { height: 28px; padding: 0 12px; border-radius: 9999px; font: 500 10px/1.5 var(--font-mono); letter-spacing: 0.164em; text-transform: uppercase; color: var(--color-text-tertiary); display: flex; gap: 6px; align-items: center; transition: background-color 340ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 340ms cubic-bezier(0.22, 1, 0.36, 1), color 340ms cubic-bezier(0.22, 1, 0.36, 1); }
+  .part.on .lbl { background: var(--color-surface); color: var(--color-text); box-shadow: var(--shadow-1), 0 0 0 1px var(--color-black-a5); }
+  .part .lbl::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--color-ui-status-5); display: none; }
+  .part.on .lbl::before { display: block; }
+  /* the terminal follows the active part, types the command, then runs it */
+  .term { position: absolute; z-index: 4; top: 24px; left: 0; width: 284px; border-radius: 14px; background: #070707; color: #f2f2f2; padding: 12px 14px 12px; box-shadow: 0 24px 48px -16px var(--color-black-a15), 0 2px 6px var(--color-black-a15); font: 400 11px/1.6 var(--font-mono); transition: left 800ms cubic-bezier(0.22, 1, 0.36, 1), opacity 400ms ease; }
+  .term.out { opacity: 0; }
+  .term .cmd { font-size: 12px; min-height: 19px; }
+  .term .cmd b { font-weight: 500; }
+  .term .caret { display: inline-block; width: 6px; height: 12px; margin-left: 1px; vertical-align: -2px; background: #f2f2f2; animation: caret 1s steps(1) infinite; }
+  @keyframes caret { 50% { opacity: 0; } }
+  .term .steps { display: grid; gap: 2px; margin-top: 8px; border-top: 1px solid rgb(255 255 255 / 0.08); padding-top: 8px; }
+  .term .steps:empty { display: none; }
+  .term .steps div { color: #a3a3a3; opacity: 0; filter: blur(3px); transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1), filter 400ms cubic-bezier(0.22, 1, 0.36, 1); }
+  .term .steps div.in { opacity: 1; filter: none; }
+  .term .steps div::before { content: "● "; color: var(--color-ui-status-4); }
+  .term .foot { display: none; align-items: center; gap: 8px; margin-top: 8px; }
+  .term .foot.in { display: flex; }
+  .term .state { flex: 1; color: #a3a3a3; }
+  .term .state.done { color: var(--color-ui-status-4); }
+  .term .run { height: 22px; padding: 0 10px; border-radius: 7px; border: 0; font: 500 11px/1.5 var(--font-mono); letter-spacing: 0.164em; color: #070707; background: #f2f2f2; transition: transform 120ms ease, opacity 300ms ease; }
+  .term .run.press { transform: scale(0.94); }
+  .term .run[hidden] { display: none; }
+  .term .prog { height: 2px; margin-top: 8px; background: rgb(255 255 255 / 0.08); display: none; }
+  .term .prog.in { display: block; }
+  .term .prog i { display: block; height: 100%; width: 0; background: var(--color-ui-status-4); transition: width 4770ms linear; }
+  .term .dots { position: absolute; top: 12px; right: 12px; display: flex; gap: 4px; }
+  .term .dots i { width: 5px; height: 5px; border-radius: 50%; background: #f2f2f2; opacity: 0.5; transition: opacity 300ms ease; }
+  .term .dots i.on { opacity: 1; }
+  .dither { position: absolute; left: 0; right: 0; top: 1016px; height: 12px; background:
+    conic-gradient(#287944 25%, transparent 0 50%, #287944 0 75%, transparent 0) 0 0 / 8px 8px; opacity: 0.9; }
   .ticker { position: relative; height: 18px; overflow: hidden; }
   .ticker span { position: absolute; inset: 0; opacity: 0; filter: blur(3px); transition: opacity 300ms cubic-bezier(0.22, 1, 0.36, 1), filter 300ms cubic-bezier(0.22, 1, 0.36, 1); }
   .ticker span.on { opacity: 1; filter: none; }
+  /* panels fade into the page through a mask (measured: linear-gradient(black 60%, transparent), max 540px) */
+  .fade { max-height: 540px; -webkit-mask-image: linear-gradient(rgb(0, 0, 0) 60%, rgba(0, 0, 0, 0)); mask-image: linear-gradient(rgb(0, 0, 0) 60%, rgba(0, 0, 0, 0)); }
+  /* a thin progress line that repeats (measured ~1450ms) */
+  .loopbar { height: 2px; border-radius: 2px; background: var(--color-black-a5); overflow: hidden; }
+  .loopbar i { display: block; height: 100%; width: 0; background: var(--color-ui-status-2); animation: loopbar 1450ms cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+  @keyframes loopbar { to { width: 100%; } }
+  @media (prefers-reduced-motion: reduce) { .drift, .part.work .spin, .part.work .pump, .loopbar i, .part.on::before { animation: none; } }
   /* measured: benchmark bars grow 700ms cubic-bezier(0, 0, 0.2, 1) */
   .bar { height: 4px; border-radius: 9999px; background: var(--color-surface-3); overflow: hidden; margin-top: 6px; }
   .bar i { display: block; height: 100%; width: 33.3333%; background: var(--color-text); transition: width 700ms cubic-bezier(0, 0, 0.2, 1); }
@@ -58,7 +106,7 @@
   .supported { padding: 56px 0 72px; display: grid; justify-items: center; gap: 20px; }
   .supported .row { display: flex; gap: 12px; }
   .supported .logo { height: 52px; padding: 0 16px; display: flex; align-items: center; gap: 10px; border-radius: 8px; background: var(--color-surface); box-shadow: var(--shadow-1), 0 0 0 1px var(--color-black-a5); font: 600 14px/1.5 var(--font-sans); letter-spacing: -0.01em; }
-  .supported .logo small { display: block; font: 400 10px/1.5 var(--font-mono); color: var(--color-text-tertiary); letter-spacing: 0.04em; }
+  .supported .logo small { display: block; font: 400 10px/1.5 var(--font-mono); color: var(--color-text-tertiary); letter-spacing: 0.14em; }
 
   /* feature sections */
   .feat { padding: 120px 0; }
@@ -71,6 +119,7 @@
   .aside .lede span { color: var(--color-text-tertiary); }
   .flist { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--color-border); }
   .flist li { display: flex; align-items: center; gap: 10px; height: 38px; border-bottom: 1px solid var(--color-border); font: 400 13px/1.623 var(--font-sans); color: var(--color-text-secondary); }
+  .flist li { transition: background-color 340ms cubic-bezier(0.22, 1, 0.36, 1); }
   .flist li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--color-green-500); }
   .flist li:first-child::before { background: var(--color-accent); }
   .link-accent { color: var(--color-accent); }
@@ -109,7 +158,7 @@
   .termwin pre .d { color: var(--color-text-quaternary); }
   .bench { display: grid; gap: 14px; padding: 18px; }
   .bench .row { display: flex; justify-content: space-between; font: 400 12px/1.5 var(--font-sans); padding: 10px 0; border-bottom: 1px solid var(--color-border); }
-  .bench .row b { font: 500 11px/1.5 var(--font-mono); }
+  .bench .row b { font: 500 11px/1.5 var(--font-mono); letter-spacing: 0.164em; }
 
   /* chart */
   .chart { padding: 24px 28px; }
@@ -127,33 +176,36 @@
   a:hover .more span, .more:hover span { transform: translateX(3px); }
 
   /* pixel sawtooth where a band starts and ends, as on the source */
-  .band, .finale { position: relative; }
-  .band::before, .finale::before { content: ""; position: absolute; left: 0; right: 0; top: -8px; height: 8px; background:
+  .band, .cta-band { position: relative; }
+  .band::before, .cta-band::before { content: ""; position: absolute; left: 0; right: 0; top: -8px; height: 8px; background:
     linear-gradient(90deg, var(--edge) 50%, transparent 50%) 0 4px / 8px 4px repeat-x,
     linear-gradient(90deg, transparent 50%, var(--edge) 50%) 0 0 / 8px 4px repeat-x; }
   .band { --edge: var(--color-surface-3); }
-  .finale { --edge: var(--color-indigo-400); background: var(--color-indigo-400); color: var(--color-white-1000); }
-  .finale .cta { padding: 120px 0 96px; display: grid; justify-items: center; gap: 22px; text-align: center; }
-  .finale .cta h2 { margin: 0; max-width: 760px; }
-  .finale .cta p { margin: 0; color: var(--color-white-a85); }
-  .finale .eyebrow { color: var(--color-white-a70); }
-  .finale .land { position: relative; height: 620px; }
-  .finale canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
-  .finale .cols { position: relative; z-index: 2; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; padding-top: 72px; }
+  /* closing band: flat measured blue #2463c2, 628px */
+  .cta-band { --edge: var(--color-indigo-400); background: var(--color-indigo-400); color: var(--color-white-1000); }
+  .cta-band .cta { height: 628px; box-sizing: border-box; padding-top: 130px; display: grid; justify-items: center; align-content: start; gap: 22px; text-align: center; }
+  .cta-band h2 { margin: 0; max-width: 760px; }
+  .cta-band p { margin: 0; color: var(--color-white-a85); }
+  .cta-band .eyebrow { color: var(--color-white-a70); }
+  .cta-band .eyebrow b { color: var(--color-white-1000); font-weight: 500; }
+  /* footer: a layered pixel landscape; its two cloud layers drift at 6 and 10 px/s */
+  .finale { position: relative; height: 713px; overflow: hidden; background: var(--color-accent); color: var(--color-white-1000); }
+  .finale .cols { position: relative; z-index: 3; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; padding-top: 84px; }
   .finale .cols h6 { margin: 0 0 14px; font: 500 11px/1.5 var(--font-mono); letter-spacing: 0.164em; text-transform: uppercase; color: var(--color-white-a85); }
   .finale .cols a { display: block; font: 400 13px/2 var(--font-sans); color: var(--color-white-1000); }
-  .finale .legal { position: absolute; z-index: 2; left: 0; right: 0; bottom: 18px; }
+  .finale .legal { position: absolute; z-index: 3; left: 0; right: 0; bottom: 18px; }
   .finale .legal .container { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-  .finale .legal span { font: 400 11px/1.5 var(--font-mono); padding: 4px 10px; border-radius: 9999px; background: var(--color-gray-a75); color: var(--color-white-1000); }
+  .finale .legal span { font: 400 11px/1.627 var(--font-mono); padding: 6px 12px; border-radius: 9999px; background: var(--color-gray-a75); color: var(--color-white-1000); }
 
   @media (max-width: 1000px) {
     .feat .grid, .feat .grid.flip { grid-template-columns: 1fr; }
     .app { grid-template-columns: 1fr; height: auto; } .app .col:not(.chat) { display: none; }
-    .parts .card-3 { grid-template-columns: repeat(3, 1fr); } .part:nth-child(n+4) { display: none; }
+    .parts .card-3 { grid-template-columns: repeat(2, 1fr); } .part:nth-child(n+3) { display: none; }
     .shipped .cards { grid-template-columns: 1fr; }
     .nav .links { display: none; }
     .term { display: none; }
     .finale .cols { grid-template-columns: 1fr 1fr; }
+    .hero { height: 1180px; } .parts { top: 700px; }
   }
 </style>
 </head>
@@ -177,21 +229,26 @@
   <div class="frame">
     <!-- 01 hero + product UI -->
     <section class="hero">
-      <canvas id="road" aria-hidden="true"></canvas>
+      <div class="scene" aria-hidden="true">
+        <canvas id="sky"></canvas>
+        <div class="drift" data-speed="8"><canvas class="cl" data-seed="1" data-band="0.06,0.5"></canvas><canvas class="cl" data-seed="1" data-band="0.06,0.5"></canvas></div>
+        <div class="drift" data-speed="12"><canvas class="cl" data-seed="2" data-band="0.08,0.56"></canvas><canvas class="cl" data-seed="2" data-band="0.08,0.56"></canvas></div>
+        <canvas id="hills"></canvas>
+      </div>
+      <div class="dither" aria-hidden="true"></div>
       <div class="copy">
         <h1 class="text-h1" data-intro="intro-fade-3">Parts for every car on the road.</h1>
         <p class="text-body-regular" data-intro="intro-fade-3" style="--i:1">Automotive research and parts that keep fitment in the loop. Fitment Labs reads a car from its VIN, learns from the mechanics who fix it, and ships the one part that fits from the nearest depot.</p>
         <div class="ctas" data-intro="intro-fade-3" style="--i:2"><a class="button-secondary btn" href="#">Find my part <span class="kbd">↵</span></a><a class="button-secondary-3 btn" href="#">Talk to a parts expert <span class="kbd dark">P</span></a></div>
       </div>
-      <div class="parts" data-reveal="reveal-fade-6">
+      <div class="parts" data-intro="intro-fade-3" style="--i:3">
         <div class="card-3" id="parts"></div>
-        <div class="term" data-reveal="reveal-fade-blur-8">
-          <div><b>@bay3</b> brake pads for 2019 civic, front</div>
-          <div class="ok">VIN decoded · 2HGFC2F69KH5</div>
-          <div class="ok">Fitment checked · 4 / 4 specs</div>
-          <div class="ok">In stock · depot 12 · 18 km</div>
-          <div class="run">Packing · order 1 of 1</div>
-          <div class="ticker mono dim" data-cycle><span>Reading the last order…</span><span>Checking torque specs…</span><span>Loading the depot map…</span><span>Recalling past fitments…</span></div>
+        <div class="term" id="term" aria-live="polite">
+          <div class="dots"><i></i><i></i><i></i><i></i></div>
+          <div class="cmd"><b id="who">@bay3</b> <span id="typed"></span><span class="caret"></span></div>
+          <div class="steps" id="steps"></div>
+          <div class="foot" id="foot"><span class="state" id="state">Waiting for you to press run</span><button class="run" id="run" type="button">Run ↵</button></div>
+          <div class="prog" id="prog"><i></i></div>
         </div>
       </div>
     </section>
@@ -208,7 +265,7 @@
   <section class="band"><div class="frame"><div class="feat"><div class="container">
     <div class="head"><span class="eyebrow">Fitcore</span><h2 class="text-display two-tone" data-reveal="reveal-fade-6">Find a part by describing it.<span>It checks fitment before you buy.</span></h2></div>
     <div class="grid">
-      <div class="card-2 app" data-reveal="reveal-fade-6">
+      <div class="card-2 app fade" data-reveal="reveal-fade-6">
         <div class="col">
           <div class="lab">Garage</div>
           <a class="item on" href="#"><svg><use href="#i-car"/></svg>2019 Honda Civic</a>
@@ -230,7 +287,7 @@
   pads + rotors, torque 108 Nm</div></div>
         </div>
         <div class="col"><div class="bay"><svg id="bay" viewBox="0 0 420 420" fill="none" stroke="var(--color-text-tertiary)" stroke-width="1"></svg>
-          <div class="gate"><div>fit gate<b>4 / 4 specs</b></div><div>bolt pattern<b>5×114.3</b></div><div>caliper<b>single piston</b></div></div></div></div>
+          <div class="gate"><div>fit gate<b>4 / 4 specs</b></div><div class="loopbar"><i></i></div><div>bolt pattern<b>5×114.3</b></div><div>caliper<b>single piston</b></div></div></div></div>
       </div>
       <aside class="aside" data-reveal="reveal-fade-6" style="--i:1">
         <p class="lede">Fitment runs against the part's spec sheet, <span>not a catalogue page, so a part that does not fit never ships.</span></p>
@@ -246,7 +303,7 @@
     <div class="head"><span class="eyebrow">Partspec</span><h2 class="text-display two-tone" data-reveal="reveal-fade-6">Same parts data on every bench.<span>No catalogues, no dealer portals.</span></h2></div>
     <div class="grid flip">
       <aside class="aside" data-reveal="reveal-fade-6"><p class="lede">3.1 million part numbers <span>in a 40 MB index that runs on a shop PC, a phone or a scan tool.</span></p><span class="eyebrow">Features</span><ul class="flist"><li>One index, offline first</li><li>OEM and aftermarket numbers</li><li>Interchange and supersession</li><li>Windows, macOS, Android</li></ul><a class="button-outline-2" href="#" style="justify-self:start">More on Partspec <span>→</span></a></aside>
-      <div class="termwin" data-reveal="reveal-fade-6" style="--i:1">
+      <div class="termwin fade" data-reveal="reveal-fade-6" style="--i:1">
         <div class="tb"><i style="background:var(--color-ui-status-3)"></i><i style="background:var(--color-ui-status-4)"></i><i style="background:var(--color-ui-status-1)"></i><span style="margin:auto">bay3@shop-pc — partspec — 80×26</span></div>
         <div class="tabs"><span class="on">Shop PC</span><span>Phone</span><span>Scan tool</span></div>
         <pre><span class="p">bay3@shop-pc ~ %</span> partspec fit --vin 2HGFC2F69KH5 "front brake pads"
@@ -274,7 +331,7 @@
   <section class="band"><div class="frame"><div class="feat"><div class="container">
     <div class="head"><span class="eyebrow">Research</span><h2 class="text-display two-tone" data-reveal="reveal-fade-6">Measured on real wear,<span>not just catalogue claims.</span></h2></div>
     <div class="grid">
-      <div class="card-2 chart" data-reveal="reveal-fade-6"><svg id="wear" viewBox="0 0 720 440" aria-label="Pad thickness against distance driven"></svg></div>
+      <div class="card-2 chart fade" data-reveal="reveal-fade-6"><svg id="wear" viewBox="0 0 720 440" aria-label="Pad thickness against distance driven"></svg></div>
       <aside class="aside" data-reveal="reveal-fade-6" style="--i:1"><p class="lede">On 1,200 fleet vans, <span>ceramic pads lasted 31% longer than the catalogue rating.</span></p><span class="eyebrow">Features</span><ul class="flist"><li>Wear data from real fleets</li><li>Per-model service intervals</li><li>Failure modes by mileage</li><li>Open dataset, monthly</li></ul><a class="button-outline-2" href="#" style="justify-self:start">Read the report <span>→</span></a></aside>
     </div>
   </div></div></div></section>
@@ -285,30 +342,33 @@
     <div class="cards">
       <a class="card-2 ship" href="#" data-reveal="reveal-fade-6" style="--i:0"><div class="thumb"><div class="termwin" style="width:78%"><pre style="min-height:0;padding:12px 14px;font-size:11px"><span class="p">$</span> partspec --version
 <span class="d">partspec 2.4.0</span>
-<span class="p">$</span> partspec fit --vin … "pads"</pre></div></div><div class="meta"><span class="eyebrow">Release</span><h3 class="text-title-medium">Partspec 2.4</h3><p class="text-body muted">The offline parts index, now with supersession chains and torque specs.</p></div><span class="more">Read <span>→</span></span></a>
+<span class="p">$</span> partspec fit --vin … "pads"</pre><div class="loopbar" style="margin:0 14px 12px;background:rgb(255 255 255 / 0.08)"><i></i></div></div></div><div class="meta"><span class="eyebrow">Release</span><h3 class="text-title-medium">Partspec 2.4</h3><p class="text-body muted">The offline parts index, now with supersession chains and torque specs.</p></div><span class="more">Read <span>→</span></span></a>
       <a class="card-2 ship" href="#" data-reveal="reveal-fade-6" style="--i:1"><div class="thumb"><svg viewBox="0 0 300 160" width="80%"><path d="M10 140 C 90 130, 120 70, 290 30" stroke="var(--color-text)" fill="none"/><path d="M10 145 C 80 140, 150 110, 290 60" stroke="var(--color-green-500)" stroke-dasharray="5 4" fill="none"/></svg></div><div class="meta"><span class="eyebrow">Research · Oct 3, 2026</span><h3 class="text-title-medium">How long do ceramic pads really last?</h3><p class="text-body muted">Fleet data on 1,200 vans against the ratings on the box.</p></div><span class="more">Read <span>→</span></span></a>
       <a class="card-2 ship" href="#" data-reveal="reveal-fade-6" style="--i:2"><div class="thumb"><div style="width:62%;padding:16px;border-radius:10px;background:var(--color-surface);box-shadow:var(--shadow-1),0 0 0 1px var(--color-black-a5)"><span class="eyebrow" style="font-size:9px">Primer</span><div class="text-title-medium" style="margin-top:8px">A beginner's guide to brake jobs</div></div></div><div class="meta"><span class="eyebrow">Field notes · Sep 2026</span><h3 class="text-title-medium">A beginner's guide to brake jobs</h3><p class="text-body muted">Pads, rotors and calipers, from the parts list to the torque wrench.</p></div><span class="more">Read <span>→</span></span></a>
     </div>
   </div></div></div></section>
 </main>
 
-<footer class="finale">
+<section class="cta-band">
   <div class="cta container">
-    <span class="eyebrow">03 / Get started</span>
+    <span class="eyebrow"><b>03</b> / Get started</span>
     <h2 class="text-h1-regular" data-reveal="reveal-fade-6">Turn your garage into a parts counter.</h2>
     <p class="text-body-regular" data-reveal="reveal-fade-6" style="--i:1">Open to independent garages and fleets while we stock the first depots.</p>
     <div class="ctas" style="display:flex;gap:12px;--i:2" data-reveal="reveal-fade-6"><a class="button-secondary btn" href="#">Find my part</a><a class="button-secondary-3 btn" href="#">Talk to a parts expert</a></div>
   </div>
-  <div class="land">
-    <canvas id="land" aria-hidden="true"></canvas>
-    <div class="cols container">
-      <div><h6>// Products</h6><a href="#">Fitcore — the parts finder</a><a href="#">Partspec — offline index</a><a href="#">All products</a><a href="#">Docs</a></div>
-      <div><h6>// Writing</h6><a href="#">Research</a><a href="#">Field notes</a></div>
-      <div><h6>// Company</h6><a href="#">Company</a><a href="#">Careers</a><a href="#">Garages</a><a href="#">Brand kit</a><a href="#">Policies</a><a href="#">Contact</a></div>
-      <div><h6>// Elsewhere</h6><a href="#">GitHub</a><a href="#">Twitter / X</a><a href="#">LinkedIn</a></div>
-    </div>
-    <div class="legal"><div class="container"><span>© 2026 Fitment Labs · a fictional company built with relume from openhorizon.so</span><span>Policies · hello@fitment.example</span></div></div>
+</section>
+<footer class="finale">
+  <canvas id="fsky" aria-hidden="true"></canvas>
+  <div class="drift" data-speed="6" aria-hidden="true"><canvas class="cl" data-seed="5" data-band="0.07,0.12"></canvas><canvas class="cl" data-seed="5" data-band="0.07,0.12"></canvas></div>
+  <div class="drift" data-speed="10" aria-hidden="true"><canvas class="cl" data-seed="6" data-band="0.5,0.56"></canvas><canvas class="cl" data-seed="6" data-band="0.5,0.56"></canvas></div>
+  <canvas id="fland" aria-hidden="true"></canvas>
+  <div class="cols container">
+    <div><h6>// Products</h6><a href="#">Fitcore — the parts finder</a><a href="#">Partspec — offline index</a><a href="#">All products</a><a href="#">Docs</a></div>
+    <div><h6>// Writing</h6><a href="#">Research</a><a href="#">Field notes</a></div>
+    <div><h6>// Company</h6><a href="#">Company</a><a href="#">Careers</a><a href="#">Garages</a><a href="#">Brand kit</a><a href="#">Policies</a><a href="#">Contact</a></div>
+    <div><h6>// Elsewhere</h6><a href="#">GitHub</a><a href="#">Twitter / X</a><a href="#">LinkedIn</a></div>
   </div>
+  <div class="legal"><div class="container"><span>© 2026 Fitment Labs · a fictional company built with relume from openhorizon.so</span><span>Policies · hello@fitment.example</span></div></div>
 </footer>
 
 <script>
@@ -316,49 +376,104 @@
   const C = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 
   // status tickers: one line at a time, each dissolving in from blur
-  document.querySelectorAll('[data-cycle]').forEach((t, k) => { const items = [...t.children]; let i = 0; items[0].classList.add('on'); setInterval(() => { items[i].classList.remove('on'); i = (i + 1) % items.length; items[i].classList.add('on'); }, 1400 + k * 340); });
+  document.querySelectorAll('[data-cycle]').forEach((t, k) => { const items = [...t.children]; let i = 0; setTimeout(() => { items[0].classList.add('on'); setInterval(() => { items[i].classList.remove('on'); i = (i + 1) % items.length; items[i].classList.add('on'); }, 1400 + k * 340); }, 120 + k * 356); });
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // pixel road scene: sky, clouds, hills, trees, a road with a pixel car (the source's pixel landscape, retold)
-  function paintScene(cv, opt) {
-    const ctx = cv.getContext('2d'), S = 6;
-    const hash = (x, y) => { const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5; return s - Math.floor(s); };
-    // every colour is derived from the skill's tokens (the source's hero art is an image, so its own pixel
-    // palette is not measured; mixing the measured blues and greens keeps the scene on-system)
-    const tok = (v) => { const c = C(v); const m = c.match(/^#([0-9a-f]{6})$/i); return m ? [0, 2, 4].map((i) => parseInt(m[1].slice(i, i + 2), 16)) : [128, 128, 128]; };
-    const mix = (a, b, t) => `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(' ')})`;
-    const sky = tok('--color-accent'), deep = tok('--color-indigo-400'), white = tok('--color-white-1000'), paper = tok('--color-background');
-    const green = tok('--color-ui-status-1'), forest = tok('--color-green-500'), dark = tok('--color-green-200'), ink = tok('--color-text'), road = tok('--color-text-tertiary'), amber = tok('--color-ui-status-3');
-    function draw() {
-      const w = cv.width, h = cv.height;
-      const bands = [mix(deep, sky, 0.3), sky, mix(sky, white, 0.18), mix(sky, white, 0.38)];
-      for (let y = 0; y < h; y++) { const t = y / h; ctx.fillStyle = bands[t < 0.25 ? 0 : t < 0.45 ? 1 : t < 0.6 ? 2 : 3]; ctx.fillRect(0, y, w, 1); }
-      for (let i = 0; i < 26; i++) { const cx = hash(i, 1) * w, cy = h * (opt.cloudTop + hash(i, 2) * opt.cloudSpan), cw = 8 + hash(i, 3) * 22;
-        if (opt.keepClear && cy > h * opt.keepClear[0] && cy < h * opt.keepClear[1] && Math.abs(cx + cw / 2 - w / 2) < w * 0.36) continue; for (let k = 0; k < cw; k++) { const ch = Math.max(1, Math.round(3 * Math.sin(Math.PI * k / cw) + hash(i, k))); ctx.fillStyle = k % 3 ? mix(paper, white, 0.5) : mix(sky, white, 0.85); ctx.fillRect(Math.round(cx + k), Math.round(cy - ch), 1, ch); } }
-      const horizon = Math.round(h * opt.horizon), hill = mix(green, forest, 0.45), hill2 = mix(forest, green, 0.2);
-      for (let x = 0; x < w; x++) { const hy = horizon - Math.round(10 + 6 * Math.sin(x / 19) + 4 * Math.sin(x / 7.3)); ctx.fillStyle = hill; ctx.fillRect(x, hy, 1, h - hy); const hy2 = horizon - Math.round(3 + 3 * Math.sin(x / 11 + 2)); ctx.fillStyle = hill2; ctx.fillRect(x, hy2, 1, h - hy2); }
-      for (let i = 0; i < (opt.trees || 18); i++) { const big = opt.bigTrees ? 2 : 1; const tx = Math.round(hash(i, 9) * w), ty = horizon - 2 - Math.round(hash(i, 8) * 6); ctx.fillStyle = mix(dark, forest, 0.4); for (let r = 0; r < 7 * big; r++) ctx.fillRect(tx - (7 * big - 1 - r) / 2, ty - 10 * big + r, 7 * big - r, 1); ctx.fillStyle = mix(dark, ink, 0.5); ctx.fillRect(tx, ty - 3 * big, big, 3 * big); }
-      if (!opt.road) { ctx.fillStyle = hill; ctx.fillRect(0, horizon + 4, w, h - horizon - 4); for (let y = horizon + 4; y < h; y++) for (let x = 0; x < w; x++) if (hash(x, y) > 0.86) { ctx.fillStyle = mix(green, white, 0.15); ctx.fillRect(x, y, 1, 1); } return; }
-      const ry = horizon + 4; ctx.fillStyle = mix(road, ink, 0.2); ctx.fillRect(0, ry, w, 9); ctx.fillStyle = mix(paper, white, 0.5); for (let x = 0; x < w; x += 8) ctx.fillRect(x, ry + 4, 4, 1);
-      const car = Math.round(w * 0.62); ctx.fillStyle = mix(ink, ink, 0); ctx.fillRect(car, ry - 3, 12, 3); ctx.fillRect(car + 3, ry - 5, 6, 2); ctx.fillStyle = mix(amber, amber, 0); ctx.fillRect(car + 11, ry - 2, 1, 1); ctx.fillStyle = mix(ink, ink, 0); ctx.fillRect(car + 2, ry, 2, 1); ctx.fillRect(car + 8, ry, 2, 1);
-      ctx.fillStyle = hill; ctx.fillRect(0, ry + 9, w, h - ry - 9);
-      const fleck = mix(green, white, 0.15);
-      for (let y = ry + 9; y < h; y++) for (let x = 0; x < w; x++) if (hash(x, y) > 0.86) { ctx.fillStyle = fleck; ctx.fillRect(x, y, 1, 1); }
-    }
-    const fit = () => { cv.width = Math.ceil(cv.clientWidth / S); cv.height = Math.ceil(cv.clientHeight / S); draw(); };
-    addEventListener('resize', fit); fit();
+  // pixel art, in the colours measured from the source's hero and footer pixels (blueprint palettes)
+  const SKY = ['#2464c3', '#2973d1', '#3584db', '#4b98e6', '#5aa5ea', '#79b6ea'];
+  const FAR = '#8fb6b0', MID = '#5ea588', NEAR = '#3a9657', DEEP = '#287944', LEAF = '#1f6a3a', TRUNK = '#6b4a2b';
+  const S = 4;
+  const hash = (x, y) => { const v = Math.sin(x * 127.1 + y * 311.7) * 43758.5; return v - Math.floor(v); };
+  const fit = (cv) => { cv.width = Math.ceil(cv.clientWidth / S); cv.height = Math.ceil(cv.clientHeight / S); return cv.getContext('2d'); };
+  function sky(cv, stops) {
+    const ctx = fit(cv), w = cv.width, h = cv.height;
+    // stepped bands with a dithered seam between each, as on the source
+    for (let y = 0; y < h; y++) { const t = y / h; let i = 0; while (i < stops.length - 1 && t > stops[i]) i++;
+      const edge = i > 0 && t - stops[i - 1] < 0.012;
+      for (let x = 0; x < w; x++) { ctx.fillStyle = edge && (x + y) % 2 ? SKY[Math.max(0, i - 1)] : SKY[Math.min(i, SKY.length - 1)]; ctx.fillRect(x, y, 1, 1); } }
   }
-  paintScene($('road'), { cloudTop: 0.06, cloudSpan: 0.46, keepClear: [0.1, 0.36], horizon: 0.62, road: true });
-  paintScene($('land'), { cloudTop: 0.02, cloudSpan: 0.12, horizon: 0.7, road: false, trees: 7, bigTrees: true });
+  function clouds(cv) {
+    const ctx = fit(cv), w = cv.width, h = cv.height, seed = +cv.dataset.seed, [a, b] = cv.dataset.band.split(',').map(Number);
+    // few, long and flat, as on the source
+    for (let i = 0; i < 4; i++) {
+      const cx = Math.round((i / 4 + hash(i, seed) * 0.2) * w), cy = Math.round(h * (a + hash(seed, i) * (b - a))), len = 22 + Math.round(hash(i, seed + 3) * 34);
+      for (let k = 0; k < len; k++) {
+        const top = Math.max(1, Math.round(1.5 + 2.6 * Math.sin(Math.PI * k / len) + (hash(Math.floor(k / 5), i + seed) - 0.5) * 2));
+        const x = (cx + k) % w;
+        ctx.fillStyle = '#f4f7fb'; ctx.fillRect(x, cy - top, 1, top);
+        ctx.fillStyle = '#dce9f6'; ctx.fillRect(x, cy - 1, 1, 1);
+        ctx.fillStyle = '#b9d3ee'; ctx.fillRect(x, cy, 1, 1);
+        if (k > 3 && k < len - 4 && hash(k, seed) > 0.5) { ctx.fillStyle = '#f4f7fb'; ctx.fillRect((x + 3) % w, cy + 1, 1, 1); }
+      }
+    }
+  }
+  function tree(ctx, x, y, r) {
+    ctx.fillStyle = TRUNK; ctx.fillRect(x - 1, y - r * 0.4, 3, r * 1.1);
+    // a full crown: darker underside, lighter clumps toward the sun (upper left)
+    for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) { const d = Math.hypot(dx, dy * 1.1); if (d > r - hash(dx, dy) * 1.6) continue;
+      const lit = (-dx - dy) / (2 * r) + (hash(Math.floor((dx + x) / 3), Math.floor(dy / 3)) - 0.5) * 0.5;
+      ctx.fillStyle = lit > 0.35 ? MID : lit > 0 ? NEAR : lit > -0.4 ? DEEP : LEAF; ctx.fillRect(x + dx, y - r + dy, 1, 1); }
+  }
+  function land(cv, o) {
+    const ctx = fit(cv), w = cv.width, h = cv.height;
+    const layer = (col, base, amp, f) => { ctx.fillStyle = col; for (let x = 0; x < w; x++) { const y = Math.round(h * base - amp * (Math.sin(x / f) * 0.6 + Math.sin(x / (f * 0.37) + 1.3) * 0.4)); ctx.fillRect(x, y, 1, h - y); } };
+    layer(FAR, o.far, 5, 23); layer(MID, o.far + 0.06, 4, 17); layer(NEAR, o.far + 0.13, 3, 13); layer(DEEP, o.far + 0.21, 2, 9);
+    for (let y = Math.round(h * (o.far + 0.21)); y < h; y++) for (let x = 0; x < w; x++) { const r = hash(x, y); if (r > 0.975) { ctx.fillStyle = NEAR; ctx.fillRect(x, y, 1, 1); } else if (r < 0.0015) { ctx.fillStyle = ['#f6e27a', '#f2a7b6', '#ffffff'][x % 3]; ctx.fillRect(x, y, 1, 1); } }
+    for (const [fx, fy, r] of o.trees) tree(ctx, Math.round(w * fx), Math.round(h * fy), r);
+  }
+  function paint() {
+    sky($('sky'), [0.14, 0.22, 0.33, 0.42, 0.52]);
+    land($('hills'), { far: 0.57, trees: [[0.975, 0.8, 22], [0.035, 0.95, 14]] });
+    sky($('fsky'), [0.24, 0.36, 0.46, 0.53, 0.6]);
+    land($('fland'), { far: 0.52, trees: [[0.06, 0.82, 16], [0.93, 0.8, 19], [0.82, 0.95, 9]] });
+    document.querySelectorAll('canvas.cl').forEach(clouds);
+  }
+  paint(); addEventListener('resize', paint);
+  // cloud layers: two identical copies slide left at the measured px/s and loop seamlessly
+  const setDrift = () => document.querySelectorAll('.drift').forEach((d) => d.style.setProperty('--dur', (d.offsetWidth / 2 / +d.dataset.speed) + 's'));
+  setDrift(); addEventListener('resize', setDrift);
 
-  // hero part drawings: brake disc + caliper, alternator, damper, turbo, spark plug (hairline line art)
+  // hero part drawings: line art always; the shade group fills with metal when the part is active
   const parts = [
-    ['Brake assembly', true, () => { let s = ''; for (let r = 30; r <= 74; r += 4) s += `<ellipse cx="95" cy="150" rx="${r}" ry="${r * 1.05}"/>`; for (let i = 0; i < 5; i++) { const a = i / 5 * 6.283; s += `<circle cx="${95 + Math.cos(a) * 18}" cy="${150 + Math.sin(a) * 18}" r="4"/>`; } s += '<path d="M150 95 q 25 55 0 110 l -22 -8 q 18 -46 0 -94 z"/><path d="M134 110 v80"/>'; for (let y = 98; y < 210; y += 8) s += `<path d="M152 ${y} h 10"/>`; return s; }],
-    ['Alternator', false, () => { let s = '<circle cx="95" cy="150" r="56"/><circle cx="95" cy="150" r="46"/>'; for (let i = 0; i < 24; i++) { const a = i / 24 * 6.283; s += `<path d="M${95 + Math.cos(a) * 46} ${150 + Math.sin(a) * 46} L${95 + Math.cos(a) * 56} ${150 + Math.sin(a) * 56}"/>`; } s += '<circle cx="95" cy="150" r="16"/><circle cx="95" cy="150" r="5"/><path d="M60 214 h70 v14 h-70z M70 228 v20 M120 228 v20"/>'; return s; }],
-    ['Damper', false, () => { let s = '<path d="M88 30 h14 v130 h-14z"/><rect x="80" y="160" width="30" height="100" rx="3"/><circle cx="95" cy="276" r="12"/><circle cx="95" cy="22" r="10"/>'; for (let y = 60; y < 250; y += 9) s += `<ellipse cx="95" cy="${y}" rx="34" ry="5"/>`; return s; }],
-    ['Turbocharger', false, () => { let s = '<circle cx="80" cy="150" r="52"/><circle cx="80" cy="150" r="20"/>'; for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283; s += `<path d="M${80 + Math.cos(a) * 20} ${150 + Math.sin(a) * 20} Q ${80 + Math.cos(a + 0.4) * 38} ${150 + Math.sin(a + 0.4) * 38} ${80 + Math.cos(a + 0.2) * 50} ${150 + Math.sin(a + 0.2) * 50}"/>`; } s += '<path d="M132 130 h44 v40 h-44 M150 130 v-50 h30 v14 h-16 v36"/><circle cx="176" cy="150" r="20"/>'; return s; }],
-    ['Spark plug', false, () => { let s = '<path d="M90 20 h10 v30 h-10z M82 50 h26 v40 h-26z"/>'; for (let y = 96; y < 170; y += 7) s += `<path d="M78 ${y} h34"/>`; s += '<path d="M80 92 h30 v80 h-30z M86 172 h18 v60 h-18z M92 232 v20 h12"/>'; for (let y = 180; y < 230; y += 6) s += `<path d="M84 ${y} l22 4"/>`; return s; }],
+    ['Brake assembly', '@bay3', 'swap the front pads on the civic', ['VIN decoded · 2019 Civic Sport', 'Fit checked · 4 / 4 specs', 'Torque loaded · 108 Nm'], 'Fitted · spec saved on bay-3',
+      () => { let s = '<g class="shade mover spin">'; for (let r = 74; r >= 30; r -= 22) s += `<circle cx="95" cy="160" r="${r}"/>`; for (let i = 0; i < 5; i++) { const a = i / 5 * 6.283; s += `<circle cx="${95 + Math.cos(a) * 18}" cy="${160 + Math.sin(a) * 18}" r="4"/>`; } s += '</g><g class="shade"><path d="M150 105 q 25 55 0 110 l -22 -8 q 18 -46 0 -94 z"/></g>'; for (let r = 34; r <= 70; r += 6) s += `<circle cx="95" cy="160" r="${r}"/>`; s += '<path d="M134 120 v80"/>'; for (let y = 108; y < 220; y += 8) s += `<path d="M152 ${y} h 10"/>`; s += '<path d="M40 286 h120 M60 286 v-40 h80 v40"/>'; return s; }],
+    ['Alternator', '@bay1', 'test alternator output at idle', ['Engine at 780 rpm', 'Belt tension · ok', 'Load test · 3 stages'], 'Tested · 14.2 V saved on bay-1',
+      () => { let s = '<g class="shade"><circle cx="95" cy="150" r="56"/></g><g class="shade mover spin"><circle cx="95" cy="150" r="20"/>'; for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283; s += `<path d="M${95 + Math.cos(a) * 6} ${150 + Math.sin(a) * 6} L${95 + Math.cos(a) * 18} ${150 + Math.sin(a) * 18}"/>`; } s += '</g><circle cx="95" cy="150" r="46"/>'; for (let i = 0; i < 24; i++) { const a = i / 24 * 6.283; s += `<path d="M${95 + Math.cos(a) * 46} ${150 + Math.sin(a) * 46} L${95 + Math.cos(a) * 56} ${150 + Math.sin(a) * 56}"/>`; } s += '<path d="M60 214 h70 v14 h-70z M70 228 v20 M120 228 v20 M40 286 h120"/>'; return s; }],
+    ['Damper', '@bay2', 'check rear dampers for leaks', ['Ride height · 412 mm', 'Bounce test · 3 cycles', 'Seal scan · rear left'], 'Checked · report saved on bay-2',
+      () => { let s = '<g class="shade mover pump"><path d="M88 30 h14 v130 h-14z"/><circle cx="95" cy="22" r="10"/></g><g class="shade"><rect x="80" y="160" width="30" height="100" rx="3"/><circle cx="95" cy="276" r="12"/></g>'; for (let y = 60; y < 250; y += 9) s += `<ellipse cx="95" cy="${y}" rx="34" ry="5"/>`; return s; }],
+    ['Turbocharger', '@bay4', 'inspect turbo shaft play', ['Boost log · 30 days', 'Oil feed · clean', 'Shaft play · measuring'], 'Inspected · 0.08 mm saved on bay-4',
+      () => { let s = '<g class="shade"><circle cx="80" cy="150" r="52"/><path d="M132 130 h44 v40 h-44z"/><circle cx="176" cy="150" r="20"/></g><g class="mover spin"><circle cx="80" cy="150" r="20"/>'; for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283; s += `<path d="M${80 + Math.cos(a) * 20} ${150 + Math.sin(a) * 20} Q ${80 + Math.cos(a + 0.4) * 38} ${150 + Math.sin(a + 0.4) * 38} ${80 + Math.cos(a + 0.2) * 50} ${150 + Math.sin(a + 0.2) * 50}"/>`; } s += '</g><path d="M150 130 v-50 h30 v14 h-16 v36 M40 286 h120"/>'; return s; }],
   ];
-  $('parts').innerHTML = parts.map(([n, on, f], i) => `<div class="part" data-reveal="reveal-fade-6" style="--i:${i}"><svg viewBox="0 0 190 300" fill="none" stroke="#6e6e69" stroke-width="1">${f()}</svg><span class="lbl${on ? ' on' : ''}">${n}</span></div>`).join('');
+  $('parts').innerHTML = `<svg width="0" height="0" style="position:absolute"><defs><linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f1f2ee"/><stop offset=".45" stop-color="#cacac8"/><stop offset="1" stop-color="#989896"/></linearGradient></defs></svg>` +
+    parts.map(([n, , , , , f]) => `<div class="part"><svg viewBox="0 0 190 300" fill="none" stroke="#6e6e69" stroke-width="1">${f()}</svg><span class="lbl">${n}</span></div>`).join('');
+
+  // the scripted demo, timed from the measurements: one part active ~12.5s, typing 31 chars/s,
+  // steps ~700ms apart, a ~2.2s wait for Run, "Running · step n of 3" while the bar fills over 4770ms, a saved state
+  const els = [...document.querySelectorAll('.part')], term = $('term');
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const dots = [...term.querySelectorAll('.dots i')]; let d = 0; setInterval(() => { dots.forEach((x, i) => x.classList.toggle('on', i === d)); d = (d + 1) % 4; }, 2000);
+  async function demo(i) {
+    const [, who, cmd, steps, done] = parts[i], el = els[i];
+    els.forEach((e) => e.classList.toggle('on', e === el));
+    const card = $('parts').getBoundingClientRect(), r = el.getBoundingClientRect();
+    term.style.left = Math.max(12, Math.min(card.width - 296, r.left - card.left + r.width / 2 - 142)) + 'px';
+    term.classList.remove('out'); $('who').textContent = who; $('typed').textContent = ''; $('steps').innerHTML = ''; $('foot').classList.remove('in'); $('prog').classList.remove('in'); $('prog').firstElementChild.style.transition = 'none'; $('prog').firstElementChild.style.width = '0'; void $('prog').offsetWidth; $('prog').firstElementChild.style.transition = '';
+    $('state').textContent = 'Waiting for you to press run'; $('state').classList.remove('done'); $('run').hidden = false;
+    await wait(800);
+    for (let k = 1; k <= cmd.length; k++) { $('typed').textContent = cmd.slice(0, k); await wait(1000 / 31); }
+    await wait(300);
+    for (const st of steps) { const div = document.createElement('div'); div.textContent = st; $('steps').append(div); requestAnimationFrame(() => requestAnimationFrame(() => div.classList.add('in'))); await wait(700); }
+    $('foot').classList.add('in'); await wait(2200);
+    $('run').classList.add('press'); await wait(140); $('run').classList.remove('press'); $('run').hidden = true;
+    $('prog').classList.add('in'); el.classList.add('work');
+    requestAnimationFrame(() => requestAnimationFrame(() => { $('prog').firstElementChild.style.width = '100%'; }));
+    for (let n = 1; n <= 3; n++) { $('state').textContent = `Running · step ${n} of 3`; await wait(1590); }
+    el.classList.remove('work'); $('prog').classList.remove('in');
+    $('state').textContent = done; $('state').classList.add('done'); await wait(2200);
+    term.classList.add('out'); await wait(400);
+    demo((i + 1) % parts.length);
+  }
+  if (still) { els[0].classList.add('on'); $('typed').textContent = parts[0][2]; } else demo(0);
 
   // engine bay line drawing for the product UI
   (function bay() { let s = '<rect x="40" y="60" width="340" height="260" rx="22"/><rect x="70" y="100" width="150" height="110" rx="10"/>'; for (let i = 0; i < 4; i++) s += `<circle cx="${100 + i * 30}" cy="155" r="10"/><path d="M${100 + i * 30} 145 v-34"/>`; s += '<rect x="240" y="96" width="110" height="70" rx="8"/><path d="M252 110 h86 M252 124 h86 M252 138 h86 M252 152 h86"/><circle cx="295" cy="245" r="42"/><circle cx="295" cy="245" r="12"/><rect x="80" y="232" width="120" height="60" rx="8"/><path d="M92 248 h96 M92 262 h96 M92 276 h96"/>'; s += '<path d="M150 100 v-24 h120 v20" stroke="var(--color-green-500)" stroke-dasharray="4 3"/><circle cx="150" cy="76" r="3" fill="var(--color-green-500)" stroke="none"/><text x="160" y="70" font-size="10" font-family="JetBrains Mono" fill="var(--color-text-tertiary)" stroke="none">front left · caliper</text>'; $('bay').innerHTML = s; })();
