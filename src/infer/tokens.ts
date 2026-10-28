@@ -497,6 +497,12 @@ export function inferLayout(ev: Evidence) {
       }
     }
     out.containers[vpName] = histogram(widths).slice(0, 4).map(([value, count]) => ({ value, count }));
+    // the content edge: where left-aligned text actually starts, weighted by how much text starts there
+    const lefts = new Map<number, number>();
+    for (const p of ev.pages) { const hh = p.harvests[vpName]; if (!hh) continue; for (const r of hh.rows) if (r.chars > 20 && r.box[0] > 0 && r.box[0] < hh.viewport[0] / 3 && r.s.textAlign !== 'center') lefts.set(Math.round(r.box[0]), (lefts.get(Math.round(r.box[0])) || 0) + r.chars); }
+    const edge = [...lefts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+    const vwv = ev.pages[0].harvests[vpName]?.viewport[0];
+    if (edge !== undefined && vwv) { out.contentEdge = out.contentEdge || {}; out.contentEdge[vpName] = { left: edge, width: vwv - 2 * edge }; }
     out.gutters[vpName] = histogram(gut).slice(0, 3).map(([value]) => value)[0] ?? null;
   }
   const grids = new Map<string, number>();

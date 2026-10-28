@@ -96,12 +96,22 @@ export function compareDna(src: DNA, cand: DNA): Report {
   if (!src.shape.shadows.length && cand.shape.shadows.length) { F.push({ dimension: 'shape', severity: 5, message: `uses ${cand.shape.shadows.length} box-shadows; the source has none`, fix: 'Remove shadows; separate with the border tokens' }); S.shape = Math.max(0, S.shape - 20); }
 
   // ---- layout
+  // layout is judged where it is seen: the x at which text starts, per viewport (falls back to old measures)
   let lay = 100;
-  const sc = src.layout.containers.desktop?.[0]?.value, cc = cand.layout.containers.desktop?.[0]?.value;
-  if (sc && cc && Math.abs(sc - cc) / sc > 0.05) { lay -= 25; F.push({ dimension: 'layout', severity: 5, message: `content width ${cc}px; source ${sc}px`, fix: `max-width: ${sc}px` }); }
-  for (const vp of ['desktop', 'mobile']) {
-    const a = src.layout.gutters[vp], b = cand.layout.gutters[vp];
-    if (a != null && b != null && Math.abs(a - b) > 4) { lay -= 15; F.push({ dimension: 'layout', severity: 4, message: `${vp} gutter ${b}px; source ${a}px`, fix: `padding-inline: ${a}px at ${vp}` }); }
+  const se = (src.layout as any).contentEdge, ce = (cand.layout as any).contentEdge;
+  if (se && ce) {
+    for (const vp of ['desktop', 'tablet', 'mobile']) {
+      const a = se[vp]?.left, b = ce[vp]?.left;
+      if (a == null || b == null) continue;
+      if (Math.abs(a - b) > Math.max(6, a * 0.08)) { lay -= vp === 'desktop' ? 35 : 20; F.push({ dimension: 'layout', severity: vp === 'desktop' ? 6 : 4, message: `${vp}: text starts at x ${b}; source ${a} (content ${se[vp].width}px wide)`, fix: 'use the skill\'s .container' }); }
+    }
+  } else {
+    const sc = src.layout.containers.desktop?.[0]?.value, cc = cand.layout.containers.desktop?.[0]?.value;
+    if (sc && cc && Math.abs(sc - cc) / sc > 0.05) { lay -= 25; F.push({ dimension: 'layout', severity: 5, message: `content width ${cc}px; source ${sc}px`, fix: `max-width: ${sc}px` }); }
+    for (const vp of ['desktop', 'mobile']) {
+      const a = src.layout.gutters[vp], b = cand.layout.gutters[vp];
+      if (a != null && b != null && Math.abs(a - b) > 4) { lay -= 15; F.push({ dimension: 'layout', severity: 4, message: `${vp} gutter ${b}px; source ${a}px`, fix: `padding-inline: ${a}px at ${vp}` }); }
+    }
   }
   S.layout = Math.max(0, lay);
 

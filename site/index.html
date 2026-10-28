@@ -310,7 +310,7 @@ footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12
   <section id="catalog" class="pad">
     <div class="sec-head">
       <div><span class="eyebrow">the catalogue</span><h2 class="disp" data-wipe>Famous sites, recreated.</h2></div>
-      <p data-rise>Each pair is a famous site and a new product site an agent built from relume's skill of it, then checked. Drag across a pair to compare, or open the live comparison: both were recorded by the same scripted visit, so load, scroll and hover line up second by second.</p>
+      <p data-rise>Each pair is a famous site and a new product site built from relume's skill of it, then measured and scored by the same pipeline. Drag across a pair, or open the side-by-side view: both full pages scroll together, section by section.</p>
     </div>
     <div class="pairs" id="pairs"></div>
   </section>
@@ -356,31 +356,7 @@ footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12
 </main>
 <footer class="pad"><span>relume · recreations use a site's language, never its logo, imagery or copy.</span><span>measured, not guessed.</span></footer>
 
-<dialog class="cmp" id="cmp" aria-labelledby="cmpTitle">
-  <div class="cmp-in">
-    <div class="cmp-top">
-      <h3 id="cmpTitle"></h3>
-      <div class="row">
-        <div class="tabs" role="group" aria-label="View"><button type="button" data-mode="rec" aria-pressed="true">Synced recording</button><button type="button" data-mode="live" aria-pressed="false">Live recreation</button></div>
-        <a class="btn line" id="cmpOpenSrc" target="_blank" rel="noopener">Original ↗</a>
-        <a class="btn line" id="cmpOpenRec" target="_blank" rel="noopener">Recreation ↗</a>
-        <button class="btn line" id="cmpClose" type="button">Close</button>
-      </div>
-    </div>
-    <div class="cmp-body">
-      <div class="stage2">
-        <div class="pane"><div class="ph"><b id="paneA"></b><span>original · recorded by relume</span></div><video id="vidA" muted playsinline preload="auto"></video></div>
-        <div class="pane"><div class="ph"><b id="paneB"></b><span id="paneBNote">recreation · same visit</span></div><video id="vidB" muted playsinline preload="auto"></video><iframe id="liveB" title="Live recreation" hidden></iframe></div>
-      </div>
-      <aside class="side" id="side"></aside>
-    </div>
-    <div class="controls" id="controls">
-      <button type="button" id="play">Pause</button>
-      <div class="timeline"><div class="track"></div><div class="fillb" id="fillb"></div><div id="phmarks"></div><input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Scrub both recordings"></div>
-      <span class="t" id="tnow">0.0s</span>
-    </div>
-  </div>
-</dialog>
+
 
 <script type="module" src="app.js"></script>
 </body>

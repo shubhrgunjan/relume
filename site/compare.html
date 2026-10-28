@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>relume · compare</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..750&family=Martian+Mono:wdth,wght@75..112.5,400..500&display=swap" rel="stylesheet">
+<style>
+/* A quiet reading room: two full pages side by side, scrolling together section by section. */
+:root { color-scheme: dark; --ink: #141115; --ink-2: #1c181d; --line: #2e2930; --paper: #f2f0f3; --mute: #b9b2be; --dim: #857d8a; --volt: #c0f63c; --salmon: #ee9070;
+  --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif; --mono: "Martian Mono", ui-monospace, monospace; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--ink); color: var(--paper); font: 400 15px/1.5 var(--display); -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 2px solid var(--volt); outline-offset: 2px; }
+header { position: fixed; z-index: 10; inset: 0 0 auto; height: 60px; display: flex; align-items: center; gap: 16px; padding: 0 max(16px, env(safe-area-inset-left)); background: rgb(20 17 21 / 0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+header .back { color: var(--dim); font: 500 13px/1 var(--mono); font-stretch: 87.5%; }
+header .back:hover { color: var(--paper); }
+header h1 { margin: 0; font: 700 20px/1 var(--display); font-stretch: 80%; letter-spacing: -0.02em; white-space: nowrap; }
+header h1 span { color: var(--dim); font-weight: 400; }
+header .score { color: var(--mute); font: 400 12.5px/1 var(--mono); font-stretch: 87.5%; white-space: nowrap; }
+header .score b { color: var(--paper); font-weight: 500; }
+header .grow { flex: 1; }
+header nav { display: flex; gap: 6px; }
+.btn { display: inline-flex; align-items: center; height: 34px; padding: 0 12px; font: 500 12.5px/1 var(--mono); font-stretch: 87.5%; color: var(--mute); box-shadow: inset 0 0 0 1px var(--line); background: none; border: 0; cursor: pointer; }
+.btn:hover, .btn[aria-pressed="true"] { color: var(--ink); background: var(--paper); box-shadow: none; }
+.pick { display: flex; gap: 4px; }
+.pick a { font: 500 12px/1 var(--mono); font-stretch: 87.5%; padding: 8px 10px; color: var(--dim); }
+.pick a[aria-current="page"], .pick a:hover { color: var(--paper); }
+@media (max-width: 1100px) { header .pick { display: none; } }
+@media (max-width: 720px) { header .score, header nav .btn:not(#motionBtn) { display: none; } header h1 { font-size: 16px; } }
+
+.view { position: fixed; inset: 60px 0 0; display: grid; grid-template-columns: 1fr 120px 1fr; }
+.col { position: relative; overflow: hidden; background: #000; }
+.col img { position: absolute; left: 0; top: 0; width: 100%; will-change: transform; user-select: none; }
+.col .tag { position: absolute; z-index: 2; top: 12px; left: 12px; font: 500 12px/1 var(--mono); font-stretch: 87.5%; padding: 6px 8px; background: var(--ink); color: var(--paper); }
+.col.rec .tag { background: var(--volt); color: var(--ink); }
+.gutter { position: relative; display: grid; align-content: center; justify-items: center; gap: 10px; padding: 0 8px; text-align: center; border-inline: 1px solid var(--line); }
+.gutter .n { font: 500 12px/1 var(--mono); font-stretch: 87.5%; color: var(--dim); }
+.gutter .k { font: 600 14px/1.15 var(--display); color: var(--paper); }
+.gutter .k.miss { color: var(--salmon); }
+.gutter .rule { width: 1px; height: 40px; background: var(--line); }
+.track { position: absolute; inset: 0 0 0 auto; width: 3px; background: var(--ink-2); }
+.track i { position: absolute; left: 0; right: 0; background: var(--volt); }
+.spacer { width: 1px; }
+@media (max-width: 720px) { .view { grid-template-columns: 1fr 1fr; } .gutter { display: none; } }
+
+.motion { position: fixed; z-index: 12; left: 50%; bottom: 16px; transform: translate(-50%, 140%); width: min(1100px, calc(100vw - 32px)); background: var(--ink); box-shadow: 0 0 0 1px var(--line), 0 30px 80px rgb(0 0 0 / 0.6); padding: 14px; display: grid; gap: 12px; transition: transform 500ms cubic-bezier(0.19, 1, 0.22, 1); }
+.motion.on { transform: translate(-50%, 0); }
+.motion .vids { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.motion video { width: 100%; aspect-ratio: 16 / 10; background: #000; display: block; }
+.motion .bar { display: flex; align-items: center; gap: 12px; color: var(--mute); font: 400 12.5px/1.3 var(--mono); font-stretch: 87.5%; }
+.motion .bar .grow { flex: 1; }
+.motion input { flex: 1; accent-color: var(--volt); }
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="./#catalog">← relume</a>
+  <h1 id="title"></h1>
+  <span class="score" id="score"></span>
+  <span class="grow"></span>
+  <div class="pick" id="pick"></div>
+  <nav><button class="btn" id="motionBtn" type="button" aria-pressed="false">Motion</button><a class="btn" id="openSrc" target="_blank" rel="noopener">Original ↗</a><a class="btn" id="openRec" target="_blank" rel="noopener">Recreation ↗</a></nav>
+</header>
+
+<div class="view" aria-live="polite">
+  <div class="col src"><span class="tag" id="tagA"></span><img id="imgA" alt=""><div class="track"><i id="trA"></i></div></div>
+  <div class="gutter"><span class="n" id="secN"></span><span class="k" id="secA"></span><span class="rule"></span><span class="k" id="secB"></span></div>
+  <div class="col rec"><span class="tag" id="tagB"></span><img id="imgB" alt=""><div class="track"><i id="trB"></i></div></div>
+</div>
+<div class="spacer" id="spacer"></div>
+
+<section class="motion" id="motion" aria-label="Motion recordings">
+  <div class="bar"><span>Recorded by relume with the same scripted visit: load, wheel test, scroll pass, hover pass.</span><span class="grow"></span><button class="btn" id="close" type="button">Close</button></div>
+  <div class="vids"><video id="vA" muted playsinline preload="metadata"></video><video id="vB" muted playsinline preload="metadata"></video></div>
+  <div class="bar"><button class="btn" id="play" type="button">Play</button><input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Scrub both recordings"><span id="t">0.0s</span></div>
+</section>
+
+<script type="module">
+const NAMES = { linear: 'Tessera', stripe: 'Ledgerline', vercel: 'Northwind Edge', lenis: 'Drift' };
+const data = await fetch('data/compare.json').then((r) => r.json());
+const id = (location.hash || '#linear').slice(1);
+const d = data.find((x) => x.id === id) || data[0];
+const host = new URL(d.source.url).hostname.replace(/^www\./, '');
+const name = NAMES[d.id] || d.id;
+document.title = `relume · ${host} → ${name}`;
+document.getElementById('title').innerHTML = `${host} <span>→</span> ${name}`;
+const low = Object.entries(d.report.scores).filter(([, v]) => v < 85).map(([k, v]) => `${k} ${v}`);
+document.getElementById('score').innerHTML = `check <b>${d.report.overall}</b>${d.report.pass ? ' · passes' : low.length ? ` · below 85: ${low.join(', ')}` : ''}`;
+document.getElementById('pick').innerHTML = data.map((x) => `<a href="#${x.id}" ${x.id === d.id ? 'aria-current="page"' : ''}>${NAMES[x.id]}</a>`).join('');
+addEventListener('hashchange', () => location.reload());
+document.getElementById('openSrc').href = d.source.page || d.source.url;
+document.getElementById('openRec').href = `recreations/${d.recreationPath.replace(/^\//, '')}/`;
+document.getElementById('tagA').textContent = host;
+document.getElementById('tagB').textContent = `${name} · built with relume`;
+const imgA = document.getElementById('imgA'), imgB = document.getElementById('imgB');
+imgA.src = `media/${d.id}-source-full.jpg`; imgA.alt = `${host}, full page`;
+imgB.src = `media/${d.id}-recreation-full.jpg`; imgB.alt = `${name}, full page`;
+
+// section-aligned scroll: the left page scrolls with the window; the right page shows the same relative
+// position inside its matching section, so like sits beside like
+const A = d.pages.source, B = d.pages.recreation;
+const n = Math.min(A.sections.length, B.sections.length);
+const seg = (P) => { const s = P.sections.slice(0, n).map((x) => [x.y, x.y + x.h]); s.unshift([0, s[0][0]]); s.push([s[s.length - 1][1], P.height]); return s; };
+const sa = seg(A), sb = seg(B);
+const map = (y) => { for (let i = 0; i < sa.length; i++) { const [a0, a1] = sa[i]; if (y < a1 || i === sa.length - 1) { const t = Math.min(1, Math.max(0, (y - a0) / Math.max(1, a1 - a0))); const [b0, b1] = sb[i]; return { i, y: b0 + t * (b1 - b0) }; } } return { i: 0, y: 0 }; };
+const spacer = document.getElementById('spacer');
+let scaleA = 1, scaleB = 1;
+function layout() {
+  const colW = imgA.parentElement.clientWidth;
+  scaleA = colW / 1440; scaleB = colW / 1440;
+  spacer.style.height = (A.height * scaleA + 60) + 'px';
+}
+[imgA, imgB].forEach((i) => i.addEventListener('load', layout));
+addEventListener('resize', layout); layout();
+const secN = document.getElementById('secN'), secA = document.getElementById('secA'), secB = document.getElementById('secB');
+const trA = document.getElementById('trA'), trB = document.getElementById('trB');
+let last = -1;
+function frame() {
+  const y = scrollY / scaleA, vh = (innerHeight - 60);
+  const m = map(y + vh / scaleA * 0.35);
+  const yb = m.y - vh / scaleB * 0.35;
+  imgA.style.transform = `translateY(${-y * scaleA}px)`;
+  imgB.style.transform = `translateY(${-Math.max(0, yb) * scaleB}px)`;
+  trA.style.top = (y / A.height * 100) + '%'; trA.style.height = (vh / scaleA / A.height * 100) + '%';
+  trB.style.top = (Math.max(0, yb) / B.height * 100) + '%'; trB.style.height = (vh / scaleB / B.height * 100) + '%';
+  if (m.i !== last) {
+    last = m.i;
+    const si = m.i - 1, a = A.sections[si], b = B.sections[si];
+    secN.textContent = si >= 0 && si < n ? `section ${si + 1} of ${A.sections.length}` : si < 0 ? 'top' : 'end';
+    secA.textContent = a ? a.kind : '';
+    secB.textContent = b ? b.kind : '';
+    const same = a && b && a.kind.replace(/^hero.*/, 'hero') === b.kind.replace(/^hero.*/, 'hero');
+    secB.classList.toggle('miss', !!(a && b && !same));
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+// motion recordings, on request
+const panel = document.getElementById('motion'), btn = document.getElementById('motionBtn'), vA = document.getElementById('vA'), vB = document.getElementById('vB');
+const play = document.getElementById('play'), scrub = document.getElementById('scrub'), tEl = document.getElementById('t');
+const setPanel = (on) => { panel.classList.toggle('on', on); btn.setAttribute('aria-pressed', String(on)); if (on && !vA.src) { vA.src = `media/${d.id}-source.mp4`; vB.src = `media/${d.id}-recreation.mp4`; for (const v of [vA, vB]) v.addEventListener('loadedmetadata', () => { v.currentTime = Math.min(1.5, (v.duration || 2) / 4); }, { once: true }); } if (!on) { vA.pause(); vB.pause(); play.textContent = 'Play'; } };
+btn.addEventListener('click', () => setPanel(!panel.classList.contains('on')));
+document.getElementById('close').addEventListener('click', () => setPanel(false));
+play.addEventListener('click', () => { if (vA.paused) { vA.play(); vB.play(); play.textContent = 'Pause'; } else { vA.pause(); vB.pause(); play.textContent = 'Play'; } });
+scrub.addEventListener('input', () => { const t = scrub.value / 1000 * (vA.duration || 0); vA.currentTime = t; vB.currentTime = Math.min(t, Math.max(0, (vB.duration || 0) - 0.05)); });
+vA.addEventListener('timeupdate', () => { if (vA.duration) scrub.value = String(Math.round(vA.currentTime / vA.duration * 1000)); tEl.textContent = vA.currentTime.toFixed(1) + 's'; if (!vB.ended && Math.abs(vB.currentTime - vA.currentTime) > 0.3 && vA.currentTime < vB.duration) vB.currentTime = vA.currentTime; });
+</script>
+</body>
+</html>

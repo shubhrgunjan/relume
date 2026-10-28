@@ -102,7 +102,14 @@ for (const spec of pairs) {
   const sm = marks(join(src.dir, 'motion.json.gz')), rm = marks(join(rec.dir, 'motion.json.gz'));
   shot(join(src.dir, 'motion.webm'), Math.min(sm.loadedAt + 3.2, (sm.phases[1]?.t ?? 9) - 0.3), join(out, 'media', `${id}-source.jpg`));
   shot(join(rec.dir, 'motion.webm'), Math.min(rm.loadedAt + 3.2, (rm.phases[1]?.t ?? 9) - 0.3), join(out, 'media', `${id}-recreation.jpg`));
+  // full pages for the side-by-side view, with each page's sections so the two scroll together by section
+  const full = (src, dst) => execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', src, '-vf', 'scale=720:-2', '-q:v', '5', dst]);
+  full(join(src.dir, 'shot-desktop.jpg'), join(out, 'media', `${id}-source-full.jpg`));
+  full(join(rec.dir, 'shot-desktop.jpg'), join(out, 'media', `${id}-recreation-full.jpg`));
+  const secs = (dna, key) => { const pg = (dna.composition?.pages || []).find((p) => p.key === key) || dna.composition?.pages?.[0]; return pg ? { height: pg.pageHeight, sections: pg.sections.map((x) => ({ kind: x.kind, y: Math.round(x.box[1]), h: Math.round(x.box[3]), heading: x.heading?.text || '' })) } : null; };
+  const srcDna = JSON.parse(readFileSync(join(CAT, slug, 'dna.json'), 'utf8')), recDna = JSON.parse(readFileSync(join(checkDir, 'dna.json'), 'utf8'));
   result.push({
+    pages: { source: secs(srcDna, src.key), recreation: secs(recDna, rec.key) },
     id, slug, recreationPath: urlPath,
     source: { ...summary(JSON.parse(readFileSync(join(CAT, slug, 'dna.json'), 'utf8'))), page: src.url, marks: marks(join(src.dir, 'motion.json.gz')), annotations: annotations(src.dir) },
     recreation: { ...summary(JSON.parse(readFileSync(join(checkDir, 'dna.json'), 'utf8'))), marks: marks(join(rec.dir, 'motion.json.gz')), annotations: annotations(rec.dir) },

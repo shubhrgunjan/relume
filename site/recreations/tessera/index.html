@@ -4,103 +4,481 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tessera — incident tracking for hardware teams</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&family=JetBrains+Mono:wght@300..800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/tokens.css">
 <link rel="stylesheet" href="assets/motion.css">
 <style>
+  /* Layout only: every colour, size, radius and timing comes from the linear.app skill (tokens.css, blueprint.md). */
   body { margin: 0; }
-  header.top { position: sticky; top: 0; z-index: 10; height: 64px; display: flex; align-items: center; background: var(--color-black-a80); backdrop-filter: blur(20px); border-bottom: 1px solid var(--color-border); }
-  header.top .container { display: flex; align-items: center; justify-content: space-between; width: 100%; }
-  header.top nav { display: flex; gap: 4px; }
-  .brand { color: var(--color-text); text-decoration: none; display: flex; align-items: center; gap: 8px; }
-  .brand i { width: 18px; height: 18px; border-radius: 4px; background: var(--color-text); }
-  .hero h1 { margin: 0; max-width: 900px; }
+  a { text-decoration: none; color: inherit; }
+  .mono { font-family: var(--font-mono); }
+  .muted { color: var(--color-text-tertiary); }
+  .faint { color: var(--color-text-quaternary); }
+
+  /* header */
+  .top { position: sticky; top: 0; z-index: 20; height: 72px; display: flex; align-items: center; border-bottom: 1px solid var(--color-border); background: var(--color-black-a80); backdrop-filter: blur(20px); }
+  .top .container { display: flex; align-items: center; justify-content: space-between; }
+  .brand { display: flex; align-items: center; gap: 10px; color: var(--color-text); font: 510 16px/1 var(--font-sans); letter-spacing: -0.012em; }
+  .top nav { display: flex; gap: 2px; }
+  .top .right { display: flex; align-items: center; gap: 8px; }
+  .sep { width: 1px; height: 16px; background: var(--color-border); margin: 0 8px; }
+
+  /* hero */
+  .hero { padding: 168px 0 0; }
+  .hero h1 { margin: 0; max-width: 840px; }
   .hero h1 span { display: block; }
-  .hero p { margin: 24px 0 32px; max-width: 560px; color: var(--color-text-tertiary); }
-  .actions { display: flex; gap: 12px; align-items: center; }
-  .shot { margin-top: 64px; height: 420px; }
-  .shot .rows { padding: 16px; display: grid; gap: 8px; }
-  .shot .row { display: grid; grid-template-columns: 80px 1fr 120px 90px; gap: 16px; align-items: center; height: 36px; padding: 0 12px; border-radius: 6px; border: 1px solid var(--color-border); color: var(--color-text-secondary); }
-  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 48px; }
-  @media (max-width: 834px) { .grid3 { grid-template-columns: 1fr; } }
-  .feature { padding: 24px; min-height: 220px; display: flex; flex-direction: column; justify-content: space-between; }
-  .feature p { color: var(--color-text-tertiary); margin: 8px 0 0; }
-  h2 { margin: 0; max-width: 720px; }
-  .lede { color: var(--color-text-tertiary); max-width: 560px; margin: 16px 0 0; }
-  .plan { padding: 32px; display: flex; flex-direction: column; gap: 16px; }
-  .plan ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; color: var(--color-text-secondary); }
-  .log { margin-top: 48px; border-top: 1px solid var(--color-border); }
-  .log div { display: grid; grid-template-columns: 140px 1fr; gap: 24px; padding: 24px 0; border-bottom: 1px solid var(--color-border); }
-  .log time { color: var(--color-text-quaternary); }
-  footer { padding: 64px 0; border-top: 1px solid var(--color-border-2); color: var(--color-text-quaternary); }
+  .hero-sub { display: flex; justify-content: space-between; align-items: baseline; margin: 28px 0 72px; gap: 24px; flex-wrap: wrap; }
+  .hero-sub p { margin: 0; }
+  .hero-sub a { color: var(--color-text-tertiary); }
+  .hero-sub a b { color: var(--color-text); font-weight: 510; }
+  .stage { position: relative; }
+  .stage::before { content: ""; position: absolute; inset: 22% -10% -12%; background: radial-gradient(ellipse at 50% 80%, var(--color-white-a40), transparent 62%); pointer-events: none; }
+
+  /* app window (UI grammar: rows 24/28/40, labels 14/13/12, icons 14/16, avatar 14, chips 24px r4) */
+  .app { position: relative; display: grid; grid-template-columns: 236px 1fr; height: 720px; margin-inline: -20px; background: var(--color-ui-panel); border-radius: 12px; box-shadow: 0 0 0 1px var(--color-border), 0 30px 80px var(--color-black-a50); overflow: hidden; font-family: var(--font-sans); }
+  .side { border-right: 1px solid var(--color-border); padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--color-text-secondary); }
+  .side .ws { display: flex; align-items: center; justify-content: space-between; height: 32px; padding: 0 6px; color: var(--color-text); font-weight: 510; }
+  .side .row { display: flex; align-items: center; gap: 10px; height: 28px; padding: 0 8px; border-radius: 6px; }
+  .side .row.on { background: var(--color-white-a4); color: var(--color-text); }
+  .side .row svg { width: 14px; height: 14px; flex: none; }
+  .side .grp { margin: 14px 0 4px; padding: 0 8px; font-size: 12px; color: var(--color-text-quaternary); }
+  .main { display: grid; grid-template-rows: 44px 1fr; min-width: 0; }
+  .crumb { display: flex; align-items: center; gap: 10px; padding: 0 16px; border-bottom: 1px solid var(--color-border); font-size: 13px; color: var(--color-text-secondary); }
+  .crumb .grow { flex: 1; }
+  .issue { padding: 36px 48px; overflow: hidden; font-size: 14px; color: var(--color-text-secondary); }
+  .issue h3 { margin: 0 0 10px; font: 510 20px/1.33 var(--font-sans); color: var(--color-text); letter-spacing: -0.012em; }
+  .chip { display: inline-flex; align-items: center; height: 24px; padding: 0 6px; border-radius: 4px; background: var(--color-white-a4); box-shadow: inset 0 0 0 1px var(--color-border); font: 400 12px/1 var(--font-mono); color: var(--color-text-secondary); }
+  .act { margin-top: 32px; display: grid; gap: 14px; max-width: 520px; }
+  .act h4 { margin: 0 0 2px; font: 510 14px/1 var(--font-sans); color: var(--color-text); }
+  .ev { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-text-tertiary); }
+  .ev b { color: var(--color-text-secondary); font-weight: 510; }
+  .av { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+  .comment { border-radius: 8px; box-shadow: inset 0 0 0 1px var(--color-border); background: var(--color-white-a4); padding: 12px 14px; display: grid; gap: 8px; font-size: 13px; }
+  .agent { position: absolute; right: 22px; top: 96px; width: 400px; height: 520px; background: var(--color-surface); border-radius: 12px; box-shadow: 0 0 0 1px var(--color-border-3), 0 20px 50px var(--color-black-a50); display: grid; grid-template-rows: 40px 1fr auto; font-size: 13px; overflow: hidden; }
+  .agent .bar { display: flex; align-items: center; gap: 8px; padding: 0 12px; border-bottom: 1px solid var(--color-border); color: var(--color-text); }
+  .agent .bar .grow { flex: 1; }
+  .agent .body { padding: 16px; display: grid; gap: 12px; align-content: start; color: var(--color-text-secondary); }
+  .bubble { justify-self: end; max-width: 300px; padding: 10px 12px; border-radius: 8px; background: var(--color-white-a4); box-shadow: inset 0 0 0 1px var(--color-border); color: var(--color-text); }
+  .draft { border-radius: 8px; box-shadow: inset 0 0 0 1px var(--color-border-3); padding: 10px 12px; display: grid; gap: 6px; }
+  .add { color: var(--color-ui-status-2); } .del { color: var(--color-ui-status-6); }
+  .reply { margin: 12px; padding: 10px 12px; height: 84px; border-radius: 8px; box-shadow: inset 0 0 0 1px var(--color-border-3); color: var(--color-text-quaternary); display: flex; flex-direction: column; justify-content: space-between; }
+  .ico { display: inline-flex; gap: 10px; color: var(--color-text-tertiary); }
+
+  /* logos */
+  .logos { padding: 112px 0 0; }
+  .logos .row { display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; color: var(--color-text); }
+  .logos .row span { display: inline-flex; align-items: center; gap: 8px; font: 600 22px/1 var(--font-sans); letter-spacing: -0.03em; }
+  .logos .row svg { height: 28px; width: auto; }
+  .logos .cap { margin-top: 40px; font: 400 12px/1 var(--font-mono); letter-spacing: 0.06em; color: var(--color-text-quaternary); }
+
+  /* statement */
+  .statement { padding: 128px 0 64px; }
+  .statement p { margin: 0; max-width: 1180px; font: 510 48px/1 var(--font-sans); letter-spacing: -0.022em; color: var(--color-text); }
+  .statement p span { color: var(--color-text-tertiary); }
+
+  /* trio */
+  .trio .grid { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .trio .cell { padding: 0 32px 48px; border-left: 1px solid var(--color-border); }
+  .trio .cell:first-child { border-left: 0; padding-left: 0; }
+  .trio .fig { font: 400 11px/1 var(--font-mono); letter-spacing: 0.06em; color: var(--color-text-quaternary); }
+  .trio svg { display: block; width: 100%; height: 300px; margin: 24px 0 32px; }
+  .trio h3 { margin: 0 0 10px; }
+
+  /* split feature sections */
+  .feature { padding: 128px 0 0; border-top: 1px solid var(--color-border); margin-top: 128px; }
+  .feature .intro { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+  .feature h2 { margin: 0; max-width: 420px; }
+  .feature .intro p { margin: 0 0 32px; color: var(--color-text-secondary); max-width: 520px; }
+  /* product UI bleeds past the content column to both screen edges, as measured on the source */
+  .feature .canvas { position: relative; margin-top: 96px; height: 640px; margin-inline: -140px; }
+  .feature .canvas.fade::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, var(--color-background), transparent 8%, transparent 92%, var(--color-background)); pointer-events: none; }
+  .subs { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-top: 56px; padding-bottom: 32px; }
+  .subs .cols { display: grid; grid-template-columns: 1fr 1fr; }
+  .subs .cols div { display: grid; gap: 6px; align-content: start; padding-left: 24px; }
+  .subs .cols div:first-child { padding-left: 0; border-right: 1px solid var(--color-border); }
+  .subs a { color: var(--color-text-secondary); font-size: 13px; }
+  /* measured: arrows rest 2px back and nudge forward on hover, 100ms cubic-bezier(.25,.46,.45,.94) */
+  .nudge { display: inline-block; transform: translate(-2px) translateY(-1px); transition: transform 100ms cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+  a:hover .nudge { transform: translateY(-1px); }
+  /* measured: "Working…" text shimmers, background-position -8px → 112px over 2000ms linear */
+  .working { background: linear-gradient(90deg, var(--color-text-quaternary) 0 30%, var(--color-text) 45%, var(--color-text-quaternary) 60% 100%) -8px 50% / 120px 100% repeat-x; -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .subs a::after { content: " +"; color: var(--color-text-quaternary); }
+
+  /* thread + board */
+  .thread { position: absolute; left: 120px; top: 0; z-index: 2; width: 480px; height: 560px; background: var(--color-surface); border-radius: 12px; box-shadow: 0 0 0 1px var(--color-border-3), 0 24px 60px var(--color-black-a50); display: grid; grid-template-rows: 44px 1fr auto; font-size: 13px; overflow: hidden; }
+  .thread .bar { display: flex; align-items: center; gap: 8px; padding: 0 14px; border-bottom: 1px solid var(--color-border); color: var(--color-text); }
+  .msgs { padding: 18px; display: grid; gap: 18px; align-content: start; }
+  .msg { display: grid; grid-template-columns: 32px 1fr; gap: 12px; color: var(--color-text-secondary); }
+  .msg .pic { width: 32px; height: 32px; border-radius: 6px; }
+  .msg b { color: var(--color-text); font-weight: 510; margin-right: 6px; }
+  .compose { margin: 14px; padding: 12px; border-radius: 9px; box-shadow: inset 0 0 0 1px var(--color-border-3); display: grid; gap: 22px; }
+  .compose .mention { color: var(--color-violet-500); background: color-mix(in srgb, var(--color-violet-500) 12%, transparent); border-radius: 4px; padding: 0 3px; }
+  .board { position: absolute; left: 500px; right: 0; top: 32px; height: 520px; background: var(--color-ui-panel); border-radius: 12px; box-shadow: 0 0 0 1px var(--color-border); display: grid; grid-template-columns: repeat(4, 280px); gap: 12px; padding: 14px; overflow: hidden; font-size: 13px; }
+  .col h5 { margin: 0 0 10px; display: flex; align-items: center; gap: 8px; font: 510 13px/28px var(--font-sans); color: var(--color-text); }
+  .col h5 span { color: var(--color-text-quaternary); font-weight: 400; }
+  .kcard { background: var(--color-surface); border-radius: 8px; box-shadow: inset 0 0 0 1px var(--color-border); padding: 10px 12px; margin-bottom: 8px; display: grid; gap: 8px; }
+  .kcard .id { font-size: 12px; color: var(--color-text-quaternary); display: flex; justify-content: space-between; }
+  .kcard .t { color: var(--color-text); font-weight: 510; }
+  .kcard .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 8px; border-radius: 9999px; box-shadow: inset 0 0 0 1px var(--color-border); font-size: 12px; color: var(--color-text-tertiary); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* timeline + swarm */
+  .timeline { position: absolute; left: 80px; top: 0; width: 860px; height: 560px; border-radius: 12px; background: var(--color-ui-panel); box-shadow: 0 0 0 1px var(--color-border); overflow: hidden; font-size: 12px; }
+  .timeline .months { display: flex; justify-content: space-around; height: 32px; align-items: center; color: var(--color-text-tertiary); border-bottom: 1px solid var(--color-border); }
+  .timeline .days { display: flex; justify-content: space-between; padding: 6px 18px; color: var(--color-text-quaternary); font-size: 11px; }
+  .tl-row { position: absolute; height: 28px; border-radius: 6px; display: flex; align-items: center; gap: 8px; padding: 0 10px; font-size: 12px; color: var(--color-text-secondary); background: var(--color-white-a4); box-shadow: inset 0 0 0 1px var(--color-border); white-space: nowrap; }
+  .swarm { position: absolute; right: 60px; top: 24px; width: 760px; height: 560px; background: var(--color-surface); border-radius: 12px; box-shadow: 0 0 0 1px var(--color-border-3), 0 24px 60px var(--color-black-a50); padding: 16px 18px; }
+  .swarm h5 { margin: 0; font: 510 13px/1 var(--font-sans); color: var(--color-text); }
+  .swarm svg { width: 100%; height: 470px; }
+
+  /* agent windows */
+  .agents { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .awin { background: var(--color-surface); border-radius: 12px; box-shadow: 0 0 0 1px var(--color-border); display: grid; grid-template-rows: 40px 1fr; height: 460px; font-size: 13px; overflow: hidden; }
+  .awin .bar { display: flex; align-items: center; gap: 8px; padding: 0 12px; border-bottom: 1px solid var(--color-border); color: var(--color-text); }
+  .awin .bar .grow { flex: 1; }
+  .awin .body { padding: 16px; display: grid; gap: 10px; align-content: start; }
+  .ctx { justify-self: end; font-size: 12px; color: var(--color-text-quaternary); display: flex; gap: 6px; align-items: center; }
+  .ctx b { color: var(--color-text-secondary); font-weight: 400; }
+
+  /* incident list + diff */
+  .list { position: absolute; left: 120px; top: 0; width: 640px; height: 560px; background: var(--color-ui-panel); border-radius: 12px; box-shadow: 0 0 0 1px var(--color-border); padding: 10px; font-size: 13px; overflow: hidden; }
+  .lgrp { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 8px; color: var(--color-text); font-weight: 510; }
+  .lgrp span { color: var(--color-text-quaternary); font-weight: 400; }
+  .lrow { display: grid; grid-template-columns: 16px 76px 16px 1fr; gap: 10px; align-items: center; height: 40px; padding: 0 12px; color: var(--color-text-secondary); border-radius: 6px; }
+  .lrow .k { color: var(--color-text-quaternary); }
+  .diff { position: absolute; left: 520px; right: 0; top: -16px; height: 560px; background: var(--color-surface); border-radius: 12px; box-shadow: 0 0 0 1px var(--color-border-3), 0 24px 60px var(--color-black-a50); display: grid; grid-template-rows: 44px 1fr; overflow: hidden; }
+  .diff .bar { display: flex; align-items: center; gap: 10px; padding: 0 16px; border-bottom: 1px solid var(--color-border); font: 400 12px/1 var(--font-mono); color: var(--color-text-tertiary); }
+  .diff .bar .grow { flex: 1; }
+  .diff .cols { display: grid; grid-template-columns: 1fr 1fr; }
+  .diff pre { margin: 0; padding: 14px 0; font: 400 13px/24px var(--font-mono); color: var(--color-text-secondary); white-space: pre; overflow: hidden; }
+  .diff pre:first-child { border-right: 1px solid var(--color-border); }
+  .diff pre i { font-style: normal; display: inline-block; width: 44px; padding-left: 14px; color: var(--color-text-quaternary); }
+  .diff .m { background: color-mix(in srgb, var(--color-ui-status-6) 12%, transparent); display: block; } .diff .p { background: var(--color-green-a7); display: block; }
+  .kw { color: var(--color-ui-status-1); } .st { color: var(--color-ui-status-8); } .fn { color: var(--color-indigo-800); }
+
+  /* changelog */
+  .changelog { padding: 128px 0 0; border-top: 1px solid var(--color-border); margin-top: 128px; }
+  .changelog h2 { margin: 0 0 72px; }
+  .rail { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; padding-top: 40px; }
+  .rail::before { content: ""; position: absolute; left: 0; right: 0; top: 4px; height: 1px; background: var(--color-border); }
+  .rail article { position: relative; display: grid; gap: 10px; align-content: start; }
+  .rail article::before { content: ""; position: absolute; top: -40px; left: 0; width: 9px; height: 9px; border-radius: 50%; background: var(--color-border-3); box-shadow: 0 0 0 3px var(--color-background); }
+  .rail article:first-child::before { background: var(--color-ui-status-6); }
+  .rail p { margin: 0; color: var(--color-text-tertiary); }
+  .rail time { font: 400 11px/1 var(--font-mono); letter-spacing: 0.06em; color: var(--color-text-quaternary); text-transform: uppercase; }
+  .viewall { display: inline-block; margin-top: 48px; color: var(--color-text-tertiary); }
+
+  /* testimonials */
+  .quotes { padding: 128px 0 0; }
+  .qgrid { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; }
+  .q { position: relative; min-height: 480px; padding: 32px; border-radius: 4px; display: flex; flex-direction: column; justify-content: space-between; color: var(--color-background); overflow: hidden; }
+  .q blockquote { margin: 0; font: 400 32px/1.125 var(--font-sans); letter-spacing: -0.022em; max-width: 560px; text-indent: -0.4em; }
+  .q.lav { background: linear-gradient(180deg, var(--color-indigo-800), var(--color-violet-900)); }
+  .q.lime { background: var(--color-lime-900); }
+  .q .who { display: flex; align-items: center; gap: 16px; font-size: 13px; }
+  .q .who b { display: block; font-weight: 510; }
+  .q .who img, .q .who .mk { width: 32px; height: 32px; }
+  .q .wm { position: absolute; right: -40px; top: 40px; width: 380px; height: 380px; opacity: 0.12; }
+  .powers { display: flex; justify-content: space-between; margin-top: 24px; color: var(--color-text-tertiary); font-size: 13px; }
+  .powers b { color: var(--color-text); font-weight: 510; }
+
+  /* cta + footer */
+  .cta { padding: 240px 0; text-align: center; }
+  .cta h2 { margin: 0 0 32px; }
+  .cta .btns { display: inline-flex; gap: 12px; }
+  footer { border-top: 1px solid var(--color-border); padding: 64px 0 48px; }
+  footer .grid { display: grid; grid-template-columns: 1.4fr repeat(5, 1fr); gap: 24px; }
+  footer h6 { margin: 0 0 18px; font: 510 13px/1 var(--font-sans); color: var(--color-text); }
+  footer ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  footer li a { color: var(--color-text-tertiary); font-size: 13px; }
+  footer li a:hover { color: var(--color-text); }
+  footer .legal { margin-top: 64px; display: flex; gap: 22px; padding-left: calc((100% - 120px) / 6.4 * 1.4 + 24px); font-size: 12px; color: var(--color-text-quaternary); }
+
+  @media (max-width: 1000px) {
+    .feature .canvas { margin-inline: 0; overflow: hidden; }
+    .feature .intro, .subs { grid-template-columns: 1fr; }
+    .trio .grid, .rail { grid-template-columns: 1fr 1fr; }
+    .qgrid { grid-template-columns: 1fr; }
+    .app { grid-template-columns: 1fr; } .side { display: none; } .agent { display: none; }
+    .statement p { font-size: 32px; }
+    footer .grid { grid-template-columns: repeat(2, 1fr); }
+    .top nav { display: none; }
+  }
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-pulse" viewBox="0 0 16 16"><path d="M1 8h3l2-5 4 10 2-5h3" fill="none" stroke="currentColor" stroke-width="1.3"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 16 16"><path d="M2 9l2-6h8l2 6v4H2z M2 9h4l1 2h2l1-2h4" fill="none" stroke="currentColor" stroke-width="1.3"/></symbol>
+  <symbol id="i-issue" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="8" r="2" fill="currentColor"/></symbol>
+  <symbol id="i-review" viewBox="0 0 16 16"><path d="M4 3v10M4 3a2 2 0 100 0M12 13a2 2 0 100 0M12 11V7a3 3 0 00-3-3H7" fill="none" stroke="currentColor" stroke-width="1.3"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 16 16"><path d="M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z" fill="none" stroke="currentColor" stroke-width="1.2"/></symbol>
+  <symbol id="i-box" viewBox="0 0 16 16"><path d="M2 5l6-3 6 3v6l-6 3-6-3z M2 5l6 3 6-3 M8 8v6" fill="none" stroke="currentColor" stroke-width="1.2"/></symbol>
+  <symbol id="i-prog" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="var(--color-ui-status-7)" stroke-width="1.5"/><path d="M8 4a4 4 0 010 8z" fill="var(--color-ui-status-7)"/></symbol>
+  <symbol id="i-done" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="var(--color-ui-status-2)"/><path d="M5 8l2 2 4-4" stroke="var(--color-background)" stroke-width="1.6" fill="none"/></symbol>
+  <symbol id="i-todo" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="var(--color-text-tertiary)" stroke-width="1.5"/></symbol>
+  <symbol id="i-bars" viewBox="0 0 16 16"><path d="M3 12v-2M7 12V7M11 12V4" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-mark" viewBox="0 0 24 24"><path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3z" fill="currentColor"/><path d="M13 13h8v8h-8z" fill="currentColor" opacity=".45"/></symbol>
+</svg>
+
 <header class="top" data-reveal="reveal-tint-15">
   <div class="container">
-    <a class="brand text-body-medium" href="#"><i></i>Tessera</a>
-    <nav><a class="link" href="#features">Features</a><a class="link" href="#pricing">Pricing</a><a class="link" href="#changelog">Changelog</a></nav>
-    <div class="actions"><a class="link" href="#">Log in</a><a class="button-primary" href="#">Start free</a></div>
+    <a class="brand" href="#"><svg width="18" height="18" style="color:var(--color-text)"><use href="#i-mark"/></svg>Tessera</a>
+    <nav><a class="link" href="#">Product</a><a class="link" href="#">Resources</a><a class="link" href="#">Customers</a><a class="link" href="#">Pricing</a><a class="link" href="#">Now</a><a class="link" href="#">Contact</a></nav>
+    <div class="right"><a class="link" href="#">Log in</a><a class="button-primary" href="#">Sign up</a></div>
   </div>
 </header>
 
 <main>
-  <section class="section hero">
+  <!-- 01 hero + product UI -->
+  <section class="hero">
     <div class="container">
-      <span class="badge-3" data-intro="intro-fade-5">New · firmware rollback tracking</span>
-      <h1 class="text-display" style="margin-top:24px">
-        <span data-intro="intro-fade-blur-up-1" style="--i:0">Hardware breaks in the field.</span>
-        <span data-intro="intro-fade-blur-up-1" style="--i:1">Tessera tells you why.</span>
-      </h1>
-      <p class="text-body" data-intro="intro-fade-blur-up-1" style="--i:2">Every device incident, from first report to shipped fix, linked to the build, the batch and the board revision that caused it.</p>
-      <div class="actions" data-intro="intro-fade-blur-up-1" style="--i:3"><a class="button-primary" href="#">Start free</a><a class="button-secondary-3" href="#">Talk to an engineer</a></div>
-      <div class="card shot" data-intro="intro-fade-6">
-        <div class="rows">
-          <div class="row text-small-regular"><span class="text-mono-sm-regular">HW-2041</span><span>Thermal throttling on rev C boards above 41°C</span><span class="badge">batch 0912</span><span>Investigating</span></div>
-          <div class="row text-small-regular"><span class="text-mono-sm-regular">HW-2038</span><span>BLE drops after firmware 3.4.1 OTA</span><span class="badge">fw 3.4.1</span><span>Fix shipped</span></div>
-          <div class="row text-small-regular"><span class="text-mono-sm-regular">HW-2033</span><span>Connector J4 intermittent on 2% of units</span><span class="badge">supplier B</span><span>Triage</span></div>
-          <div class="row text-small-regular"><span class="text-mono-sm-regular">HW-2027</span><span>Battery gauge reports 0% at 18% charge</span><span class="badge">rev B</span><span>Backlog</span></div>
+      <h1 class="text-display"><span data-intro="intro-fade-blur-up-1" style="--i:0">The incident system for</span><span data-intro="intro-fade-blur-up-1" style="--i:1">teams that ship hardware</span></h1>
+      <div class="hero-sub" data-intro="intro-fade-blur-up-1" style="--i:2"><p class="text-body muted">Purpose-built for tracing field failures to the build that caused them. Designed for fleets.</p><a class="text-body" href="#"><b>New</b>&nbsp; Fleet maps <span class="nudge">→</span></a></div>
+      <div class="stage" data-intro="intro-fade-8">
+        <div class="app">
+          <aside class="side">
+            <div class="ws"><span style="display:flex;gap:8px;align-items:center"><svg width="16" height="16"><use href="#i-mark"/></svg>Tessera</span><span class="faint">⌕ ✎</span></div>
+            <a class="row" href="#"><svg><use href="#i-pulse"/></svg>Pulse</a>
+            <a class="row" href="#"><svg><use href="#i-inbox"/></svg>Inbox</a>
+            <a class="row" href="#"><svg><use href="#i-issue"/></svg>My incidents</a>
+            <a class="row" href="#"><svg><use href="#i-review"/></svg>Reviews</a>
+            <div class="grp">Workspace ▾</div>
+            <a class="row" href="#"><svg><use href="#i-grid"/></svg>Programs</a>
+            <a class="row" href="#"><svg><use href="#i-box"/></svg>Fleets</a>
+            <a class="row" href="#"><svg><use href="#i-grid"/></svg>Batches</a>
+            <div class="grp">Favorites ▾</div>
+            <a class="row on" href="#"><svg><use href="#i-prog"/></svg>Thermal throttling</a>
+            <a class="row" href="#"><svg><use href="#i-bars"/></svg>Rev C bring-up</a>
+            <a class="row" href="#"><svg><use href="#i-box"/></svg>Supplier B audit</a>
+            <a class="row" href="#"><svg><use href="#i-pulse"/></svg>OTA 3.4 rollout</a>
+          </aside>
+          <div class="main">
+            <div class="crumb"><svg width="14" height="14"><use href="#i-prog"/></svg><b style="color:var(--color-text);font-weight:510">HW-2041</b> Thermal throttling on rev C <span style="color:var(--color-ui-status-7)">★</span><span class="grow"></span><span class="faint">1 / 63</span><span class="faint">↑ ↓</span></div>
+            <div class="issue">
+              <h3>Thermal throttling on rev C</h3>
+              <div style="max-width:560px">Units from batch <span class="chip">0912</span> throttle above 41°C ambient. The governor reads <span class="chip">tz_soc</span> before the fan curve settles, instead of after the first full cycle.</div>
+              <div class="act">
+                <h4>Activity</h4>
+                <div class="ev"><span class="av" style="background:var(--color-text-tertiary)"></span><b>Tessera</b> created the incident from 14 field reports · 2 min ago</div>
+                <div class="ev"><svg width="14" height="14"><use href="#i-bars"/></svg><b>Triage</b> added the labels <b>Thermal</b> and <b>Rev C</b> · 2 min ago</div>
+                <div class="comment"><div class="ev"><span class="av" style="background:var(--color-ui-status-8)"></span><b>maya</b> 4 min ago</div><div>Every unit in the report set came off line 3 the week of the conformal-coat change. Batch 0909 is clean.</div></div>
+                <div class="comment"><div class="ev"><span class="av" style="background:var(--color-indigo-800)"></span><b>kofi</b> just now</div><div><span style="color:var(--color-violet-500)">@Tessera</span> can you bisect the governor change across fw 3.3 → 3.4?</div></div>
+                <div class="ev"><span class="av" style="background:var(--color-text-tertiary)"></span><b>Tessera</b> linked <b>fw/3.4.1</b> · 1 min ago</div>
+                <div class="ev"><svg width="14" height="14"><use href="#i-review"/></svg><b>Changed 2 files</b> Draft patch awaiting your review · 1 min ago</div>
+              </div>
+            </div>
+          </div>
+          <div class="agent">
+            <div class="bar"><svg width="14" height="14"><use href="#i-mark"/></svg>Tessera <span class="chip">agent</span><span class="grow"></span><span class="ico">– ⤢ ×</span></div>
+            <div class="body">
+              <div class="bubble">Find why rev C throttles above 41°C and draft a fix</div>
+              <div class="ctx"><svg width="14" height="14"><use href="#i-issue"/></svg><b>HW-2041</b> added to context</div>
+              <div><span class="working" data-intro="intro-backgroundpositionx-4">Working…</span> <span class="faint">12 sec</span></div>
+              <div>Bisected fw 3.3.0 → 3.4.1. The governor now samples <span class="chip">tz_soc</span> 40 ms earlier; under conformal coat the sensor lags 90 ms.</div>
+              <div class="draft"><div><b style="color:var(--color-text);font-weight:510">Changed</b> 2 files <span class="add">+18</span> <span class="del">−6</span><span style="float:right" class="faint">Preview</span></div><div>Draft · Delay first thermal sample until fan settle</div><div class="mono faint" style="font-size:12px">main · fw/hw-2041-settle-delay</div></div>
+            </div>
+            <div class="reply"><span>Reply…</span><span class="ico" style="justify-content:space-between;display:flex">Skills ▾ <span>⌘ ⏎</span></span></div>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="section" id="features">
-    <div class="container">
-      <h2 class="text-h2-medium">Built for the teams who ship atoms, not just bits.</h2>
-      <p class="lede text-body">Software trackers stop at the commit. Tessera follows a fault through manufacturing, firmware and the field.</p>
-      <div class="grid3">
-        <article class="card feature" data-reveal="reveal-fade-blur-12" style="--i:0"><span class="text-h3-medium">Batch lineage</span><p class="text-body-regular">Every unit's serial maps to its line, lot and component suppliers.</p></article>
-        <article class="card feature" data-reveal="reveal-fade-blur-12" style="--i:1"><span class="text-h3-medium">Firmware blame</span><p class="text-body-regular">Bisect incidents across OTA releases, with rollback in one action.</p></article>
-        <article class="card feature" data-reveal="reveal-fade-blur-12" style="--i:2"><span class="text-h3-medium">Field telemetry</span><p class="text-body-regular">Crash dumps and sensor traces attach themselves to the right issue.</p></article>
+  <!-- 02 logo strip -->
+  <section class="logos">
+    <div class="container" data-reveal="reveal-fade-13">
+      <div class="row">
+        <span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="3"/></svg>Halden</span>
+        <span><svg viewBox="0 0 24 24"><path d="M2 20L12 3l10 17z" fill="currentColor"/></svg>KESTREL</span>
+        <span style="font-weight:400;font-style:italic">ostrava</span>
+        <span><svg viewBox="0 0 24 24"><path d="M3 12h18M12 3v18" stroke="currentColor" stroke-width="3"/></svg>Northgate</span>
+        <span style="letter-spacing:0.08em;font-size:18px">VOLTRA</span>
+        <span><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" fill="currentColor"/></svg>Cinder</span>
+        <span style="font-weight:700">mirefield</span>
       </div>
+      <div class="cap">POWERING THE TEAMS BUILDING THE PHYSICAL WORLD</div>
     </div>
   </section>
 
-  <section class="section" id="pricing">
+  <!-- 03 statement -->
+  <section class="statement">
+    <div class="container"><p data-reveal="reveal-fade-blur-12">A new kind of incident tool. <span>Built for teams whose bugs have serial numbers, Tessera links every field failure to the build, batch and board that caused it.</span></p></div>
+  </section>
+
+  <!-- 04 feature trio with illustrations -->
+  <section class="trio">
+    <div class="container"><div class="grid" id="trio"></div></div>
+  </section>
+
+  <!-- 05 field reports: thread + board -->
+  <section class="feature">
     <div class="container">
-      <h2 class="text-h2-medium">Pricing that scales with fleets.</h2>
-      <div class="grid3">
-        <article class="card-5 plan"><span class="text-h3-medium">Prototype</span><span class="text-title-lg">Free</span><ul class="text-small-regular"><li>Up to 500 devices</li><li>3 product lines</li><li>Community support</li></ul><a class="button-secondary-3" href="#">Start</a></article>
-        <article class="card-5 plan"><span class="text-h3-medium">Production</span><span class="text-title-lg">$16 / seat</span><ul class="text-small-regular"><li>Unlimited devices</li><li>Supplier portal</li><li>OTA integrations</li></ul><a class="button-primary" href="#">Start trial</a></article>
-        <article class="card-5 plan"><span class="text-h3-medium">Fleet</span><span class="text-title-lg">Custom</span><ul class="text-small-regular"><li>On-prem telemetry</li><li>Compliance exports</li><li>Dedicated engineer</li></ul><a class="button-secondary-3" href="#">Contact sales</a></article>
+      <div class="intro"><h2 class="text-h2-medium">Field reports and intake</h2><div><p class="text-title-lg-regular">Turn technician notes, support tickets and telemetry spikes into incidents that are deduplicated, labelled and routed to the right board.</p><a class="link-2" href="#">Learn more <span class="nudge">→</span></a></div></div>
+      <div class="canvas fade">
+        <div class="thread" data-reveal="reveal-fade-blur-12">
+          <div class="bar"><svg width="14" height="14"><use href="#i-inbox"/></svg>Thread <span class="faint">#field-ops</span><span style="flex:1"></span><span class="faint">⋮</span></div>
+          <div class="msgs">
+            <div class="msg"><span class="pic" style="background:linear-gradient(135deg,var(--color-ui-status-8),var(--color-ui-status-8))"></span><div><b>maya</b><span class="faint">6:43 PM</span><br>Third unit from the Oslo depot came back throttling. Same board rev as last week.</div></div>
+            <div class="msg"><span class="pic" style="background:linear-gradient(135deg,var(--color-indigo-800),var(--color-accent))"></span><div><b>teo</b><span class="faint">6:44 PM</span><br>Serial 0912-4471 too. Fan curve looks fine in the logs, temps spike before it ramps.</div></div>
+            <div class="msg"><span class="pic" style="background:linear-gradient(135deg,var(--color-violet-900),var(--color-violet-500))"></span><div><b>ines</b><span class="faint">6:46 PM</span><br>Can we get these grouped? Probably also worth tracking by ambient temp.</div></div>
+          </div>
+          <div class="compose"><div><span class="mention">@Tessera</span> create an incident and group the reports</div><div class="ico" style="display:flex;justify-content:space-between">+ Aa ☺ @ <span class="button-secondary" style="height:24px;padding:0 10px">➤</span></div></div>
+        </div>
+        <div class="board" id="board"></div>
       </div>
+      <div class="subs"><span class="text-small muted">Features</span><div class="cols"><div><a href="#">Tessera Agent</a><a href="#">Triage</a></div><div><a href="#">Field reports</a><a href="#">Telemetry intake</a></div></div></div>
     </div>
   </section>
 
-  <section class="section" id="changelog">
+  <!-- 06 planning: timeline + swarm -->
+  <section class="feature" style="margin-top:0">
+    <div class="container">
+      <div class="intro"><h2 class="text-h2-medium">Fleet health and rollouts</h2><div><p class="text-title-lg-regular">Plan firmware rollouts by batch and region, watch failure rates as they land, and stop a release before it reaches the next depot.</p><a class="link-2" href="#">Learn more <span class="nudge">→</span></a></div></div>
+      <div class="canvas fade">
+        <div class="timeline" data-reveal="reveal-fade-blur-12">
+          <div class="months"><span>MAR</span><span>APR</span><span>MAY</span></div>
+          <div class="days" id="days"></div>
+          <div class="tl-row" style="left:60px;top:120px;width:300px"><svg width="14" height="14"><use href="#i-prog"/></svg>fw 3.4 · Nordic depots</div>
+          <div class="tl-row" style="left:220px;top:176px;width:340px"><svg width="14" height="14"><use href="#i-todo"/></svg>fw 3.4 · Central EU</div>
+          <div class="tl-row" style="left:120px;top:232px;width:200px;box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--color-ui-status-6) 50%, transparent)"><svg width="14" height="14"><use href="#i-issue"/></svg>Rev C hold</div>
+          <div class="tl-row" style="left:340px;top:288px;width:300px"><svg width="14" height="14"><use href="#i-done"/></svg>Batch 0915 burn-in</div>
+          <div class="tl-row" style="left:60px;top:344px;width:420px"><svg width="14" height="14"><use href="#i-bars"/></svg>Supplier B requalification</div>
+          <div class="tl-row" style="left:400px;top:400px;width:240px"><svg width="14" height="14"><use href="#i-todo"/></svg>fw 3.5 · canary</div>
+        </div>
+        <div class="swarm" data-reveal="reveal-fade-blur-12"><h5>Failure rate by batch</h5><svg id="swarm" viewBox="0 0 600 470" aria-label="Failure rate by batch"></svg></div>
+      </div>
+      <div class="subs"><span class="text-small muted">Features</span><div class="cols"><div><a href="#">Rollouts</a><a href="#">Pulse</a><a href="#">Fleet maps</a></div><div><a href="#">Batches</a><a href="#">Programs</a><a href="#">Insights</a></div></div></div>
+    </div>
+  </section>
+
+  <!-- 07 AI and automations: agent windows -->
+  <section class="feature" style="margin-top:0">
+    <div class="container">
+      <div class="intro"><h2 class="text-h2-medium">Agents on the bench</h2><div><p class="text-title-lg-regular">Deploy agents that read telemetry, bisect firmware and draft fixes alongside your engineers, or hand them an incident end to end.</p><a class="link-2" href="#">Learn more <span class="nudge">→</span></a></div></div>
+      <div class="canvas fade" style="height:520px"><div class="agents" id="agents"></div></div>
+      <div class="subs"><span class="text-small muted">Features</span><div class="cols"><div><a href="#">Tessera Agent</a><a href="#">Bisect</a></div><div><a href="#">Bench sessions</a><a href="#">Tessera MCP</a></div></div></div>
+    </div>
+  </section>
+
+  <!-- 08 diagnose, patch, ship: list + diff -->
+  <section class="feature" style="margin-top:0">
+    <div class="container">
+      <div class="intro"><h2 class="text-h2-medium">Diagnose, patch and ship</h2><div><p class="text-title-lg-regular">Review firmware diffs next to the incidents they close, with the telemetry that proves the fix before it ships to the fleet.</p><a class="link-2" href="#">Learn more <span class="nudge">→</span></a></div></div>
+      <div class="canvas fade">
+        <div class="list" id="list" data-reveal="reveal-fade-blur-12"></div>
+        <div class="diff" data-reveal="reveal-fade-blur-12">
+          <div class="bar"><svg width="14" height="14"><use href="#i-review"/></svg>firmware/thermal/governor.c<span class="grow"></span>Tessera ›</div>
+          <div class="cols"><pre id="diffA"></pre><pre id="diffB"></pre></div>
+        </div>
+      </div>
+      <div class="subs"><span class="text-small muted">Features</span><div class="cols"><div><a href="#">Incidents</a><a href="#">Guided reviews</a><a href="#">Diffs</a></div><div><a href="#">OTA automations</a><a href="#">Cycles</a><a href="#">Releases</a></div></div></div>
+    </div>
+  </section>
+
+  <!-- 09 changelog -->
+  <section class="changelog">
     <div class="container">
       <h2 class="text-h2-medium">Changelog</h2>
-      <div class="log text-body">
-        <div data-reveal="reveal-fade-blur-12"><time class="text-small-regular">Oct 21</time><span>Firmware rollback tracking, with blast radius by batch.</span></div>
-        <div data-reveal="reveal-fade-blur-12"><time class="text-small-regular">Oct 7</time><span>Supplier portal: share incidents with a component vendor in one link.</span></div>
-        <div data-reveal="reveal-fade-blur-12"><time class="text-small-regular">Sep 30</time><span>Telemetry ingestion is 4× faster for fleets over 100k devices.</span></div>
+      <div class="rail">
+        <article data-reveal="reveal-fade-blur-12" style="--i:0"><span class="text-body-medium" style="color:var(--color-text)">Fleet maps and depot filters</span><p class="text-small-regular">See every open incident on a map of your depots, filtered by batch, board rev or firmware.</p><time>OCT 22, 2026</time></article>
+        <article data-reveal="reveal-fade-blur-12" style="--i:1"><span class="text-body-medium" style="color:var(--color-text)">Firmware bisect for agents</span><p class="text-small-regular">Agents can now bisect across OTA releases and attach the first bad build to the incident.</p><time>OCT 8, 2026</time></article>
+        <article data-reveal="reveal-fade-blur-12" style="--i:2"><span class="text-body-medium" style="color:var(--color-text)">Supplier portal</span><p class="text-small-regular">Share an incident with a component vendor in one link, with only the serials they shipped.</p><time>SEP 24, 2026</time></article>
+        <article data-reveal="reveal-fade-blur-12" style="--i:3"><span class="text-body-medium" style="color:var(--color-text)">Telemetry rules</span><p class="text-small-regular">Open incidents automatically when a sensor crosses a threshold on more than N units.</p><time>SEP 10, 2026</time></article>
       </div>
+      <a class="viewall text-small" href="#">View all <span class="nudge">→</span></a>
+    </div>
+  </section>
+
+  <!-- 10 testimonials -->
+  <section class="quotes">
+    <div class="container">
+      <div class="qgrid">
+        <figure class="q lav" style="margin:0" data-reveal="reveal-fade-blur-12">
+          <svg class="wm" viewBox="0 0 24 24"><path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z" fill="none" stroke="var(--color-background)" stroke-width=".25"/></svg>
+          <blockquote>“We stopped arguing about which batch was bad. Tessera just shows us, with the serials.”</blockquote>
+          <figcaption class="who"><svg class="mk" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="var(--color-background)" stroke-width="3"/></svg><span><b>Amara Okafor</b>Head of Reliability, Halden</span></figcaption>
+        </figure>
+        <figure class="q lime" style="margin:0" data-reveal="reveal-fade-blur-12">
+          <blockquote>“Our field team files it once and the right engineer has it in minutes.”</blockquote>
+          <figcaption class="who"><svg class="mk" viewBox="0 0 24 24"><path d="M2 20L12 3l10 17z" fill="var(--color-background)"/></svg><span><b>Jonas Varga</b>VP Hardware, Kestrel</span></figcaption>
+        </figure>
+      </div>
+      <div class="powers"><span>Tessera powers over <b>2,400</b> hardware teams. From prototype labs to global fleets.</span><a class="link-2" href="#">Customer stories <span class="nudge">→</span></a></div>
+    </div>
+  </section>
+
+  <!-- 11 call to action -->
+  <section class="cta">
+    <div class="container">
+      <h2 class="text-display" data-reveal="reveal-fade-blur-12">Built for the field.<br>Available today.</h2>
+      <div class="btns"><a class="button-primary" href="#">Get started</a><a class="button-secondary-3" href="#">Contact sales</a></div>
     </div>
   </section>
 </main>
 
-<footer><div class="container text-small-regular">Tessera, a fictional product built to test the measured linear.app language.</div></footer>
+<footer>
+  <div class="container">
+    <div class="grid">
+      <div><svg width="20" height="20" style="color:var(--color-text)"><use href="#i-mark"/></svg></div>
+      <div><h6>Product</h6><ul><li><a href="#">Intake</a></li><li><a href="#">Rollouts</a></li><li><a href="#">Agents</a></li><li><a href="#">Diagnose</a></li><li><a href="#">Pricing</a></li><li><a href="#">Security</a></li></ul></div>
+      <div><h6>Features</h6><ul><li><a href="#">Field reports</a></li><li><a href="#">Bisect</a></li><li><a href="#">Bench sessions</a></li><li><a href="#">Telemetry rules</a></li><li><a href="#">Fleet maps</a></li><li><a href="#">Supplier portal</a></li><li><a href="#">Integrations</a></li><li><a href="#">Changelog</a></li></ul></div>
+      <div><h6>Company</h6><ul><li><a href="#">About</a></li><li><a href="#">Customers</a></li><li><a href="#">Careers</a></li><li><a href="#">Now</a></li><li><a href="#">Method</a></li><li><a href="#">Brand</a></li></ul></div>
+      <div><h6>Resources</h6><ul><li><a href="#">Download</a></li><li><a href="#">Documentation</a></li><li><a href="#">Developers</a></li><li><a href="#">Status</a></li><li><a href="#">Enterprise</a></li></ul></div>
+      <div><h6>Connect</h6><ul><li><a href="#">Contact us</a></li><li><a href="#">Community</a></li><li><a href="#">X (Twitter)</a></li><li><a href="#">GitHub</a></li></ul></div>
+    </div>
+    <div class="legal"><span>Privacy</span><span>Terms</span><span>DPA</span><span>Tessera is a fictional product built from relume's measurement of linear.app.</span></div>
+  </div>
+</footer>
+
+<script>
+  // repeated UI is generated here so the markup above stays readable; everything renders before the page settles
+  const $ = (id) => document.getElementById(id);
+  const ICON = (n, s = 14) => `<svg width="${s}" height="${s}"><use href="#i-${n}"/></svg>`;
+
+  // trio: isometric line drawings (stacked boards, a chip, a crate of units) in the source's hairline style
+  const iso = (x, y) => [x * 0.866 - y * 0.866, (x + y) * 0.5];
+  const plate = (cx, cy, w, d, z) => { const p = [[0, 0], [w, 0], [w, d], [0, d]].map(([x, y]) => iso(x - w / 2, y - d / 2)).map(([a, b]) => `${cx + a},${cy + b - z}`); return `<polygon points="${p.join(' ')}"/>`; };
+  const box = (cx, cy, w, d, h) => { let s = plate(cx, cy, w, d, h); const pts = [[w / 2, -d / 2], [w / 2, d / 2], [-w / 2, d / 2]].map(([x, y]) => iso(x, y)); for (const [a, b] of pts) s += `<line x1="${cx + a}" y1="${cy + b}" x2="${cx + a}" y2="${cy + b - h}"/>`; s += plate(cx, cy, w, d, 0).replace('<polygon', '<polygon fill="none"'); return s; };
+  const figs = [
+    () => { let s = ''; for (let i = 0; i < 9; i++) s += plate(200, 210, 190, 190, i * 14); for (let k = 0; k < 14; k++) s += `<circle cx="${200 + Math.cos(k / 14 * 6.28) * 46 * 0.9}" cy="${210 - 126 + Math.sin(k / 14 * 6.28) * 23}" r="2"/>`; return s; },
+    () => { let s = box(200, 200, 120, 120, 34); for (let i = 0; i < 6; i++) { const t = -48 + i * 19; const [a, b] = iso(t, 74); const [c, d] = iso(74, t); s += `<line x1="${200 + a}" y1="${200 + b - 4}" x2="${200 + a}" y2="${200 + b + 14}"/><line x1="${200 + c}" y1="${200 + d - 4}" x2="${200 + c}" y2="${200 + d + 14}"/>`; } s += plate(200, 200, 60, 60, 40); return s; },
+    () => { let s = ''; for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) s += box(200 + (c - r) * 52, 170 + (c + r) * 30, 56, 56, 46 + ((r * 3 + c) % 3) * 18); return s; },
+  ];
+  const TRIO = [['FIG 0.1', 'Built for hardware', 'Tessera is shaped by how reliability teams actually work: serials, batches, board revisions and depots.'], ['FIG 0.2', 'Powered by agents', 'Agents read telemetry and bisect firmware with your engineers, from first report to shipped fix.'], ['FIG 0.3', 'Designed for fleets', 'Group thousands of field reports into the handful of incidents that matter, by batch and by build.']];
+  $('trio').innerHTML = TRIO.map(([f, t, d], i) => `<div class="cell" data-reveal="reveal-fade-blur-12" style="--i:${i}"><span class="fig">${f}</span><svg viewBox="0 0 400 300" fill="none" stroke="var(--color-text-quaternary)" stroke-width="1">${figs[i]()}</svg><h3 class="text-body-medium" style="color:var(--color-text)">${t}</h3><p class="text-small-regular muted" style="margin:0;max-width:300px">${d}</p></div>`).join('');
+
+  // kanban board
+  const COLS = [['Triage', 12, 'todo', [['HW-2056', 'Battery gauge drifts after 200 cycles', [['Battery', 'var(--color-ui-status-8)']]], ['HW-2054', 'USB-C negotiation fails on rev B', [['Power', 'var(--color-ui-status-6)']]], ['HW-2051', 'Display flicker at low brightness', [['Display', 'var(--color-indigo-800)']]]]],
+    ['Investigating', 4, 'prog', [['HW-2041', 'Thermal throttling on rev C', [['Thermal', 'var(--color-ui-status-6)'], ['Rev C', 'var(--color-violet-500)']]], ['HW-2038', 'BLE drops after fw 3.4.1 OTA', [['Firmware', 'var(--color-ui-status-2)']]], ['HW-2033', 'Connector J4 intermittent', [['Supplier B', 'var(--color-ui-status-8)']]]]],
+    ['Fix shipping', 3, 'done', [['HW-2027', 'Charge LED stuck amber', [['Firmware', 'var(--color-ui-status-2)']]], ['HW-2019', 'Fan bearing noise above 60%', [['Mechanical', 'var(--color-violet-900)']]]]],
+    ['Verified', 9, 'done', [['HW-2011', 'Wi-Fi rejoin after deep sleep', [['Firmware', 'var(--color-ui-status-2)']]], ['HW-2004', 'Enclosure clip cracks at -10°C', [['Mechanical', 'var(--color-violet-900)']]]]]];
+  $('board').innerHTML = COLS.map(([n, c, ic, cards]) => `<div class="col"><h5>${ICON(ic)}${n} <span>${c}</span></h5>${cards.map(([id, t, tags]) => `<div class="kcard"><div class="id">${id}<span class="av" style="background:var(--color-gray-200)"></span></div><div class="t">${t}</div><div class="tags"><span class="tag">${ICON('bars', 12)}</span>${tags.map(([l, col]) => `<span class="tag"><span class="dot" style="background:${col}"></span>${l}</span>`).join('')}</div></div>`).join('')}</div>`).join('');
+
+  // timeline days + failure swarm (one dot per unit report, grouped by batch)
+  $('days').innerHTML = Array.from({ length: 13 }, (_, i) => `<span>${[2, 9, 16, 23, 30, 6, 13, 20, 27, 4, 11, 18, 25][i]}</span>`).join('');
+  let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  let sw = '<g stroke="var(--color-gray-200)">' + [80, 180, 280, 380].map((y) => `<line x1="40" x2="590" y1="${y}" y2="${y}"/>`).join('') + '</g>';
+  sw += '<path d="M40 330 C 160 330, 170 250, 240 250 S 330 300, 400 210 S 520 180, 590 120" stroke="var(--color-ui-status-6)" stroke-width="1" fill="none" opacity=".7"/>';
+  [[110, 300, 70], [230, 230, 90], [350, 270, 60], [470, 150, 110], [570, 200, 40]].forEach(([x, y, n]) => { for (let i = 0; i < n; i++) { const a = (rnd() - 0.5) * 40, b = (rnd() - 0.5) * (40 + n); sw += `<circle cx="${(x + a).toFixed(1)}" cy="${(y + b).toFixed(1)}" r="2.6" fill="var(--color-ui-status-4)" opacity="${(0.55 + rnd() * 0.45).toFixed(2)}"/>`; } });
+  sw += ['0909', '0912', '0915', '0918', '0921'].map((t, i) => `<text x="${[110, 230, 350, 470, 570][i]}" y="455" fill="var(--color-text-quaternary)" font-size="11" text-anchor="middle" font-family="Inter">${t}</text>`).join('');
+  $('swarm').innerHTML = sw;
+
+  // agent windows
+  const AG = [['Tessera', 'agent', 'Which batches share the rev C thermal pad?', 'HW-2041'], ['Bench', 'session', 'add retry handling for sensor reads described in this incident', 'HW-2044'], ['Tessera', 'Opus 5.5', "Review today's field reports and group them by what failed first", 'Field triage'], ['Supplier', 'portal', 'draft a corrective action request for connector J4', 'HW-2033']];
+  $('agents').innerHTML = AG.map(([n, c, q, ctx], i) => `<div class="awin" data-reveal="reveal-fade-blur-12" style="--i:${i}"><div class="bar">${ICON(i % 2 ? 'box' : 'mark')}${n} <span class="chip">${c}</span><span class="grow"></span><span class="ico">– ⤢ ×</span></div><div class="body"><div class="bubble">${q}</div><div class="ctx">${ICON('issue', 12)}<b>${ctx}</b> added to context</div>${i % 2 ? '' : '<span class="working" data-intro="intro-backgroundpositionx-4">Working…</span>'}</div></div>`).join('');
+
+  // incident list
+  const L = [['In review', 3, 'done', [['HW-2049', 'Replace sensor read with settled sample'], ['HW-2046', 'Show stale-telemetry banner on depot view'], ['HW-2039', 'Pass batch id to the bisect job']]], ['In progress', 4, 'prog', [['HW-2041', 'Delay first thermal sample until fan settle'], ['HW-2038', 'Retry BLE bond after OTA reboot'], ['HW-2035', 'Optimise fleet map tile loading'], ['HW-2031', 'Prevent duplicate reports from one serial']]], ['Todo', 4, 'todo', [['HW-2058', 'Reduce charger negotiation retries'], ['HW-2055', 'Clean up deprecated depot APIs']]]];
+  $('list').innerHTML = L.map(([g, c, ic, rows]) => `<div class="lgrp">▾ ${ICON(ic)} ${g} <span>${c}</span></div>${rows.map(([id, t]) => `<div class="lrow">${ICON('bars')}<span class="k">${id}</span>${ICON(ic)}<span>${t}</span></div>`).join('')}`).join('');
+
+  // diff
+  const A = [['', '<span class="kw">#include</span> <span class="st">"thermal.h"</span>'], ['', '<span class="kw">#include</span> <span class="st">"fan.h"</span>'], ['m', '<span class="kw">#define</span> FIRST_SAMPLE_MS <span class="st">40</span>'], ['', ''], ['', '<span class="kw">void</span> <span class="fn">governor_tick</span>(state_t *s) {'], ['m', '  int t = <span class="fn">tz_read</span>(TZ_SOC);'], ['', '  <span class="kw">if</span> (t &gt; s-&gt;limit) {'], ['', '    <span class="fn">throttle</span>(s, t - s-&gt;limit);'], ['', '  }'], ['', '}'], ['', ''], ['', '<span class="kw">static int</span> <span class="fn">fan_settled</span>(<span class="kw">void</span>);']];
+  const B = [['', '<span class="kw">#include</span> <span class="st">"thermal.h"</span>'], ['', '<span class="kw">#include</span> <span class="st">"fan.h"</span>'], ['p', '<span class="kw">#define</span> FIRST_SAMPLE_MS <span class="st">130</span>'], ['', ''], ['', '<span class="kw">void</span> <span class="fn">governor_tick</span>(state_t *s) {'], ['p', '  <span class="kw">if</span> (!<span class="fn">fan_settled</span>()) <span class="kw">return</span>;'], ['p', '  int t = <span class="fn">tz_read_settled</span>(TZ_SOC);'], ['', '  <span class="kw">if</span> (t &gt; s-&gt;limit) {'], ['', '    <span class="fn">throttle</span>(s, t - s-&gt;limit);'], ['', '  }'], ['', '}'], ['', '<span class="kw">static int</span> <span class="fn">fan_settled</span>(<span class="kw">void</span>);']];
+  const pre = (rows) => rows.map(([k, l], i) => `<span class="${k}"><i>${String(i + 1).padStart(2, '0')}</i>${l}</span>`).join('\n');
+  $('diffA').innerHTML = pre(A); $('diffB').innerHTML = pre(B);
+</script>
 <script type="module" src="assets/motion.js"></script>
 </body>
 </html>

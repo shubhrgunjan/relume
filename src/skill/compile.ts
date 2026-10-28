@@ -3,7 +3,7 @@ import { mkdirSync, writeFileSync, copyFileSync, existsSync, rmSync, readFileSyn
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { DNA } from '../infer/dna.js';
-import { parseColor } from '../lib/csscolor.js';
+import { parseColor, rgbaCss } from '../lib/csscolor.js';
 import { baseFamily } from '../infer/tokens.js';
 import { buildRecipes, type Recipe } from './motion-recipes.js';
 
@@ -161,6 +161,13 @@ function googleFonts(dna: DNA) {
 function tokensCss(dna: DNA) {
   const L: string[] = [`/* ${dna.source.url} — measured by relume on ${dna.source.crawledAt.slice(0, 10)} */`, ':root {'];
   for (const t of dna.color.tokens) L.push(`  ${cssVarName('color-' + t.name)}: ${t.value};${t.aliases.length ? ` /* source: ${t.aliases.slice(0, 2).join(', ')} */` : ''}`);
+  // product-UI colours: status icons and the UI's grey ramp, measured inside the mock-ups (blueprint.md)
+  const ui = (dna as any).composition?.pages?.[0]?.ui;
+  if (ui) {
+    ui.statusColors.forEach((c: string, i: number) => L.push(`  --color-ui-status-${i + 1}: ${c};`));
+    ui.textColors.forEach(([c]: [string], i: number) => { const p = parseColor(c); if (p) L.push(`  --color-ui-text-${i + 1}: ${rgbaCss(p)};`); });
+    if (ui.panelSurface) { const p = parseColor(ui.panelSurface.background); if (p) L.push(`  --color-ui-panel: ${rgbaCss(p)};`); }
+  }
   for (const f of dna.typography.families) {
     const names = [...new Set([(f as any).google, f.substitute, f.family, baseFamily(f.family)].filter(Boolean) as string[])];
     const mono = f.roles.some((r) => r.startsWith('mono'));
@@ -176,7 +183,10 @@ function tokensCss(dna: DNA) {
   dna.shape.borders.slice(0, 4).forEach((b, i) => L.push(`  --border-${i + 1}: ${b.value};`));
   dna.motion.durations.slice(0, 8).forEach((d) => L.push(`  --duration-${d.ms}: ${d.ms}ms;`));
   dna.motion.easings.slice(0, 8).forEach((e, i) => L.push(`  --ease-${e.spring ? 'spring-' + (i + 1) : i + 1}: ${e.css};`));
-  if (dna.layout.containers.desktop?.[0]) L.push(`  --container: ${dna.layout.containers.desktop[0].value}px;`);
+  // container = measured content width plus its gutters, so text lands on the source's content edge
+  const ce = (dna.layout as any).contentEdge?.desktop;
+  if (ce) L.push(`  --container: ${ce.width + 2 * (dna.layout.gutters.desktop ?? 0)}px; /* content ${ce.width}px, text edge at x ${ce.left} on a ${ce.width + 2 * ce.left}px screen */`);
+  else if (dna.layout.containers.desktop?.[0]) L.push(`  --container: ${dna.layout.containers.desktop[0].value}px;`);
   for (const vp of ['desktop', 'tablet', 'mobile']) if (dna.layout.gutters[vp] != null) L.push(`  --gutter-${vp}: ${dna.layout.gutters[vp]}px;`);
   L.push('}');
   const dark = dna.color.tokens.filter((t) => t.dark);
@@ -188,7 +198,8 @@ function tokensCss(dna: DNA) {
   }
   L.push('', `html { background: var(--color-background); color: var(--color-text); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }`);
   // the measured content width is a border-box width: the container includes its gutters
-  const bpT = dna.layout.breakpoints.find((b: { kind: string; value: number }) => b.kind === 'max' && b.value >= 700 && b.value <= 1100)?.value ?? 834;
+  // the tablet gutter must apply at the measured tablet width (834), so pick a breakpoint above it
+  const bpT = [...dna.layout.breakpoints].filter((b: { kind: string; value: number }) => b.kind === 'max' && b.value >= 834 && b.value < 1440).sort((a: any, b: any) => a.value - b.value)[0]?.value ?? 1024;
   const bpM = dna.layout.breakpoints.find((b: { kind: string; value: number }) => b.kind === 'max' && b.value < 700)?.value ?? 640;
   L.push(`.container { box-sizing: border-box; width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: var(--gutter-desktop); }`);
   L.push(`@media (max-width: ${bpT}px) { .container { padding-inline: var(--gutter-tablet); } }`);
@@ -257,6 +268,11 @@ function dtcg(dna: DNA) {
       $description: `${t.role}; ${t.share}% of painted weight`,
       ...(t.dark ? { $extensions: { 'dev.relume': { dark: t.dark } } } : {}),
     };
+  }
+  const ui = (dna as any).composition?.pages?.[0]?.ui;
+  if (ui) for (const [i, c] of [...ui.statusColors, ...ui.textColors.map((x: [string]) => x[0]), ...(ui.panelSurface ? [ui.panelSurface.background] : [])].entries()) {
+    const p = parseColor(c); if (!p) continue;
+    color[`ui-${i + 1}`] = { $value: { colorSpace: 'srgb', components: [p.r / 255, p.g / 255, p.b / 255].map((v) => +v.toFixed(4)), alpha: +p.a.toFixed(3), hex: rgbaCss(p) }, $description: 'measured inside product UI' };
   }
   const typography: Record<string, any> = { $type: 'typography' };
   for (const s of dna.typography.styles) typography[s.name] = {

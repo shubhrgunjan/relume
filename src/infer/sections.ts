@@ -112,7 +112,9 @@ export function blueprint(h: Harvest): Blueprint {
     const marks = all.filter((r) => (r.svg || r.tag === 'img') && r.box[3] >= 14 && r.box[3] <= 64 && r.box[2] >= 40);
     const lines = new Map<number, Row[]>();
     for (const m of marks) { const k = Math.round((m.box[1] + m.box[3] / 2) / 24); if (!lines.has(k)) lines.set(k, []); lines.get(k)!.push(m); }
-    for (const l of lines.values()) if (l.length >= 4) {
+    // wordmarks set as text count too: ≥4 short, display-size, unlinked labels on one baseline
+    for (const r of all) if (r.chars > 1 && r.chars <= 16 && px(r.s.fontSize) >= 17 && r.tag !== 'a' && !/^h[1-6]$/.test(r.tag) && !claimed.has(r.id)) { const k = Math.round((r.box[1] + r.box[3] / 2) / 24); if (!lines.has(k)) lines.set(k, []); if (!lines.get(k)!.some((m) => Math.abs(m.box[0] - r.box[0]) < 40)) lines.get(k)!.push(r); }
+    for (const l of lines.values()) if (l.length >= 4 && Math.max(...l.map((m) => m.box[0] + m.box[2])) - Math.min(...l.map((m) => m.box[0])) > vw * 0.5) {
       const x0 = Math.min(...l.map((m) => m.box[0])), x1 = Math.max(...l.map((m) => m.box[0] + m.box[2])), y0 = Math.min(...l.map((m) => m.box[1])), y1 = Math.max(...l.map((m) => m.box[1] + m.box[3]));
       blocks.push({ kind: 'logos', box: [x0, y0, x1 - x0, y1 - y0], detail: `${l.length} marks in a row`, count: l.length });
     }
@@ -132,7 +134,9 @@ export function blueprint(h: Harvest): Blueprint {
     for (const r of all) {
       if (claimed.has(r.id) || !paints(r) || r.box[2] < 240 || r.box[3] < 140) continue;
       const d = descendants(r.id);
-      const quote = d.some((x) => (/^[“"]/.test(x.text) || /[”"]$/.test(x.text)) && x.chars > 50) || (d.some((x) => x.chars > 60) && d.some((x) => (x.tag === 'img' || x.svg) && x.box[2] <= 64 && x.box[2] === x.box[3]) && d.some((x) => x.chars > 3 && x.chars < 40 && px(x.s.fontSize) <= 15));
+      // a testimonial is a quotation set large (≥18px), not a chat message beside an avatar
+      const big = d.filter((x) => x.chars > 50 && px(x.s.fontSize) >= 18);
+      const quote = big.some((x) => /^[“"]/.test(x.text) || /[”"]$/.test(x.text)) || (big.length >= 1 && d.some((x) => (x.tag === 'img' || x.svg) && x.box[2] <= 64 && Math.abs(x.box[2] - x.box[3]) < 2) && d.some((x) => x.chars > 3 && x.chars < 40 && px(x.s.fontSize) <= 15));
       if (quote && d.length < 40) { blocks.push({ kind: 'testimonial', box: r.box, detail: `quote card ${r.box[2]}×${r.box[3]}, ${r.s.backgroundColor}` }); claim(r); }
     }
     // agent / app panels too small to be a full product UI still are UI, not cards
@@ -163,7 +167,17 @@ export function blueprint(h: Harvest): Blueprint {
     else if (headRow && Math.abs(cx(headRow) - vw / 2) < vw * 0.06 && headRow.s.textAlign === 'center') layout = 'centered';
     const colsGuess = Math.max(1, ...blocks.filter((b) => b.kind === 'cards' || b.kind === 'testimonial').map((b) => b.count || 1), new Set(blocks.filter((b) => b.kind === 'illustration').map((b) => Math.round(b.box[1] / 80))).size === 1 ? blocks.filter((b) => b.kind === 'illustration').length : 1);
     if (layout === 'stacked' && colsGuess >= 3) layout = 'columns';
-    const visualArea = blocks.filter((b) => !['tabs', 'form', 'cards', 'testimonial'].includes(b.kind)).reduce((s, b) => s + area(b.box), 0);
+    // union of visual blocks on a 16px grid, clipped to the section: overlapping panels count once
+    const occ = new Set<number>();
+    const [sx, sy, sw, sh] = sec.box;
+    for (const b of blocks) {
+      if (['tabs', 'form', 'cards', 'testimonial', 'avatar'].includes(b.kind)) continue;
+      const x0 = Math.max(0, Math.floor(b.box[0] / 16)), x1 = Math.min(Math.ceil(vw / 16), Math.ceil((b.box[0] + b.box[2]) / 16));
+      const y0 = Math.max(Math.floor(sy / 16), Math.floor(b.box[1] / 16)), y1 = Math.min(Math.ceil((sy + sh) / 16), Math.ceil((b.box[1] + b.box[3]) / 16));
+      for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) occ.add(y * 1000 + x);
+    }
+    const visualArea = occ.size * 256;
+    void sw; void sx;
     const bg = parseColor(sec.s.backgroundColor);
     const footer = sec.tag === 'footer' || index === secs.length - 1 && texts.filter((r) => r.tag === 'a').length >= 12;
     const kinds = new Set(blocks.map((b) => b.kind));
@@ -220,7 +234,17 @@ function uiGrammar(panels: Block[], rows: Row[], _desc: (id: number) => Row[]): 
   const biggest = panels.sort((a, b) => area(b.box) - area(a.box))[0];
   const surf = rows.find((r) => r.box[0] === biggest.box[0] && r.box[1] === biggest.box[1] && r.box[2] === biggest.box[2]);
   const side = inPanel.filter((r) => Math.abs(r.box[0] - biggest.box[0]) < 4 && r.box[3] > biggest.box[3] * 0.7 && r.box[2] < 300 && r.box[2] > 140)[0];
-  const status = [...new Set(inPanel.filter((r) => r.svg && r.box[2] <= 16).map((r) => r.s.color || r.s.fill).filter((c) => { const p = parseColor(c); if (!p) return false; const mx = Math.max(p.r, p.g, p.b), mn = Math.min(p.r, p.g, p.b); return mx - mn > 60; }))].slice(0, 8);
+  // status colours: chromatic fills/strokes/colours on small icons and dots inside the UI, by frequency
+  const sc = new Map<string, number>();
+  for (const r of inPanel) {
+    if (!(r.svg || (r.box[2] <= 16 && r.box[3] <= 16))) continue;
+    for (const c of [r.s.color, r.s.fill, r.s.stroke, r.s.backgroundColor]) {
+      const p = parseColor(c); if (!p || p.a < 0.6) continue;
+      const mx = Math.max(p.r, p.g, p.b), mn = Math.min(p.r, p.g, p.b);
+      if (mx - mn > 60) { const k = `#${[p.r, p.g, p.b].map((v) => Math.round(v).toString(16).padStart(2, '0')).join('')}`; sc.set(k, (sc.get(k) || 0) + 1); }
+    }
+  }
+  const status = top(sc, 8).map(([c]) => c);
   return {
     panels: panels.length, fontSizes: top(fs), rowHeights: top(rh), iconSizes: top(ic, 4),
     avatar: avatars.length ? Math.round(avatars[0].box[2]) : undefined,

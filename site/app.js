@@ -170,7 +170,7 @@ for (const d of data) {
       <div class="title"><h3>${esc(host)} → ${esc(name)}<small>${esc(d.source.fonts.join(' · '))}${d.source.head ? ` · ${d.source.head.size}/${d.source.head.weight}` : ''} · scroll ${esc(d.source.scroll?.kind ?? '—')}</small></h3>
         <div class="score"><b>${d.report.overall}</b><span>check score</span></div></div>
       <div class="dims">${DIMS.map((k) => `<div style="--v:${d.report.scores[k]}%;--c:${d.report.scores[k] < 85 ? C.salmon : C.volt}"><i></i>${k.slice(0, 5)} ${d.report.scores[k]}</div>`).join('')}</div>
-      <div class="row"><button class="btn solid" type="button" data-open="${d.id}">Compare live <i>→</i></button><a class="btn line" href="recreations/${path}/" target="_blank" rel="noopener">Open ${esc(name)} ↗</a></div>
+      <div class="row"><a class="btn solid" href="compare.html#${d.id}">Compare side by side <i>→</i></a><a class="btn line" href="recreations/${path}/" target="_blank" rel="noopener">Open ${esc(name)} ↗</a></div>
     </div>`;
   pairsEl.appendChild(a);
   const split = a.querySelector('.split');
@@ -186,76 +186,6 @@ for (const id of Object.keys(NAMES).filter((k) => !data.some((d) => d.id === k))
   a.innerHTML = `<div class="split"><span class="chip ghost">${esc(NAMES[id])} is being built from the ${esc(SOURCES[id])} skill</span></div><div class="meta"><div class="title"><h3>${esc(SOURCES[id])} → ${esc(NAMES[id])}<small>recreation in progress</small></h3><div class="score"><b>··</b><span>check score</span></div></div></div>`;
   pairsEl.appendChild(a);
 }
-
-const dlg = document.getElementById('cmp'), vA = document.getElementById('vidA'), vB = document.getElementById('vidB'), live = document.getElementById('liveB');
-const scrub = document.getElementById('scrub'), fillb = document.getElementById('fillb'), tnow = document.getElementById('tnow'), playBtn = document.getElementById('play');
-let cur = null;
-function openCompare(id) {
-  cur = data.find((d) => d.id === id);
-  if (!cur) return;
-  const host = hostOf(cur), name = NAMES[id], path = cur.recreationPath.replace(/^\//, '');
-  document.getElementById('cmpTitle').textContent = `${host} → ${name}`;
-  document.getElementById('paneA').textContent = host;
-  document.getElementById('paneB').textContent = name;
-  document.getElementById('cmpOpenSrc').href = cur.source.page || cur.source.url;
-  document.getElementById('cmpOpenRec').href = `recreations/${path}/`;
-  vA.src = `media/${id}-source.mp4`;
-  vB.src = `media/${id}-recreation.mp4`;
-  setMode('rec');
-  const s = cur.source, r = cur.recreation, rep = cur.report;
-  const sw = (cols) => `<div class="sw">${cols.slice(0, 7).map((c) => `<i style="background:${esc(c.value)}" title="${esc(c.name)} ${esc(c.value)}"></i>`).join('')}</div>`;
-  const sig = (m) => m ? `${m.trigger} ${m.props.join('+')} · ${m.duration}ms ${m.easing}${m.stagger ? ` · stagger ${m.stagger}ms` : ''}` : '—';
-  const row = (k, a, b) => `<span class="k">${k}</span><div>${a}</div><div>${b}</div>`;
-  document.getElementById('side').innerHTML = `
-    <div><h4>check_style</h4><div class="big"><b>${rep.overall}</b><span>${rep.pass ? 'passes' : 'not yet: every dimension must reach 85'}</span></div></div>
-    <div class="bars">${DIMS.map((k) => `<div><span>${k}</span><i style="--v:${rep.scores[k]}%;--c:${rep.scores[k] < 85 ? C.salmon : C.volt}"></i><span>${rep.scores[k]}</span></div>`).join('')}</div>
-    <div><h4>measured, side by side</h4><div class="diff">
-      <span class="h"></span><span class="h">${esc(host)}</span><span class="h">${esc(name)}</span>
-      ${row('palette', sw(s.colors), sw(r.colors))}
-      ${row('headline', s.head ? `${s.head.size}px / ${s.head.weight} · ${s.head.tracking}em` : '—', r.head ? `${r.head.size}px / ${r.head.weight} · ${r.head.tracking}em` : '—')}
-      ${row('body', s.body ? `${s.body.size}px / ${s.body.leading}` : '—', r.body ? `${r.body.size}px / ${r.body.leading}` : '—')}
-      ${row('fonts', esc(s.fonts.join(', ')), esc(r.fonts.join(', ')))}
-      ${row('radii', esc(s.radii.join(' ')), esc(r.radii.join(' ')))}
-      ${row('rhythm', `${s.section ?? '—'}px sections · ${s.container ?? '—'}px wide`, `${r.section ?? '—'}px sections · ${r.container ?? '—'}px wide`)}
-      ${row('scroll', `${esc(s.scroll?.kind ?? '—')}${s.scroll?.lerp ? ` · lerp ${s.scroll.lerp}` : ''}`, `${esc(r.scroll?.kind ?? '—')}${r.scroll?.lerp ? ` · lerp ${r.scroll.lerp}` : ''}`)}
-      ${row('motion', esc(sig(s.signature)), esc(sig(r.signature)))}
-      ${row('durations', `${s.durations.join(' · ')}ms`, `${r.durations.join(' · ')}ms`)}
-    </div></div>
-    <div><h4>fix first</h4><div class="finds">${rep.findings.slice(0, 4).map((f) => `<div><b>${esc(f.dimension)}</b>${esc(tidy(f.message).slice(0, 170))}</div>`).join('') || '<div>Nothing left to fix.</div>'}</div></div>`;
-  const ph = document.getElementById('phmarks');
-  ph.innerHTML = '';
-  const D = 48;
-  for (const m of s.marks.phases) { const e = document.createElement('div'); e.className = 'phm'; e.style.left = (m.t / D * 100) + '%'; e.textContent = m.name; ph.appendChild(e); }
-  dlg.showModal();
-  lenis?.stop();
-  Promise.all([vA, vB].map((v) => new Promise((res) => (v.readyState >= 2 ? res() : v.addEventListener('loadeddata', res, { once: true })))))
-    .then(() => { vA.currentTime = 0; vB.currentTime = 0; vA.play(); vB.play(); playBtn.textContent = 'Pause'; });
-}
-function setMode(m) {
-  document.querySelectorAll('.tabs button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
-  const isLive = m === 'live';
-  vB.hidden = isLive;
-  live.hidden = !isLive;
-  document.getElementById('controls').style.visibility = isLive ? 'hidden' : 'visible';
-  document.getElementById('paneBNote').textContent = isLive ? 'live: scroll and hover it' : 'recreation · same visit';
-  live.src = isLive && cur ? `recreations/${cur.recreationPath.replace(/^\//, '')}/` : 'about:blank';
-}
-document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
-pairsEl.addEventListener('click', (e) => { const b = e.target.closest('[data-open]'); if (b) openCompare(b.dataset.open); });
-document.getElementById('cmpClose').addEventListener('click', () => dlg.close());
-dlg.addEventListener('close', () => { vA.pause(); vB.pause(); live.src = 'about:blank'; lenis?.start(); });
-playBtn.addEventListener('click', () => { if (vA.paused) { vA.play(); if (vA.currentTime < vB.duration) vB.play(); playBtn.textContent = 'Pause'; } else { vA.pause(); vB.pause(); playBtn.textContent = 'Play'; } });
-scrub.addEventListener('input', () => { const t = scrub.value / 1000 * (vA.duration || 48); vA.currentTime = t; vB.currentTime = Math.min(t, Math.max(0, (vB.duration || t) - 0.05)); });
-let syncing = false;
-vA.addEventListener('timeupdate', () => {
-  const D = vA.duration || 48;
-  fillb.style.width = (vA.currentTime / D * 100) + '%';
-  scrub.value = String(Math.round(vA.currentTime / D * 1000));
-  tnow.textContent = vA.currentTime.toFixed(1) + 's';
-  // one clock for both recordings
-  if (!syncing && !vB.ended && vA.currentTime < (vB.duration || 0) && Math.abs(vB.currentTime - vA.currentTime) > 0.25) { syncing = true; vB.currentTime = vA.currentTime; setTimeout(() => (syncing = false), 300); }
-});
-vA.addEventListener('ended', () => { playBtn.textContent = 'Play'; });
 
 // =========== 4. BURST: the film's collage warp; scroll speed is motion.accelerate()
 const burst = pixelCanvas(document.getElementById('burstCanvas'), 2);
@@ -371,7 +301,7 @@ const trail = document.getElementById('trail'), tctx = trail.getContext('2d');
 const fitTrail = () => { trail.width = innerWidth; trail.height = innerHeight; };
 fitTrail(); addEventListener('resize', fitTrail);
 const dots = [];
-if (!reduce && matchMedia('(pointer: fine)').matches) addEventListener('pointermove', (e) => { if (dlg.open) return; dots.push({ x: Math.round(e.clientX / 6) * 6, y: Math.round(e.clientY / 6) * 6, life: 1, c: [C.volt, C.salmon, C.sky, C.lilac][(Math.random() * 4) | 0] }); if (dots.length > 60) dots.shift(); });
+if (!reduce && matchMedia('(pointer: fine)').matches) addEventListener('pointermove', (e) => { dots.push({ x: Math.round(e.clientX / 6) * 6, y: Math.round(e.clientY / 6) * 6, life: 1, c: [C.volt, C.salmon, C.sky, C.lilac][(Math.random() * 4) | 0] }); if (dots.length > 60) dots.shift(); });
 (function drawTrail() { tctx.clearRect(0, 0, trail.width, trail.height); for (const d of dots) { d.life -= 0.035; if (d.life <= 0) continue; tctx.globalAlpha = d.life; tctx.fillStyle = d.c; tctx.fillRect(d.x - 3, d.y - 3, 6, 6); } tctx.globalAlpha = 1; requestAnimationFrame(drawTrail); })();
 
 watch();
