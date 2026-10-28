@@ -307,7 +307,9 @@ function dtcg(dna: DNA) {
 
 function motionCss(dna: DNA, recipes: Recipe[]) {
   const L = [`/* motion measured from ${dna.source.url}. Reveal: add data-reveal="<name>" (and style="--i: n" for stagger order); motion.js adds .is-in. */`];
-  L.push('@media (prefers-reduced-motion: reduce) { [data-reveal], [data-intro] { transition: none !important; animation: none !important; opacity: 1 !important; transform: none !important; filter: none !important; } }');
+  // reduced motion jumps every intro to its final frame (a loader that slides away must still go away) and
+  // shows reveals at rest; never freeze an animation on its first frame
+  L.push('@media (prefers-reduced-motion: reduce) { [data-intro] { animation-duration: 1ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; } [data-reveal] { transition: none !important; } }');
   for (const r of recipes) {
     if (r.trigger === 'scroll') {
       L.push(`/* ${r.name}: ${r.targets[0]} (×${r.count}) */`);

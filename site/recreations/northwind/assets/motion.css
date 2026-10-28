@@ -1,5 +1,5 @@
 /* motion measured from https://vercel.com. Reveal: add data-reveal="<name>" (and style="--i: n" for stagger order); motion.js adds .is-in. */
-@media (prefers-reduced-motion: reduce) { [data-reveal], [data-intro] { transition: none !important; animation: none !important; opacity: 1 !important; transform: none !important; filter: none !important; } }
+@media (prefers-reduced-motion: reduce) { [data-intro] { animation-duration: 1ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; } [data-reveal] { transition: none !important; } }
 /* intro-tint-1: summary.flex.min-h-11 “Products” (×2) */
 @keyframes intro-tint-1 {
   from { color: rgb(77, 77, 77); }
