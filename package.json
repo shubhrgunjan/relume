@@ -3,15 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Site → design DNA → agent skill. Measures a live site's tokens, components, layout and motion, and compiles them into a skill an agent can build new pages with.",
+  "description": "Site \u2192 design DNA \u2192 agent skill. Measures a live site's tokens, components, layout and motion, and compiles them into a skill an agent can build new pages with.",
   "scripts": {
     "cli": "node --disable-warning=ExperimentalWarning --import tsx src/cli.ts",
-    "typecheck": "tsc --noEmit -p ."
+    "typecheck": "tsc --noEmit -p .",
+    "start": "node --disable-warning=ExperimentalWarning --import tsx src/mcp/server.ts",
+    "stdio": "node --disable-warning=ExperimentalWarning --import tsx src/mcp/stdio.ts"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "playwright": "^1.56.0",
     "postcss": "^8.5.6",
-    "sharp": "^0.34.4"
+    "sharp": "^0.34.4",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

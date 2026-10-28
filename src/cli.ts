@@ -3,6 +3,8 @@ import { crawlSite, DEFAULT_VIEWPORTS } from './crawl/crawl.js';
 import { entryDir, slugFor, listEntries } from './catalog/catalog.js';
 import { buildDna } from './infer/dna.js';
 import { compileSkill } from './skill/compile.js';
+import { checkStyle, reportMd } from './verify/check.js';
+import { compareDna } from './verify/compare.js';
 import { readJson } from './catalog/catalog.js';
 import { join } from 'node:path';
 
@@ -50,6 +52,17 @@ async function main() {
       const dna = await buildDna(entryDir(slug), slug);
       for (const n of dna.feel.notes) log('  · ' + n);
       log(`skill: ${compileSkill(dna, entryDir(slug))} (${((Date.now() - t) / 1000).toFixed(0)}s)`);
+      break;
+    }
+    case 'check': {
+      const { report } = await checkStyle(args[0], args[1], log);
+      log(reportMd(report));
+      break;
+    }
+    case 'compare': {
+      // compare two catalogue entries' DNA directly (calibration: unrelated sites should score low)
+      const r = compareDna(readJson(join(entryDir(args[0]), 'dna.json')), readJson(join(entryDir(args[1]), 'dna.json')));
+      log(reportMd(r));
       break;
     }
     case 'list':
