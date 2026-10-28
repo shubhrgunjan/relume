@@ -1,6 +1,7 @@
 // Crawl a site into raw evidence: per page, a desktop motion pass (load, wheel probe, scroll pass, hover pass,
 // recorded on video) and static harvests at mobile/tablet/desktop and in dark mode, plus every stylesheet's text.
 import { chromium, type Browser, type BrowserContext, type Page } from 'playwright';
+import sharp from 'sharp';
 import { readFileSync, mkdirSync, writeFileSync, renameSync, readdirSync, rmSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 import { join, dirname } from 'node:path';
@@ -212,14 +213,43 @@ async function attachCss(page: Page) {
   };
 }
 
+/**
+ * Full-page capture. A plain fullPage shot fails on smooth-scroll sites (Lenis and friends keep the document one
+ * screen tall and move content with transforms) and on pages taller than ~20k px, so those are stitched from
+ * viewport shots taken while scrolling the page itself, waiting at each stop for lazy media and reveals.
+ */
 async function screenshot(page: Page, path: string) {
-  const h = await page.evaluate(() => document.documentElement.scrollHeight);
   mkdirSync(dirname(path), { recursive: true });
-  try {
-    await page.screenshot({ path, fullPage: h < 20000, type: 'jpeg', quality: 82, timeout: 30000 });
-  } catch {
-    await page.screenshot({ path, type: 'jpeg', quality: 82 });
+  const info = await page.evaluate(() => ({ h: Math.max(document.documentElement.scrollHeight, document.body?.scrollHeight || 0), vh: innerHeight, smooth: !!((window as any).lenis || (window as any).__lenis || document.documentElement.classList.contains('lenis') || document.documentElement.classList.contains('has-scroll-smooth')) }));
+  if (!info.smooth && info.h < 20000) {
+    try {
+      await page.screenshot({ path, fullPage: true, type: 'jpeg', quality: 82, timeout: 30000 });
+      const meta = await sharp(path).metadata();
+      if ((meta.height || 0) >= info.h * 0.9) return;
+    } catch {}
   }
+  await stitched(page, path, info.vh);
+}
+
+async function stitched(page: Page, path: string, vh: number) {
+  const cap = 40000;
+  const tiles: { input: Buffer; top: number }[] = [];
+  let y = 0, width = 0;
+  for (let i = 0; i < 60; i++) {
+    await page.evaluate((y) => { const l = (window as any).lenis || (window as any).__lenis; if (l?.scrollTo) l.scrollTo(y, { immediate: true, force: true }); else scrollTo(0, y); }, y);
+    await page.waitForTimeout(700);
+    const buf = await page.screenshot({ type: 'jpeg', quality: 82 });
+    const meta = await sharp(buf).metadata();
+    width = meta.width || width;
+    tiles.push({ input: buf, top: y });
+    const total = await page.evaluate(() => Math.max(document.documentElement.scrollHeight, document.body?.scrollHeight || 0, (window as any).lenis?.limit + innerHeight || 0));
+    if (y + vh >= Math.min(total, cap)) break;
+    y = Math.min(y + vh, Math.min(total, cap) - vh);
+  }
+  const height = tiles[tiles.length - 1].top + vh;
+  await sharp({ create: { width, height, channels: 3, background: '#000' } }).composite(tiles).jpeg({ quality: 82 }).toFile(path);
+  await page.evaluate(() => { const l = (window as any).lenis; if (l?.scrollTo) l.scrollTo(0, { immediate: true, force: true }); else scrollTo(0, 0); });
+  await page.waitForTimeout(400);
 }
 
 /** Desktop motion pass + full harvest for one page. */
