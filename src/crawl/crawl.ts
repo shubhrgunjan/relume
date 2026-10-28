@@ -77,7 +77,9 @@ async function dismissOverlays(page: Page) {
 
 /** Wheel the page to the bottom at a steady reading pace, as a person would, so scroll-driven motion fires. */
 async function scrollPass(page: Page, stepPx = 100, everyMs = 70, capMs = 70000) {
-  await page.mouse.move(720, 450);
+  // wheel from the right edge so content scrolling past does not get hovered (hover motion is measured separately)
+  const vp = page.viewportSize()!;
+  await page.mouse.move(vp.width - 3, Math.round(vp.height / 2));
   const t0 = Date.now();
   let last = -1, still = 0;
   while (Date.now() - t0 < capMs) {
@@ -177,7 +179,8 @@ async function hoverPass(page: Page, limit: number, log: (m: string) => void) {
 /** Wheel probe: one notch and a quick burst, sampling scrollY every frame. Measures the scroll "feel". */
 async function wheelProbe(page: Page) {
   await toTop(page);
-  await page.mouse.move(720, 450);
+  const vp = page.viewportSize()!;
+  await page.mouse.move(vp.width - 3, Math.round(vp.height / 2));
   await page.evaluate(() => (window as any).__relume.mark('wheel:single'));
   await page.mouse.wheel(0, 100);
   await page.waitForTimeout(1800);
@@ -220,23 +223,29 @@ async function motionVisit(browser: Browser, url: string, dir: string, opt: Craw
   await ctx.addInitScript(PROBE);
   const page = await ctx.newPage();
   const cssText = await attachCss(page);
+  const t0 = Date.now();
+  const lap = (what: string) => opt.log(`  ${what} ${((Date.now() - t0) / 1000).toFixed(1)}s`);
   await page.goto(url, { waitUntil: 'load', timeout: 60000 });
   await page.evaluate(() => (window as any).__relume.mark('loaded'));
   await settle(page, 3000);
   await dismissOverlays(page);
-  if (isHome) await wheelProbe(page);
+  lap('loaded');
+  if (isHome) { await wheelProbe(page); lap('wheel probe'); }
   await toTop(page);
   await page.evaluate(() => (window as any).__relume.mark('scroll:start'));
   await scrollPass(page);
   await page.evaluate(() => (window as any).__relume.mark('scroll:end'));
+  lap('scroll pass');
   await page.waitForTimeout(1500);
   await toTop(page);
   const hovers = await hoverPass(page, opt.hoverLimit, opt.log);
+  lap(`hover pass (${hovers.length})`);
   await toTop(page);
   const harvest = await page.evaluate(() => (window as any).__relume.harvest());
   const libraries = await page.evaluate(() => (window as any).__relume.libraries());
   const motion = await page.evaluate(() => (window as any).__relume.collect());
   const css = await cssText();
+  lap(`harvest (frames ${motion.stats?.frames}, over budget ${motion.stats?.overBudget}, peak tracks ${motion.stats?.maxActive})`);
   await screenshot(page, join(dir, `shot-${vp.name}.jpg`));
   const video = page.video();
   await ctx.close();

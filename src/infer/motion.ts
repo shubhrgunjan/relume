@@ -4,6 +4,8 @@ import { fitTiming, bezierCss, type Bezier } from '../lib/easing.js';
 import type { Evidence, Motion, Anim, Row } from './evidence.js';
 
 const r0 = Math.round;
+// properties that change state but not what anyone sees move
+const NON_VISUAL = /^(overflow|overflowX|overflowY|visibility|zIndex|pointerEvents|display|contentVisibility|cursor|userSelect|willChange|touchAction|scrollBehavior)$/;
 const r2 = (v: number) => Math.round(v * 100) / 100;
 
 export interface MotionPattern {
@@ -124,7 +126,7 @@ export function inferMotion(ev: Evidence) {
       const infinite = a.iterations === null || a.iterations === Infinity || (a.iterations as any) === 'Infinity' || a.iterations > 50;
       let trigger: MotionPattern['trigger'] = infinite ? 'loop' : ph.phase === 'hover' ? 'hover' : ph.phase === 'hover-exit' ? 'hover-exit' : ph.phase === 'scroll' ? 'scroll' : ph.phase === 'idle' ? 'state' : 'load';
       if (a.timeline && /Scroll|View/.test(a.timeline)) trigger = 'scroll-linked';
-      const props = a.props.filter((p) => !/^(--|offset|composite)/.test(p));
+      const props = a.props.filter((p) => !/^(--|offset|composite)/.test(p) && !NON_VISUAL.test(p));
       if (!props.length) continue;
       const kf = a.keyframes;
       const from = kf.length ? kfValues(kf[0], props) : {};
@@ -143,8 +145,12 @@ export function inferMotion(ev: Evidence) {
       const target = describe(m, a.target, rows);
       let entry: number | undefined;
       if (trigger === 'scroll' && a.target >= 0) {
+        // where the element was when it started moving: its own track if recorded, else its resting box —
+        // never for fixed/sticky elements, whose position is the viewport's
         const r = rows.get(a.target);
-        if (r) entry = r2((r.box[1] - scrollAt(a.t)) / vh);
+        const tr = m.tracks.find((x) => x.id === a.target && x.samples[0][0] <= a.t + 50);
+        const y = tr ? tr.samples.reduce((acc, s) => (s[0] <= a.t ? s[6] : acc), tr.samples[0][6]) : r?.box[1];
+        if (y !== undefined && r && !/fixed|sticky/.test(r.s.position)) { const e = (y - scrollAt(a.t)) / vh; if (e > -0.2 && e < 1.5) entry = r2(e); }
       }
       const sp = /^linear\(/.test(easing) ? springInfo(easing) : null;
       const p = add(key, {
@@ -214,7 +220,7 @@ export function inferMotion(ev: Evidence) {
       const target = describe(m, tr.id, rows);
       const key = ['js', trigger, props.sort().join(','), Math.round(duration / 50) * 50, easing, trigger === 'scroll-linked' ? Math.round((scrollRatio || 0) * 20) : JSON.stringify(from) + JSON.stringify(to)].join('|');
       let entry: number | undefined;
-      if (trigger === 'scroll') entry = r2((S[0][6] - scrollAt(ts[0])) / vh);
+      if (trigger === 'scroll' && !/fixed|sticky/.test(rows.get(tr.id)?.s.position || '')) { const e = (S[0][6] - scrollAt(ts[0])) / vh; if (e > -0.2 && e < 1.5) entry = r2(e); }
       const p = add(key, { trigger, source: 'js', props, from, to, duration, easing, delay: 0, scrollRatio, entry }, target, { t: ts[0], parent: rows.get(tr.id)?.pid ?? -1 });
       if (entry !== undefined) (p as any)._entries = [...((p as any)._entries || []), entry];
       if (trigger === 'load' && ts[0] - loadedT < 10000) intro.push({ t: r0(ts[0] - loadedT), desc: target, key: p.id });
@@ -250,7 +256,8 @@ export function inferMotion(ev: Evidence) {
         let sxy = 0, sxx = 0;
         for (const s of seg) { const p = (s[2] - y0) / dist; const t = s[0] - moveStart; if (p > 0.02 && p < 0.97 && t > 0) { sxy += t * Math.log(1 - p); sxx += t * t; } }
         tau = sxx > 0 ? -sxx / sxy : undefined;
-        if (tau) lerp = r2(1 - Math.exp(-16.667 / tau));
+        // Lenis-style damping is frame-rate independent: x += (target - x)·(1 - e^(-60·lerp·dt)), so τ = 1/(60·lerp)
+        if (tau) lerp = r2(1000 / (60 * tau));
         const fit = fitTiming(seg.map((s) => (s[0] - moveStart) / 1000), seg.map((s) => (s[2] - y0) / dist), 1 / 60);
         if (fit) curve = `${r0(fit.duration * 1000)}ms ${fit.easing}`;
       }

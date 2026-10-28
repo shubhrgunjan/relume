@@ -2,7 +2,8 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { spawn } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import { buildServer } from './tools.js';
 import { entryDir, readJson } from '../catalog/catalog.js';
@@ -10,6 +11,7 @@ import { skillName } from '../skill/compile.js';
 import { catalogPage } from './site.js';
 
 const PORT = +(process.env.PORT || 8790);
+const LANDING = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'site', 'index.html');
 const BASE = process.env.RELUME_BASE_URL || `http://localhost:${PORT}`;
 // keys: RELUME_KEYS=key1,key2 — empty means open (local use)
 const KEYS = new Set((process.env.RELUME_KEYS || '').split(',').map((s) => s.trim()).filter(Boolean));
@@ -51,7 +53,8 @@ createServer(async (req, res) => {
   try {
     const url = new URL(req.url ?? '/', BASE);
     if (url.pathname === '/health') { res.writeHead(200).end('ok'); return; }
-    if (url.pathname === '/' || url.pathname === '/catalog') { res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }).end(catalogPage()); return; }
+    if (url.pathname === '/') { res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }).end(readFileSync(LANDING)); return; }
+    if (url.pathname === '/catalog') { res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }).end(catalogPage()); return; }
     const shot = url.pathname.match(/^\/shot\/([a-z0-9.-]+)\/([a-z0-9-]+)\/([a-z-]+)\.jpg$/);
     if (shot) { const f = join(entryDir(shot[1]), 'pages', shot[2], `shot-${shot[3]}.jpg`); if (existsSync(f)) { res.writeHead(200, { 'content-type': 'image/jpeg', 'cache-control': 'max-age=3600' }).end(readFileSync(f)); return; } }
     if (!authorized(req)) { res.writeHead(401, { 'content-type': 'application/json' }).end(JSON.stringify({ jsonrpc: '2.0', error: { code: -32001, message: 'Authorization: Bearer <key> required' }, id: null })); return; }
@@ -62,4 +65,4 @@ createServer(async (req, res) => {
   } catch (e) {
     if (!res.headersSent) res.writeHead(500).end((e as Error).message);
   }
-}).listen(PORT, () => console.log(`relume on ${BASE} — MCP at ${BASE}/api/mcp, catalogue at ${BASE}/`));
+}).listen(PORT, () => console.log(`relume on ${BASE} — landing at /, catalogue at /catalog, MCP at /api/mcp`));

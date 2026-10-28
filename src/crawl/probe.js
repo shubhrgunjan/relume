@@ -18,7 +18,7 @@
     wheel: [],          // [t, deltaY] as the page received it
   });
   const ids = new WeakMap();
-  const MAX_ELEMENTS = 20000, MAX_ACTIVE = 400, QUIET_FRAMES = 45, MAX_SAMPLES = 900;
+  const MAX_ELEMENTS = 20000, MAX_ACTIVE = 200, QUIET_FRAMES = 45, MAX_SAMPLES = 600;
 
   function describe(el) {
     const cls = typeof el.className === 'string' ? el.className : el.getAttribute?.('class') || '';
@@ -67,14 +67,29 @@
   }
   R.track = track;
 
+  // Sampling budget: reading styles of many elements every frame can starve a busy page (and make the crawl
+  // crawl). Each frame gets BUDGET_MS; tracks not reached this frame are read next frame, round-robin.
+  const BUDGET_MS = 4;
+  let cursor = 0;
+  R.stats = { frames: 0, overBudget: 0, maxActive: 0 };
   function frame() {
     const t = now();
     R.scroll.push([Math.round(t * 10) / 10, scrollX, Math.round(scrollY * 10) / 10]);
-    for (const [id, tr] of R.tracks) {
+    R.stats.frames++;
+    R.stats.maxActive = Math.max(R.stats.maxActive, R.tracks.size);
+    const list = [...R.tracks.values()];
+    const n = list.length;
+    let done = 0;
+    for (let k = 0; k < n; k++) {
+      const tr = list[(cursor + k) % n];
+      const id = tr.id;
+      if (k > 0 && now() - t > BUDGET_MS) { R.stats.overBudget++; cursor = (cursor + k) % Math.max(1, n); break; }
+      done++;
       const v = read(tr.el);
       const last = tr.samples[tr.samples.length - 1];
       if (same(v, last.slice(1))) tr.quiet++;
       else { tr.quiet = 0; }
+      tr.lastT = t;
       tr.samples.push([Math.round(t * 10) / 10, ...v]);
       if (tr.quiet >= QUIET_FRAMES || tr.samples.length >= MAX_SAMPLES) {
         R.tracks.delete(id);
@@ -83,6 +98,7 @@
         if (s.length > 2) R.done.push({ id, why: tr.why, samples: s });
       }
     }
+    if (done === n) cursor = 0;
     if (R.scroll.length > 60000) R.scroll.splice(0, 30000);
     requestAnimationFrame(frame);
   }
@@ -278,6 +294,6 @@
     for (const [id, tr] of R.tracks) if (tr.samples.length > 2) R.done.push({ id, why: tr.why, samples: tr.samples });
     R.tracks.clear();
     ledger();
-    return { marks: R.marks, elements: R.elements, tracks: R.done, anims: R.anims, scroll: R.scroll, wheel: R.wheel };
+    return { marks: R.marks, elements: R.elements, tracks: R.done, anims: R.anims, scroll: R.scroll, wheel: R.wheel, stats: R.stats };
   };
 })();
