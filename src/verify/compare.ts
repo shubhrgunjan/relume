@@ -66,7 +66,9 @@ export function compareDna(src: DNA, cand: DNA): Report {
   let tOn = 0, tTot = 0;
   for (const s of cand.typography.styles) {
     tTot += s.share;
-    const famOk = srcFam.has(s.family.toLowerCase()) || [...srcFam].some((f) => s.family.toLowerCase().startsWith(f));
+    // a source with no visible code has no mono family to measure; a mono face for code is not a deviation
+    const srcHasMono = src.typography.families.some((f) => /mono|code/i.test(f.family) || f.roles.some((r) => r.startsWith('mono')));
+    const famOk = srcFam.has(s.family.toLowerCase()) || [...srcFam].some((f) => s.family.toLowerCase().startsWith(f)) || (!srcHasMono && /mono|code|courier/i.test(s.stack));
     // the closest source style, not the first one within tolerance: 15px/300 body must not be judged as 16px/300
     const match = src.typography.styles.filter((x) => Math.abs(x.size - s.size) <= 1 && Math.abs(x.weight - s.weight) <= 60)
       .sort((a, b) => (Math.abs(a.size - s.size) * 10 + Math.abs(a.weight - s.weight) / 10 + Math.abs(a.lineHeightRatio - s.lineHeightRatio) * 20) - (Math.abs(b.size - s.size) * 10 + Math.abs(b.weight - s.weight) / 10 + Math.abs(b.lineHeightRatio - s.lineHeightRatio) * 20))[0];

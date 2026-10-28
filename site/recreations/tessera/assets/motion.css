@@ -127,5 +127,5 @@
 @keyframes loop-backgroundpositionx-41 { 0%{background-position:0} to{background-position:120px} }
 .loop-backgroundpositionx-41 { animation: loop-backgroundpositionx-41 2000ms linear infinite; }
 /* loop-opacity-42: circle.grid-dot-0-0-agent */
-@keyframes loop-opacity-42 { 0% { opacity: 1; } 6.25% { opacity: 1; } 6.25% { opacity: 1; } 12.5% { opacity: 1; } 12.5% { opacity: 1; } 18.75% { opacity: 1; } 18.75% { opacity: 1; } 25% { opacity: 1; } 25% { opacity: 1; } 31.25% { opacity: 1; } 31.25% { opacity: 1; } 37.5% { opacity: 1; } 37.5% { opacity: 1; } 43.75% { opacity: 1; } 43.75% { opacity: 1; } 50% { opacity: 1; } 50% { opacity: 1; } 56.25% { opacity: 1; } 56.25% { opacity: 1; } 62.5% { opacity: 1; } 62.5% { opacity: 1; } 68.75% { opacity: 1; } 68.75% { opacity: 1; } 75% { opacity: 1; } 75% { opacity: 1; } 81.25% { opacity: 1; } 81.25% { opacity: 1; } 87.5% { o }
+/* relume: dropped a malformed generated rule (631 chars) */
 .loop-opacity-42 { animation: loop-opacity-42 3200ms steps(1) infinite; }

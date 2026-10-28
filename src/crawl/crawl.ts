@@ -68,6 +68,12 @@ async function settle(page: Page, ms = 2500) {
   await page.waitForTimeout(ms);
 }
 
+async function closeOverlays(page: Page) {
+  for (let i = 0; i < 3; i++) { await page.keyboard.press('Escape').catch(() => {}); await page.waitForTimeout(150); }
+  await page.mouse.click(4, Math.round((page.viewportSize()?.height || 900) / 2)).catch(() => {});
+  await page.waitForTimeout(400);
+}
+
 async function dismissOverlays(page: Page) {
   // cookie banners hide the design; click the obvious accept/close and move on
   for (const sel of ['button:has-text("Accept all")', 'button:has-text("Accept")', 'button:has-text("Allow all")', 'button:has-text("I agree")', 'button:has-text("Got it")', '[aria-label="Close"]', '#onetrust-accept-btn-handler']) {
@@ -240,6 +246,8 @@ async function motionVisit(browser: Browser, url: string, dir: string, opt: Craw
   await toTop(page);
   const hovers = await hoverPass(page, opt.hoverLimit, opt.log);
   lap(`hover pass (${hovers.length})`);
+  // hovering can open menus and modals; close them so they are not captured as page content
+  await closeOverlays(page);
   await toTop(page);
   const harvest = await page.evaluate(() => (window as any).__relume.harvest());
   const libraries = await page.evaluate(() => (window as any).__relume.libraries());
