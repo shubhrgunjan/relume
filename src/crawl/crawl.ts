@@ -233,7 +233,7 @@ async function screenshot(page: Page, path: string) {
 
 async function stitched(page: Page, path: string, vh: number) {
   const cap = 40000;
-  const tiles: { input: Buffer; top: number }[] = [];
+  const tiles: { input: Buffer; top: number; left: number }[] = [];
   let y = 0, width = 0;
   for (let i = 0; i < 60; i++) {
     await page.evaluate((y) => { const l = (window as any).lenis || (window as any).__lenis; if (l?.scrollTo) l.scrollTo(y, { immediate: true, force: true }); else scrollTo(0, y); }, y);
@@ -241,7 +241,7 @@ async function stitched(page: Page, path: string, vh: number) {
     const buf = await page.screenshot({ type: 'jpeg', quality: 82 });
     const meta = await sharp(buf).metadata();
     width = meta.width || width;
-    tiles.push({ input: buf, top: y });
+    tiles.push({ input: buf, top: y, left: 0 });
     const total = await page.evaluate(() => Math.max(document.documentElement.scrollHeight, document.body?.scrollHeight || 0, (window as any).lenis?.limit + innerHeight || 0));
     if (y + vh >= Math.min(total, cap)) break;
     y = Math.min(y + vh, Math.min(total, cap) - vh);
