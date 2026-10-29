@@ -106,6 +106,9 @@ description: ${JSON.stringify(desc)}
 
 Measured from ${dna.source.url} (${dna.source.pages.length} page${dna.source.pages.length === 1 ? '' : 's'} at ${['desktop', 'tablet', 'mobile', 'desktop-dark'].filter((v) => dna.source.viewports.includes(v)).join(', ')}) on ${dna.source.crawledAt.slice(0, 10)} by relume. Every value here was read from the live site — computed styles, stylesheets, animations and a frame-by-frame motion recording — so treat them as facts, not suggestions.
 
+## What makes this site feel like itself — build these first
+${signatureMoments(dna)}
+
 ## The feel
 ${dna.feel.notes.map((n) => `- ${n}`).join('\n')}
 
@@ -603,6 +606,32 @@ function blueprintMd(dna: DNA) {
     }
   }
   return L.join('\n');
+}
+
+/** The handful of things that make the source premium, in the order a visitor meets them. Colours and fonts are
+ * the easy part; an agent that copies only those builds a cheap imitation, so these lead the skill. */
+function signatureMoments(dna: DNA) {
+  const pages = (dna as any).composition?.pages || [];
+  const home = pages[0];
+  if (!home) return 'Read references/blueprint.md.';
+  const out: string[] = [];
+  const SIG = ['3d-scene', 'scroll-dock', 'animated-region', 'active-one-of-n', 'typewriter', 'cycling-text', 'parallax', 'drift', 'staged-reveal', 'autoplay-media'];
+  for (const sec of home.sections) {
+    const where = sec.index === 0 ? 'The hero' : `Section ${sec.index + 1} (${sec.kind}${sec.heading?.text ? `, “${sec.heading.text.slice(0, 40)}”` : ''})`;
+    const parts: string[] = [];
+    // signature controls and scenes from the blueprint
+    for (const b of sec.blocks || []) {
+      if (b.kind === 'form' && /signature/.test(b.detail)) parts.push(`its search field is a designed control, not a plain input: ${b.detail.replace(/^signature search\/input field: /, '')}${b.crop ? ` (see ${b.crop.split('/').pop()})` : ''}`);
+      if (b.kind === '3d-scene') parts.push(`a live 3D scene fills ${b.box[2]}×${b.box[3]}px`);
+      if (b.kind === 'canvas-art') parts.push(`a drawn canvas fills the background`);
+    }
+    // the most distinctive behaviours, one line each (narrative is already grouped and ranked)
+    const items = (sec.behaviour?.items || []).filter((i: any) => SIG.includes(i.kind));
+    const narr = (sec.behaviour?.narrative || []).filter((l: string) => !/gradient mask|repeats every/.test(l)).slice(0, items.length ? 3 : 0);
+    if (parts.length || narr.length) out.push(`- **${where}**: ${[...parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1) + '.'), ...narr].join(' ')}`);
+  }
+  if (!out.length) return 'This site is mostly still: its character is in the layout, type and the motion recipes below. Read references/blueprint.md first.';
+  return `${out.slice(0, 7).join('\n')}\n\nRebuild each of these for your product with the measured timings (\`references/blueprint.md\`; with the relume MCP, \`see_behaviour\` shows each section moving). A page with the right colours and fonts but none of these is not this language, and \`check_style\` scores it low.`;
 }
 
 function behaviourLead(dna: DNA) {

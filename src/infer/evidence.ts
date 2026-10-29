@@ -7,7 +7,7 @@ import { readGz, readJson } from '../catalog/catalog.js';
 
 export interface Row {
   id: number; pid: number; tag: string; box: [number, number, number, number]; chars: number; text: string;
-  href?: string; type?: string; role?: string; aria?: string; cls: string; kids: number;
+  href?: string; type?: string; ph?: string; role?: string; aria?: string; cls: string; kids: number;
   s: Record<string, string>;
   media?: { src: string; nw: number; nh: number; autoplay?: boolean; loop?: boolean };
   canvas?: { ctx: string; w: number; h: number };

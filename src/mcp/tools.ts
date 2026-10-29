@@ -98,22 +98,23 @@ export function buildServer(baseUrl: string, authHeader?: string) {
 
   server.registerTool('extract_site', {
     title: 'Measure a site', description: 'Crawl a website and compile its design language into a skill. Runs as a job (typically 5–15 minutes); wait for it with job_status({ job, wait: 55 }) and do not start designing or building until it is done. By default the result joins the public catalogue; pass catalog: false to keep it private (every tool still works on its slug). Re-extracting an existing slug refreshes it.',
-    inputSchema: { url: z.string().url(), pages: z.number().int().min(1).max(10).optional().describe('representative pages to crawl (default 4; fewer pages measure fewer of the language\'s sections and components)'), slug: z.string().optional(), catalog: z.boolean().optional().describe('false keeps this entry out of the catalogue') },
+    inputSchema: { url: z.string().url(), pages: z.number().int().min(1).max(10).optional().describe('representative pages to crawl (default 4, at least 3: one page misses most of a language)'), slug: z.string().optional(), catalog: z.boolean().optional().describe('false keeps this entry out of the catalogue') },
     annotations: { readOnlyHint: false, idempotentHint: false, openWorldHint: true },
   }, wrap(async ({ url, pages, slug, catalog }) => {
     const s = slug || slugFor(url);
     const running = busy(s);
     if (running) return { content: [text(`${s} is already being measured (job ${running.id}). Wait for it: job_status({ job: "${running.id}", wait: 55 }).`), json({ job: running.id, slug: s, state: 'running', ...progress(running) })] };
-    const job: Job = { id: 'x' + Date.now().toString(36), kind: 'extract', slug: s, url, state: 'running', log: [], started: Date.now(), pages: pages ?? 4 };
+    pages = Math.max(3, pages ?? 4);
+    const job: Job = { id: 'x' + Date.now().toString(36), kind: 'extract', slug: s, url, state: 'running', log: [], started: Date.now(), pages };
     if (catalog === false) writeFileSync(join(entryDir(s), 'private.json'), JSON.stringify({ private: true, at: new Date().toISOString() }));
     enqueue(job, async (log) => {
-      await crawlSite(url, entryDir(s), { maxPages: pages ?? 4, viewports: DEFAULT_VIEWPORTS, dark: true, hoverLimit: 25, log });
+      await crawlSite(url, entryDir(s), { maxPages: pages, viewports: DEFAULT_VIEWPORTS, dark: true, hoverLimit: 25, log });
       const dna = await buildDna(entryDir(s), s);
       const out = compileSkill(dna, entryDir(s));
       return { slug: s, skill: skillName(dna), notes: dna.feel.notes, skillDir: out };
     });
     const p = progress(job);
-    const few = (pages ?? 4) < 3 ? ` You asked for ${pages} page${pages === 1 ? '' : 's'}: the skill will only know those; 4 is the default for a reason.` : '';
+    const few = '';
     return { content: [
       text(`relume is measuring ${url} (about ${p.etaMinutes} minutes).${few}\n\nDo not start designing or building yet: no layout, colours, fonts, markup or styles until this job is done and you have read the skill. Anything built now is a guess. Meanwhile, only plan the content.\n\nWait with job_status({ job: "${job.id}", wait: 55 }); repeat until state is "done", then call get_skill("${s}") and read references/blueprint.md first.`),
       json({ job: job.id, slug: s, state: 'running', private: catalog === false, etaMinutes: p.etaMinutes, doNotBuildYet: true, next: { tool: 'job_status', args: { job: job.id, wait: 55 } } }),

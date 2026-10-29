@@ -43,7 +43,8 @@ export async function buildDna(dir: string, slug: string) {
         // each visual block gets its own crop, so an agent can see what it actually is (a render, line art, a photo)
         let n = 0;
         for (const b of s.blocks) {
-          if (!['image', 'illustration', 'ui-mock', 'dataviz', 'code', 'testimonial', 'video'].includes(b.kind) || n >= 8) continue;
+          if (!['image', 'illustration', 'ui-mock', 'dataviz', 'code', 'testimonial', 'video', '3d-scene', 'canvas-art', 'form'].includes(b.kind) || n >= 8) continue;
+          if (b.kind === 'form' && !/field/.test(b.detail)) continue;
           const left = Math.max(0, Math.round(b.box[0])), btop = Math.max(0, Math.round(b.box[1]));
           const width = Math.min(Math.round(b.box[2]) + Math.min(0, Math.round(b.box[0])), (meta.width || 0) - left), bh = Math.min(Math.round(b.box[3]), (meta.height || 0) - btop, 1600);
           if (width < 40 || bh < 40) continue;

@@ -321,6 +321,7 @@
         chars, text: text.slice(0, 120),
         href: el.tagName === 'A' ? el.getAttribute('href') : undefined,
         type: el.getAttribute('type') || undefined,
+        ph: (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') ? (el.getAttribute('placeholder') || undefined) : undefined,
         role: el.getAttribute('role') || undefined,
         aria: el.getAttribute('aria-label') || undefined,
         cls: (typeof el.className === 'string' ? el.className : el.getAttribute('class') || '').slice(0, 200),

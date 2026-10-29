@@ -8,7 +8,7 @@ import type { Motion, PageEvidence, Row } from './evidence.js';
 import type { Blueprint } from './sections.js';
 
 export interface BehaviourItem {
-  kind: 'typewriter' | 'cycling-text' | 'staged-reveal' | 'active-one-of-n' | 'mover' | 'progress' | 'loop' | 'frame-swap' | 'mask-fade' | 'drift' | 'parallax' | 'autoplay-media' | 'animated-region' | '3d-scene';
+  kind: 'typewriter' | 'cycling-text' | 'staged-reveal' | 'active-one-of-n' | 'mover' | 'progress' | 'loop' | 'frame-swap' | 'mask-fade' | 'drift' | 'parallax' | 'autoplay-media' | 'animated-region' | '3d-scene' | 'scroll-dock' | 'scroll-change';
   what: string;           // short description of the element(s)
   params: Record<string, any>;
   box?: [number, number, number, number];
@@ -19,13 +19,57 @@ const r0 = Math.round, r2 = (v: number) => Math.round(v * 100) / 100;
 const median = (a: number[]) => { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y); return s[s.length >> 1]; };
 const cv = (a: number[]) => { if (a.length < 2) return 1; const m = a.reduce((s, x) => s + x, 0) / a.length; return Math.sqrt(a.reduce((s, x) => s + (x - m) ** 2, 0) / a.length) / Math.max(1e-6, m); };
 
+// what an element *is*, in words an agent can act on ("the headline", "an image stack (9 images)",
+// "the search field") instead of a tag and generated class names
+const kidsCache = new WeakMap<Map<number, Row>, Map<number, Row[]>>();
+function kidsOf(rows: Map<number, Row>) {
+  let k = kidsCache.get(rows);
+  if (!k) { k = new Map(); for (const r of rows.values()) { if (!k.has(r.pid)) k.set(r.pid, []); k.get(r.pid)!.push(r); } kidsCache.set(rows, k); }
+  return k;
+}
+function descendants(rows: Map<number, Row>, id: number, limit = 400) {
+  const kids = kidsOf(rows), out: Row[] = [], stack = [...(kids.get(id) || [])];
+  while (stack.length && out.length < limit) { const r = stack.pop()!; out.push(r); stack.push(...(kids.get(r.id) || [])); }
+  return out;
+}
+function roleOf(rows: Map<number, Row>, id: number, e?: { tag: string; cls: string; text: string }): string | null {
+  const r = rows.get(id);
+  const tag = r?.tag || e?.tag || '';
+  const sz = r ? ` ${r.box[2]}×${r.box[3]}` : '';
+  const desc = r ? descendants(rows, id) : [];
+  const text = (r?.text || e?.text || desc.filter((d) => d.chars).map((d) => d.text).join(' ')).replace(/\s+/g, ' ').trim();
+  const q = text ? ` (“${text.slice(0, 40)}${text.length > 40 ? '…' : ''}”)` : '';
+  // up the tree: what is this inside?
+  const chain: Row[] = [];
+  for (let p = r?.pid, k = 0; p !== undefined && p >= 0 && k < 10; k++) { const a = rows.get(p); if (!a) break; chain.push(a); p = a.pid; }
+  const px = (v?: string) => parseFloat(v || '') || 0;
+  const inHeading = [r, ...chain].find((a) => a && (/^h[1-3]$/.test(a.tag) || px(a.s.fontSize) >= 36));
+  const inHeader = [r, ...chain].find((a) => a && (/^(header|nav)$/.test(a.tag) || (/fixed|sticky/.test(a.s.position) && a.box[1] < 40)));
+  const field = [r, ...chain, ...desc].find((a) => a && (a.tag === 'input' || a.tag === 'textarea' || a.role === 'searchbox' || a.role === 'combobox'));
+  const imgs = desc.filter((d) => d.tag === 'img' || d.tag === 'video' || d.tag === 'picture').length + (tag === 'img' ? 1 : 0);
+  const avatars = desc.filter((d) => d.tag === 'img' && d.box[2] <= 72 && Math.abs(d.box[2] - d.box[3]) < 4).length;
+  if (field && (field === r || chain.includes(field) || desc.length < 30)) return `the search field${q || (field.text ? ` (“${field.text.slice(0, 40)}”)` : '')}`;
+  if (inHeading && (inHeading === r || chain.includes(inHeading))) return inHeading === r ? `the headline${q}` : `part of the headline${q}`;
+  if (inHeader) return `in the header${q}`;
+  if (tag === 'canvas') return `a canvas${sz}`;
+  if (tag === 'video') return `a video${sz}`;
+  if (avatars >= 4) return `a row of ${avatars} avatars`;
+  if (imgs >= 2 && desc.length < 120) return `an image stack (${imgs} images${sz})`;
+  if (tag === 'img') return `an image${sz}`;
+  if (/^(ul|ol)$/.test(tag) || (desc.length > 6 && (kidsOf(rows).get(id) || []).length >= 4 && new Set((kidsOf(rows).get(id) || []).map((c) => c.tag)).size === 1)) return `a list of ${(kidsOf(rows).get(id) || []).length} items${q}`;
+  if (/^(a|button)$/.test(tag)) return `the ${tag === 'a' ? 'link' : 'button'}${q}`;
+  if (text) return `the text${q}`;
+  return null;
+}
+
 function describe(m: Motion, rows: Map<number, Row>, id: number) {
   const e = m.elements[id];
   const r = rows.get(id);
-  if (!e) { if (!r) return 'a container'; const c = r.cls.split(/\s+/).filter((c) => c && c.length < 24 && !/[A-Z0-9]{5,}|__/.test(c)).slice(0, 2).join('.'); return `${r.tag}${c ? '.' + c : ''} ${r.box[2]}×${r.box[3]}`; }
-  const cls = e.cls.split(/\s+/).filter((c) => c && c.length < 24 && !/[A-Z0-9]{5,}|__|^[a-z0-9-]{0,3}$/.test(c)).slice(0, 2).join('.');
+  const role = roleOf(rows, id, e);
+  if (role) return role;
+  if (!e) { if (!r) return 'a container'; return `a ${r.tag} ${r.box[2]}×${r.box[3]}`; }
   const file = r?.media?.src ? ` (${r.media.src.split('/').pop()!.split('?')[0].replace(/\.[a-z0-9_~-]{6,}\./i, '.').slice(0, 40)})` : '';
-  return `${e.tag}${cls ? '.' + cls : ''}${file}${e.text ? ` “${e.text.slice(0, 28)}”` : ''}${r ? ` ${r.box[2]}×${r.box[3]}` : ''}`;
+  return `a ${e.tag}${file}${e.text ? ` “${e.text.slice(0, 28)}”` : ''}${r ? ` ${r.box[2]}×${r.box[3]}` : ''}`;
 }
 
 /** Windows of time when one stretch of the page was held still in view. */
@@ -422,6 +466,43 @@ export function pageBehaviour(page: PageEvidence, bp: Blueprint, entryDir: strin
     void si;
   }
 
+  // scroll choreography: during the scroll pass an ordinary element keeps its place on the page. One whose page
+  // position or size changes as you scroll is part of a transition; one that ends up pinned near the top of the
+  // screen after starting lower in the first view docks into the header (a search bar, a CTA, a logo)
+  {
+    const s0 = m.marks.find((k) => k.label === 'scroll:start')?.t, s1 = m.marks.find((k) => k.label === 'scroll:end')?.t;
+    const sy = (t: number) => { let y = 0; for (const x of m.scroll) { if (x[0] > t) break; y = x[2]; } return y; };
+    if (s0 !== undefined && s1 !== undefined) {
+      const seen: number[][] = [];
+      const cand = m.tracks.map((tr) => ({ tr, S: tr.samples.filter((x) => x[0] >= s0 && x[0] <= s1) })).filter(({ S }) => S.length >= 6)
+        .map(({ tr, S }) => {
+          const a = S[0], b = S[S.length - 1];
+          const scrolled = sy(b[0]) - sy(a[0]);
+          const box0 = [+a[5], +a[6], +a[7], +a[8]], box1 = [+b[5], +b[6], +b[7], +b[8]];
+          const vy0 = box0[1] - sy(a[0]), vy1 = box1[1] - sy(b[0]);
+          return { tr, a, b, scrolled, box0, box1, vy0, vy1, dDoc: box1[1] - box0[1], dW: box0[2] ? box1[2] / box0[2] : 1 };
+        })
+        .filter((c) => c.scrolled > 200 && c.box0[2] * c.box0[3] > 2500 && c.vy0 >= 0 && c.vy0 < vh && (Math.abs(c.dDoc) > 80 || Math.abs(c.dW - 1) > 0.15))
+        // already pinned (a fixed header) is not a transition
+        .filter((c) => !(Math.abs(c.vy1 - c.vy0) < 12 && Math.abs(c.dW - 1) < 0.05))
+        .sort((x, y) => y.box0[2] * y.box0[3] - x.box0[2] * x.box0[3]);
+      for (const c of cand) {
+        // nested elements of one moving thing count once
+        if (seen.some((b) => Math.abs(b[0] - c.box0[0]) < 40 && Math.abs(b[1] - c.box0[1]) < 40)) continue;
+        seen.push(c.box0);
+        const vbox = (b: number[], v: number) => [r0(b[0]), r0(v), r0(b[2]), r0(b[3])];
+        const docked = c.vy1 < 140 && c.vy0 - c.vy1 > 100;
+        const what = describe(m, rows, c.tr.id);
+        const item: BehaviourItem = docked
+          ? { kind: 'scroll-dock', what, params: { verb: c.dW < 0.9 ? 'shrinks, moves up and docks into the header' : 'moves up and docks into the header', from: vbox(c.box0, c.vy0), to: vbox(c.box1, c.vy1), scrollPx: r0(c.scrolled) }, box: c.box0 as any }
+          : { kind: 'scroll-change', what, params: { props: [Math.abs(c.dDoc) > 80 ? 'position' : '', Math.abs(c.dW - 1) > 0.15 ? 'size' : ''].filter(Boolean), summary: `${r0(c.box0[2])}×${r0(c.box0[3])} → ${r0(c.box1[2])}×${r0(c.box1[3])}, moves ${r0(c.dDoc)}px on the page over ${r0(c.scrolled)}px of scroll` }, box: c.box0 as any };
+        const si = secAt(item.box);
+        if (si >= 0) get(si).items.push(item);
+        if (seen.length >= 8) break;
+      }
+    }
+  }
+
   // dim/active sets run on long cycles (a turn can outlast any one watch): detect them over the whole recording.
   // Members are every element sharing the flipping elements' class signature; the period comes from all flips.
   for (const it of activeSets(m, rows)) {
@@ -462,26 +543,42 @@ export function pageBehaviour(page: PageEvidence, bp: Blueprint, entryDir: strin
 }
 
 // what a visitor notices first comes first
-const PRIORITY: BehaviourItem['kind'][] = ['3d-scene', 'animated-region', 'active-one-of-n', 'typewriter', 'parallax', 'drift', 'mover', 'cycling-text', 'staged-reveal', 'progress', 'frame-swap', 'autoplay-media', 'mask-fade', 'loop'];
+const PRIORITY: BehaviourItem['kind'][] = ['3d-scene', 'scroll-dock', 'animated-region', 'active-one-of-n', 'typewriter', 'parallax', 'drift', 'mover', 'cycling-text', 'staged-reveal', 'progress', 'frame-swap', 'autoplay-media', 'mask-fade', 'scroll-change', 'loop'];
+
+function sentence(it: BehaviourItem): string {
+  const p = it.params, W = it.what.charAt(0).toUpperCase() + it.what.slice(1);
+  switch (it.kind) {
+    case 'typewriter': return `${W} types itself out at ~${p.charsPerSecond} characters/s (“${String(p.sample).slice(0, 48)}…”).`;
+    case 'cycling-text': return `${W} cycles through ${p.values.length} values every ~${p.intervalMs}ms: ${p.values.slice(0, 4).map((v: string) => `“${v.slice(0, 28)}”`).join(', ')}.`;
+    case 'staged-reveal': return `${W} brings its items in one at a time${p.intervalMs ? `, ~${p.intervalMs}ms apart` : ''}${p.fadeIn ? ', fading in' : ''} (${p.steps} steps).`;
+    case 'active-one-of-n': return `One of ${p.members} is active at a time in ${it.what}; the others are dimmed (${p.via}, level ${p.dimmedLevel} vs ${p.activeLevel})${p.switchEveryMs ? `; the active one changes every ~${p.switchEveryMs}ms` : ''}.`;
+    case 'mover': return `${W} travels between ${p.positions} positions (up to ${p.distancePx}px).`;
+    case 'progress': return `A progress bar grows from ${p.fromPx}px to ${p.toPx}px over ${p.durationMs}ms.`;
+    case 'loop': return `${W} repeats every ~${p.periodMs}ms.`;
+    case 'frame-swap': return `${W} swaps frames (${p.frames} frames, ${p.fps} fps): a sprite or frame animation.`;
+    case 'mask-fade': return `${W} fades out through a gradient mask (${String(p.mask).slice(0, 70)}).`;
+    case 'drift': return p.source === 'dom' ? `${W} drifts ${p.direction} at ~${p.pxPerSecond}px/s, looping (${p.copies} cop${p.copies === 1 ? 'y' : 'ies'}).` : `Part of the view drifts ${p.direction} at ~${p.pxPerSecond}px/s on its own (painted motion: canvas, background or image).`;
+    case 'parallax': return p.timeBased ? `Depth: ${p.layers} layers drift at different speeds (${p.speeds.join(', ')} px/s): the farther layer moves slower.` : `A layer (viewport rows ${p.viewportBand[0]}–${p.viewportBand[1]}px) moves at ${p.speedRatio}× the scroll speed: parallax depth (${p.layers} distinct speeds).`;
+    case 'autoplay-media': return `${W} is autoplaying video${p.loop ? ' on a loop' : ''}.`;
+    case '3d-scene': return `${W} is a live 3D scene (${p.context}${p.library ? `, ${p.library}` : ''})${p.moving ? ', moving continuously' : ''}. Rebuild it as real 3D (three.js), not a still image.`;
+    case 'animated-region': return `${W} keeps changing on its own (an animated canvas: objects moving, drifting or morphing); recreate the motion, not a frame of it.`;
+    case 'scroll-dock': return `As you scroll, ${it.what} ${p.verb} (from ${p.from[2]}×${p.from[3]} at y ${p.from[1]} to ${p.to[2]}×${p.to[3]} at y ${p.to[1]} on screen, over the first ~${p.scrollPx}px of scroll). A signature transition: build it, do not leave it static.`;
+    case 'scroll-change': return `As you scroll, ${it.what} changes ${p.props.join(' and ')} (${p.summary}).`;
+  }
+  return `${W}: ${it.kind}.`;
+}
 
 function narrate(items: BehaviourItem[]): string[] {
-  const n: string[] = [];
-  for (const it of [...items].sort((a, b) => PRIORITY.indexOf(a.kind) - PRIORITY.indexOf(b.kind))) {
-    const p = it.params;
-    if (it.kind === 'typewriter') n.push(`Text types itself out at ~${p.charsPerSecond} characters/s (“${String(p.sample).slice(0, 48)}…”).`);
-    else if (it.kind === 'cycling-text') n.push(`A label cycles through ${p.values.length} values every ~${p.intervalMs}ms: ${p.values.slice(0, 4).map((v: string) => `“${v.slice(0, 28)}”`).join(', ')}.`);
-    else if (it.kind === 'staged-reveal') n.push(`Items appear one at a time (${p.steps} steps${p.intervalMs ? `, ~${p.intervalMs}ms apart` : ''}${p.fadeIn ? ', fading in' : ''}) in ${it.what}.`);
-    else if (it.kind === 'active-one-of-n') n.push(`One of ${p.members} siblings is active at a time; the others are dimmed (${p.via}, level ${p.dimmedLevel} vs ${p.activeLevel})${p.switchEveryMs ? `; the active one changes every ~${p.switchEveryMs}ms` : ''}.`);
-    else if (it.kind === 'mover') n.push(`${it.what} moves between ${p.positions} positions (up to ${p.distancePx}px).`);
-    else if (it.kind === 'progress') n.push(`A progress bar grows from ${p.fromPx}px to ${p.toPx}px over ${p.durationMs}ms.`);
-    else if (it.kind === 'loop') n.push(`${it.what} repeats every ~${p.periodMs}ms.`);
-    else if (it.kind === 'frame-swap') n.push(`An image swaps frames (${p.frames} frames, ${p.fps} fps): a sprite or frame animation.`);
-    else if (it.kind === 'mask-fade') n.push(`${it.what} fades out through a gradient mask (${String(p.mask).slice(0, 70)}).`);
-    else if (it.kind === 'drift') n.push(p.source === 'dom' ? `${it.what} drifts ${p.direction} at ~${p.pxPerSecond}px/s, looping (${p.copies} cop${p.copies === 1 ? 'y' : 'ies'}).` : `Part of the view drifts ${p.direction} at ~${p.pxPerSecond}px/s on its own (painted motion: canvas, background or image).`);
-    else if (it.kind === 'parallax') n.push(p.timeBased ? `Depth: ${p.layers} layers drift at different speeds (${p.speeds.join(', ')} px/s): the farther layer moves slower.` : `A layer (viewport rows ${p.viewportBand[0]}–${p.viewportBand[1]}px) moves at ${p.speedRatio}× the scroll speed: parallax depth (${p.layers} distinct speeds).`);
-    else if (it.kind === 'autoplay-media') n.push(`${it.what} is autoplaying video${p.loop ? ' on a loop' : ''}.`);
-    else if (it.kind === '3d-scene') n.push(`${it.what} is a live 3D scene (${p.context}${p.library ? `, ${p.library}` : ''})${p.moving ? ', moving continuously' : ''}. Rebuild it as real 3D (three.js), not a still image.`);
-    else if (it.kind === 'animated-region') n.push(`${it.what} keeps changing on its own (canvas animation); recreate the motion, not a frame of it.`);
+  // similar findings are one finding with a count; the biggest, most distinctive come first
+  const groups = new Map<string, BehaviourItem[]>();
+  const bucket = (v: any) => (typeof v === 'number' && v > 0 ? Math.round(Math.log(v) / Math.log(1.4)) : '');
+  for (const it of items) {
+    const k = [it.kind, it.what.replace(/\(“[^”]*”\)/g, '').replace(/\d+×\d+|\d+ images|\d+/g, '#').trim(), bucket(it.params.intervalMs ?? it.params.periodMs ?? it.params.pxPerSecond ?? it.params.switchEveryMs)].join('|');
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k)!.push(it);
   }
-  return [...new Set(n)].slice(0, 18);
+  const area = (g: BehaviourItem[]) => Math.max(...g.map((i) => (i.box ? i.box[2] * i.box[3] : 0)));
+  const ranked = [...groups.values()].sort((a, b) => (PRIORITY.indexOf(a[0].kind) - PRIORITY.indexOf(b[0].kind)) * 1e7 + (area(b) - area(a)) / 1e3);
+  const out = ranked.map((g) => (g.length > 1 ? `${g.length}× — ${sentence(g[0])}` : sentence(g[0])));
+  return [...new Set(out)].slice(0, 10);
 }

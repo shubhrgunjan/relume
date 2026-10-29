@@ -4,7 +4,7 @@
 import type { Harvest, Row } from './evidence.js';
 import { parseColor, normalizeColors, normalizeRadius, rgbaCss } from '../lib/csscolor.js';
 
-export type ContentKind = 'ui-mock' | 'illustration' | 'dataviz' | 'logos' | 'image' | 'avatar' | 'code' | 'cards' | 'testimonial' | 'tabs' | 'form' | 'video' | '3d-scene';
+export type ContentKind = 'ui-mock' | 'illustration' | 'dataviz' | 'logos' | 'image' | 'avatar' | 'code' | 'cards' | 'testimonial' | 'tabs' | 'form' | 'video' | '3d-scene' | 'canvas-art';
 
 export interface Block { kind: ContentKind; box: [number, number, number, number]; detail: string; count?: number; crop?: string; palette?: { hex: string; share: number }[]; asset?: { natural?: [number, number]; density?: number; format?: string; render?: string; loop?: boolean }; opacity?: number }
 export interface Section {
@@ -107,7 +107,9 @@ export function blueprint(h: Harvest): Blueprint {
     }
     for (const c of all.filter((r) => r.tag === 'canvas' && area(r.box) > 120 * 120)) {
       const gl = /webgl/i.test(c.canvas?.ctx || '');
-      blocks.push({ kind: gl ? '3d-scene' : 'dataviz', box: c.box, detail: gl ? `live ${c.canvas!.ctx} canvas ${c.box[2]}×${c.box[3]}` : `canvas ${c.box[2]}×${c.box[3]}` }); claim(c);
+      // a canvas filling much of its section is drawn art (often animated: floating objects, particles), not a chart
+      const art = !gl && area(c.box) > area(sec.box) * 0.35;
+      blocks.push({ kind: gl ? '3d-scene' : art ? 'canvas-art' : 'dataviz', box: c.box, detail: gl ? `live ${c.canvas!.ctx} canvas ${c.box[2]}×${c.box[3]}` : art ? `drawn canvas ${c.box[2]}×${c.box[3]} behind the content (see its behaviour: what it draws and how it moves)` : `canvas ${c.box[2]}×${c.box[3]}` }); claim(c);
     }
     for (const v of all.filter((r) => r.tag === 'video' && area(r.box) > 160 * 90)) { blocks.push({ kind: 'video', box: v.box, detail: `video ${v.box[2]}×${v.box[3]}`, asset: assetOf(v) }); claim(v); }
     // images: avatars (small, round), logos (row of similar small marks), photos/screens
@@ -167,7 +169,30 @@ export function blueprint(h: Harvest): Blueprint {
       const y0 = Math.min(...shortLinks.map((r) => r.box[1]));
       if (y0 > sec.box[1] + sec.box[3] * 0.5) blocks.push({ kind: 'tabs', box: [sec.box[0], y0, sec.box[2], sec.box[1] + sec.box[3] - y0], detail: `${shortLinks.length} sub-feature links`, count: shortLinks.length });
     }
-    if (all.some((r) => r.tag === 'input' || r.tag === 'textarea')) blocks.push({ kind: 'form', box: sec.box, detail: 'inputs' });
+    // a field is the designed thing around the <input>: its pill, border, shadow, icon and button, with the
+    // placeholder it shows. A prominent one (hero search) is often the site's signature control
+    const fields = all.filter((r) => (r.tag === 'input' || r.tag === 'textarea' || r.role === 'searchbox' || r.role === 'combobox') && r.box[2] >= 100 && r.type !== 'hidden' && r.type !== 'checkbox' && r.type !== 'radio');
+    const shown = new Set<number>();
+    for (const f of fields) {
+      let shell: Row = f;
+      for (let p = f.pid, k = 0; p >= 0 && k < 5; k++) {
+        const a = byId.get(p); if (!a) break;
+        const styled = (parseColor(a.s.backgroundColor)?.a ?? 0) > 0.02 || px(a.s.borderTopWidth) > 0 || (a.s.boxShadow && a.s.boxShadow !== 'none') || /gradient/.test(a.s.backgroundImage || '');
+        if (a.box[2] > f.box[2] * 1.8 + 240 || a.box[3] > f.box[3] * 3 + 48) break;
+        if (styled) { shell = a; break; }
+        p = a.pid;
+      }
+      if (shown.has(shell.id)) continue;
+      shown.add(shell.id);
+      const inner = descendants(shell.id);
+      const icon = inner.some((d) => d.svg || (d.tag === 'img' && d.box[2] <= 32));
+      const button = inner.find((d) => (d.tag === 'button' || d.tag === 'a') && d !== f);
+      const ph = f.ph || inner.filter((d) => d.chars > 0 && d.tag !== 'button').map((d) => d.text).join(' ').slice(0, 60);
+      const st = shell.s;
+      const bits = [`${shell.box[2]}×${shell.box[3]}`, `radius ${normalizeRadius(st.borderTopLeftRadius)}`, (parseColor(st.backgroundColor)?.a ?? 0) > 0.02 ? `background ${normalizeColors(st.backgroundColor)}` : '', px(st.borderTopWidth) ? `border ${st.borderTopWidth} ${normalizeColors(st.borderTopColor)}` : '', st.boxShadow && st.boxShadow !== 'none' ? `shadow ${normalizeColors(st.boxShadow).slice(0, 90)}` : '', `text ${f.s.fontSize}`, icon ? 'with an icon' : '', button ? `button “${(button.text || button.aria || '').slice(0, 20)}”` : '', ph ? `placeholder “${ph}”` : ''].filter(Boolean);
+      const big = shell.box[2] >= 320 && index === 0;
+      blocks.push({ kind: 'form', box: shell.box, detail: `${big ? 'signature search/input field' : f.tag === 'textarea' ? 'text area' : 'input field'}: ${bits.join(', ')}` });
+    }
 
     // heading, copy and layout pattern
     const texts = all.filter((r) => r.chars > 0 && !claimed.has(r.id));
