@@ -14,8 +14,7 @@
   body::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 40px 40px; opacity: 0.25; }
   .copy { position: absolute; left: 64px; top: 58px; width: 520px; display: grid; gap: 26px; }
   .brand { display: flex; align-items: center; gap: 12px; font: 750 34px/1 var(--display); font-stretch: 80%; letter-spacing: -0.02em; }
-  .dots { display: grid; grid-template-columns: 12px 12px; gap: 4px; }
-  .dots i { width: 12px; height: 12px; display: block; }
+  .rm { display: block; }
   h1 { font: 800 86px/0.86 var(--display); font-stretch: 75%; letter-spacing: -0.045em; }
   h1 span { color: var(--volt); display: block; }
   p { font: 400 23px/1.35 var(--display); color: #c9c2ce; max-width: 480px; }
@@ -40,7 +39,7 @@
 </head>
 <body>
   <div class="copy">
-    <div class="brand"><span class="dots"><i style="background:#f5e14a"></i><i style="background:#ee9070"></i><i style="background:#3fa0e8"></i><i style="background:#c4f46e"></i></span>relume</div>
+    <div class="brand"><svg class="rm" viewBox="0 0 72 72" width="34" height="34" aria-hidden="true"><g fill="#c0f63c"><rect x="0" y="0" width="8" height="8"/><rect x="9" y="0" width="8" height="8"/><rect x="27" y="0" width="8" height="8"/><rect x="36" y="0" width="8" height="8"/><rect x="45" y="0" width="8" height="8"/><rect x="54" y="0" width="8" height="8"/><rect x="0" y="9" width="8" height="8"/><rect x="9" y="9" width="8" height="8"/><rect x="18" y="9" width="8" height="8"/><rect x="27" y="9" width="8" height="8"/><rect x="36" y="9" width="8" height="8"/><rect x="45" y="9" width="8" height="8"/><rect x="54" y="9" width="8" height="8"/><rect x="63" y="9" width="8" height="8"/><rect x="0" y="18" width="8" height="8"/><rect x="9" y="18" width="8" height="8"/><rect x="18" y="18" width="8" height="8"/><rect x="54" y="18" width="8" height="8"/><rect x="63" y="18" width="8" height="8"/><rect x="0" y="27" width="8" height="8"/><rect x="9" y="27" width="8" height="8"/><rect x="0" y="36" width="8" height="8"/><rect x="9" y="36" width="8" height="8"/><rect x="0" y="45" width="8" height="8"/><rect x="9" y="45" width="8" height="8"/><rect x="0" y="54" width="8" height="8"/><rect x="9" y="54" width="8" height="8"/><rect x="0" y="63" width="8" height="8"/><rect x="9" y="63" width="8" height="8"/></g></svg>relume</div>
     <h1>Every site has a feel.<span>relume measures it.</span></h1>
     <p>Point it at any website. It measures the colours, type, layout and every animation, then teaches your AI agent to build new sites that feel the same.</p>
   </div>

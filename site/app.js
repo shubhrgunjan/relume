@@ -289,13 +289,15 @@ reg('kaleido', (p, t) => {
 });
 
 // =========== logo, copy button, cursor trail
-const lg = document.getElementById('logo'), lctx = lg.getContext('2d'), LW = 48;
-lg.width = LW; lg.height = LW;
-const pts = [];
-for (const [col, kind, ox, oy] of [[C.salmon, 'c', 6, 6], [C.volt, 's', 26, 6], [C.sky, 's', 6, 26], [C.plum, 'c', 26, 26]]) for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) { if (kind === 'c' && Math.hypot(x - 7.5, y - 7.5) > 8) continue; pts.push({ col, tx: ox + x, ty: oy + y, sx: Math.random() * LW, sy: Math.random() * LW + LW, d: Math.random() * 0.35 }); }
-let logoP = reduce ? 1 : 0, logoGo = false;
-new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) logoGo = true; }), { threshold: 0.4 }).observe(lg);
-(function drawLogo() { if (logoGo) logoP = Math.min(1, logoP + 0.012); lctx.clearRect(0, 0, LW, LW); for (const q of pts) { const k = easeOut(clamp((logoP - q.d) / 0.65)); lctx.fillStyle = q.col; lctx.fillRect(Math.round(lerp(q.sx, q.tx, k)), Math.round(lerp(q.sy, q.ty, k)), 1, 1); } requestAnimationFrame(drawLogo); })();
+// the Dither r: resolves in Bayer order when it comes into view, then a scan line passes every few seconds
+const playMark = (el) => { el.classList.remove('play', 'scanning'); void el.getBoundingClientRect(); el.classList.add('play'); };
+const navMark = document.querySelector('.mark .rmark'), lg = document.getElementById('logo');
+if (!reduce) {
+  playMark(navMark);
+  document.querySelector('.mark').addEventListener('mouseenter', () => playMark(navMark));
+  new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) playMark(lg); }), { threshold: 0.4 }).observe(lg);
+  setInterval(() => { if (!lg.classList.contains('play')) return; lg.classList.remove('scanning'); void lg.getBoundingClientRect(); lg.classList.add('scanning'); }, 5200);
+}
 const copyBtn = document.getElementById('copy'), cmdEl = document.getElementById('cmd');
 copyBtn.addEventListener('click', async () => {
   try { await navigator.clipboard.writeText(cmdEl.textContent); copyBtn.textContent = 'copied'; }

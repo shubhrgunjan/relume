@@ -6,14 +6,17 @@
 <title>relume · every site has a feel, relume measures it</title>
 <meta name="description" content="Point relume at any website. It measures the colours, type, layout and every animation, then teaches your AI coding agent to build new sites that feel the same.">
 <meta name="theme-color" content="#141115">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="canonical" href="https://relume.shubhrgunjan.me/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="relume">
 <meta property="og:url" content="https://relume.shubhrgunjan.me/">
 <meta property="og:title" content="relume · every site has a feel. relume measures it.">
 <meta property="og:description" content="Point it at any website. It measures the colours, type, layout and every animation, then teaches your AI agent to build new sites that feel the same.">
-<meta property="og:image" content="https://relume.shubhrgunjan.me/og.jpg">
-<meta property="og:image:secure_url" content="https://relume.shubhrgunjan.me/og.jpg">
+<meta property="og:image" content="https://relume.shubhrgunjan.me/og.jpg?v=2">
+<meta property="og:image:secure_url" content="https://relume.shubhrgunjan.me/og.jpg?v=2">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -21,7 +24,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="relume · every site has a feel. relume measures it.">
 <meta name="twitter:description" content="Measures any website's design language, down to every animation, and teaches your AI agent to build new sites that feel the same.">
-<meta name="twitter:image" content="https://relume.shubhrgunjan.me/og.jpg">
+<meta name="twitter:image" content="https://relume.shubhrgunjan.me/og.jpg?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Doto:wght@400..900&family=Martian+Mono:wdth,wght@75..112.5,300..600&display=swap" rel="stylesheet">
@@ -78,10 +81,16 @@ nav.top { position: fixed; z-index: 60; top: env(safe-area-inset-top, 0px); left
 nav.top::before { content: ""; position: absolute; inset: 0; background: rgb(20 17 21 / 0.72); backdrop-filter: blur(14px); opacity: 0; transition: opacity 300ms steps(3); }
 nav.top.scrolled::before { opacity: 1; }
 .mark { position: relative; display: flex; align-items: center; gap: 10px; font: 750 22px/1 var(--display); font-stretch: 76%; letter-spacing: -0.03em; text-decoration: none; }
-.mark i { display: grid; grid-template-columns: 8px 8px; gap: 2px; }
-.mark i u { width: 8px; height: 8px; background: var(--volt); transition: transform 400ms var(--ease-out); }
-.mark i u:nth-child(1) { border-radius: 50%; background: var(--salmon); } .mark i u:nth-child(3) { background: var(--sky); } .mark i u:nth-child(4) { border-radius: 50%; background: var(--plum); }
-.mark:hover i u:nth-child(1) { transform: translate(-2px, -2px); } .mark:hover i u:nth-child(4) { transform: translate(2px, 2px); }
+.rmark { width: 22px; height: 22px; flex: none; overflow: visible; }
+.rmark .px { fill: var(--volt); }
+.rmark .scan { fill: var(--paper); opacity: 0; }
+/* the Dither r resolves in Bayer order, then a scan line passes over it */
+.rmark.play .px { animation: dith 10ms step-end both; animation-delay: var(--d); }
+.rmark.play .scan { animation: rscan 700ms linear both; animation-delay: 1s; }
+.rmark.scanning .scan { animation: rscan 900ms linear both; }
+@keyframes dith { from { opacity: 0; } to { opacity: 1; } }
+@keyframes rscan { 0% { opacity: 0; transform: translateY(-6px); } 15% { opacity: 0.9; } 85% { opacity: 0.9; } 100% { opacity: 0; transform: translateY(72px); } }
+@media (prefers-reduced-motion: reduce) { .rmark .px, .rmark .scan { animation: none !important; } }
 nav.top .links { position: relative; display: flex; gap: 6px; }
 nav.top .links a { font: 500 13px/1 var(--mono); font-stretch: 87.5%; text-decoration: none; padding: 10px 12px; color: var(--mute); transition: color 160ms steps(2), background-color 160ms steps(2); }
 nav.top .links a:hover { color: var(--ink); background: var(--paper); }
@@ -303,7 +312,7 @@ dialog.cmp::backdrop { background: rgb(10 8 11 / 0.82); backdrop-filter: blur(6p
 .cmd code { flex: 1 1 480px; min-width: 0; font: 500 clamp(12px, 1.2vw, 15px)/1.5 var(--mono); font-stretch: 87.5%; background: var(--paper); color: var(--ink); padding: 17px 18px; overflow-x: auto; white-space: nowrap; }
 .cmd .btn { height: auto; min-height: 54px; }
 .tools { display: flex; flex-wrap: wrap; gap: 6px; }
-#logo { width: min(260px, 56vw); height: min(260px, 56vw); margin: 10vh auto 0; }
+#logo { display: block; width: min(220px, 50vw); height: min(220px, 50vw); margin: 10vh auto 0; }
 footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-block: 26px; font: 400 12.5px/1.5 var(--mono); font-stretch: 87.5%; color: var(--dim); box-shadow: 0 -1px 0 var(--line); }
 #trail { position: fixed; inset: 0; z-index: 55; pointer-events: none; width: 100%; height: 100%; }
 
@@ -317,7 +326,7 @@ footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12
 <body>
 <canvas id="trail" aria-hidden="true"></canvas>
 <nav class="top pad" id="nav">
-  <a class="mark" href="#hero" aria-label="relume home"><i><u></u><u></u><u></u><u></u></i>relume</a>
+  <a class="mark" href="#hero" aria-label="relume home"><svg class="rmark" viewBox="0 0 72 72" aria-hidden="true"><rect class="px" x="0" y="0" width="8" height="8" style="--d:0.000s"/><rect class="px" x="9" y="0" width="8" height="8" style="--d:0.450s"/><rect class="px" x="27" y="0" width="8" height="8" style="--d:0.562s"/><rect class="px" x="36" y="0" width="8" height="8" style="--d:0.000s"/><rect class="px" x="45" y="0" width="8" height="8" style="--d:0.450s"/><rect class="px" x="54" y="0" width="8" height="8" style="--d:0.113s"/><rect class="px" x="0" y="9" width="8" height="8" style="--d:0.675s"/><rect class="px" x="9" y="9" width="8" height="8" style="--d:0.225s"/><rect class="px" x="18" y="9" width="8" height="8" style="--d:0.787s"/><rect class="px" x="27" y="9" width="8" height="8" style="--d:0.338s"/><rect class="px" x="36" y="9" width="8" height="8" style="--d:0.675s"/><rect class="px" x="45" y="9" width="8" height="8" style="--d:0.225s"/><rect class="px" x="54" y="9" width="8" height="8" style="--d:0.787s"/><rect class="px" x="63" y="9" width="8" height="8" style="--d:0.338s"/><rect class="px" x="0" y="18" width="8" height="8" style="--d:0.169s"/><rect class="px" x="9" y="18" width="8" height="8" style="--d:0.619s"/><rect class="px" x="18" y="18" width="8" height="8" style="--d:0.056s"/><rect class="px" x="54" y="18" width="8" height="8" style="--d:0.056s"/><rect class="px" x="63" y="18" width="8" height="8" style="--d:0.506s"/><rect class="px" x="0" y="27" width="8" height="8" style="--d:0.844s"/><rect class="px" x="9" y="27" width="8" height="8" style="--d:0.394s"/><rect class="px" x="0" y="36" width="8" height="8" style="--d:0.000s"/><rect class="px" x="9" y="36" width="8" height="8" style="--d:0.450s"/><rect class="px" x="0" y="45" width="8" height="8" style="--d:0.675s"/><rect class="px" x="9" y="45" width="8" height="8" style="--d:0.225s"/><rect class="px" x="0" y="54" width="8" height="8" style="--d:0.169s"/><rect class="px" x="9" y="54" width="8" height="8" style="--d:0.619s"/><rect class="px" x="0" y="63" width="8" height="8" style="--d:0.844s"/><rect class="px" x="9" y="63" width="8" height="8" style="--d:0.394s"/><rect class="scan" x="-4" y="0" width="80" height="3"/></svg>relume</a>
   <div class="links"><a href="#tunnel">Pipeline</a><a href="#catalog">Catalogue</a><a href="#check">Check</a><a href="#install">Install</a><a href="https://github.com/shubhrgunjan/relume" target="_blank" rel="noopener">★ GitHub</a></div>
 </nav>
 
@@ -423,7 +432,7 @@ tool_timeout_sec = 900.0</pre>
       <a class="star" href="https://github.com/shubhrgunjan/relume" target="_blank" rel="noopener"><span>★</span> Star relume on GitHub <em>if it gave your agent some taste</em></a>
       <div class="tools"><span class="chip">extract_site</span><span class="chip">get_skill</span><span class="chip">get_dna</span><span class="chip">see_reference</span><span class="chip dim">check_style</span><span class="chip dim">get_pitfalls</span><span class="chip ghost">search_catalog</span><span class="chip ghost">compare_entries</span></div>
     </div>
-    <canvas id="logo" aria-hidden="true"></canvas>
+    <svg id="logo" class="rmark" viewBox="-6 -6 84 84" aria-hidden="true"><rect class="px" x="0" y="0" width="8" height="8" style="--d:0.000s"/><rect class="px" x="9" y="0" width="8" height="8" style="--d:0.450s"/><rect class="px" x="27" y="0" width="8" height="8" style="--d:0.562s"/><rect class="px" x="36" y="0" width="8" height="8" style="--d:0.000s"/><rect class="px" x="45" y="0" width="8" height="8" style="--d:0.450s"/><rect class="px" x="54" y="0" width="8" height="8" style="--d:0.113s"/><rect class="px" x="0" y="9" width="8" height="8" style="--d:0.675s"/><rect class="px" x="9" y="9" width="8" height="8" style="--d:0.225s"/><rect class="px" x="18" y="9" width="8" height="8" style="--d:0.787s"/><rect class="px" x="27" y="9" width="8" height="8" style="--d:0.338s"/><rect class="px" x="36" y="9" width="8" height="8" style="--d:0.675s"/><rect class="px" x="45" y="9" width="8" height="8" style="--d:0.225s"/><rect class="px" x="54" y="9" width="8" height="8" style="--d:0.787s"/><rect class="px" x="63" y="9" width="8" height="8" style="--d:0.338s"/><rect class="px" x="0" y="18" width="8" height="8" style="--d:0.169s"/><rect class="px" x="9" y="18" width="8" height="8" style="--d:0.619s"/><rect class="px" x="18" y="18" width="8" height="8" style="--d:0.056s"/><rect class="px" x="54" y="18" width="8" height="8" style="--d:0.056s"/><rect class="px" x="63" y="18" width="8" height="8" style="--d:0.506s"/><rect class="px" x="0" y="27" width="8" height="8" style="--d:0.844s"/><rect class="px" x="9" y="27" width="8" height="8" style="--d:0.394s"/><rect class="px" x="0" y="36" width="8" height="8" style="--d:0.000s"/><rect class="px" x="9" y="36" width="8" height="8" style="--d:0.450s"/><rect class="px" x="0" y="45" width="8" height="8" style="--d:0.675s"/><rect class="px" x="9" y="45" width="8" height="8" style="--d:0.225s"/><rect class="px" x="0" y="54" width="8" height="8" style="--d:0.169s"/><rect class="px" x="9" y="54" width="8" height="8" style="--d:0.619s"/><rect class="px" x="0" y="63" width="8" height="8" style="--d:0.844s"/><rect class="px" x="9" y="63" width="8" height="8" style="--d:0.394s"/><rect class="scan" x="-4" y="0" width="80" height="3"/></svg>
   </section>
 </main>
 <footer class="pad"><span>relume · recreations use a site's language, never its logo, imagery or copy.</span><span>measured, not guessed.</span></footer>
