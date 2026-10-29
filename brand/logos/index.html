@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>relume · logo lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&family=Doto:wght@600..900&family=Martian+Mono:wdth,wght@75..112.5,400..600&display=swap" rel="stylesheet">
+<style>
+/* Logo lab: every concept animated, beside its wordmark, at favicon sizes on dark and light. Colours from the site. */
+:root { color-scheme: dark; --ink: #141115; --ink-2: #1c181d; --ink-3: #252027; --line: #3a343c; --paper: #f2f0f3; --mute: #b9b2be; --dim: #857d8a;
+  --volt: #c0f63c; --salmon: #ee9070; --sky: #3fa0e8; --plum: #9c78a8; --lilac: #f4dcf8; --sun: #f5e14a; --forest: #4a7a56;
+  --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif; --mono: "Martian Mono", ui-monospace, monospace; --pixel: "Doto", var(--mono); }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--ink); color: var(--paper); font: 400 15px/1.5 var(--display); -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; }
+header.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 20px; padding: 48px max(20px, 4vw) 28px; border-bottom: 1px solid var(--line); }
+header.top h1 { margin: 0; font: 800 clamp(44px, 7vw, 92px)/0.86 var(--display); font-stretch: 75%; letter-spacing: -0.045em; }
+header.top h1 span { color: var(--volt); }
+header.top p { margin: 10px 0 0; max-width: 560px; color: var(--mute); }
+.ctrl { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { height: 38px; padding: 0 14px; border: 0; background: none; box-shadow: inset 0 0 0 1px var(--line); color: var(--mute); font: 500 13px/1 var(--mono); font-stretch: 87.5%; cursor: pointer; }
+.btn:hover, .btn[aria-pressed="true"] { background: var(--paper); color: var(--ink); box-shadow: none; }
+.btn.pick[aria-pressed="true"] { background: var(--volt); }
+main { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 520px), 1fr)); gap: 1px; background: var(--line); }
+.card { background: var(--ink); display: grid; grid-template-rows: auto auto 1fr; min-width: 0; }
+body.hide-others .card:not(.picked) { display: none; }
+.stage { position: relative; display: grid; grid-template-columns: 200px 1fr; align-items: center; gap: 28px; padding: 40px 32px; min-height: 280px; overflow: hidden; cursor: pointer; }
+.stage.light { background: var(--paper); color: var(--ink); }
+.stage .num { position: absolute; top: 14px; left: 16px; font: 500 11px/1 var(--mono); font-stretch: 87.5%; color: var(--dim); }
+.mark { width: 200px; height: 200px; }
+.mark svg { width: 100%; height: 100%; overflow: visible; display: block; }
+.lockup { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.lockup .mk { width: 54px; height: 54px; flex: none; }
+.lockup .mk svg { width: 100%; height: 100%; overflow: visible; }
+.word { font: 750 56px/0.9 var(--display); font-stretch: 78%; letter-spacing: -0.04em; white-space: nowrap; }
+.meta { display: grid; gap: 14px; padding: 20px 24px 24px; border-top: 1px solid var(--line); }
+.meta h2 { margin: 0; font: 700 24px/1 var(--display); font-stretch: 80%; letter-spacing: -0.02em; }
+.meta p { margin: 0; color: var(--mute); max-width: 520px; }
+.row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; }
+.favs { display: flex; align-items: center; gap: 10px; }
+.favs span { display: grid; place-items: center; background: var(--ink-2); box-shadow: inset 0 0 0 1px var(--line); }
+.favs span.l { background: var(--paper); }
+.favs span svg { display: block; }
+.favs small { font: 500 10px/1 var(--mono); font-stretch: 87.5%; color: var(--dim); margin-right: 4px; }
+.acts { display: flex; gap: 6px; }
+.still * { animation: none !important; }
+@media (max-width: 560px) { .stage { grid-template-columns: 1fr; justify-items: center; text-align: center; } .word { font-size: 44px; } }
+@media (prefers-reduced-motion: reduce) { .mark * { animation-duration: 0s !important; } }
+
+/* ---------------------------------------------------------------- concept styles (base = final logo; keyframes animate into it) */
+svg * { transform-box: fill-box; transform-origin: center; }
+@keyframes pop { 0% { transform: scale(0); } 70% { transform: scale(1.12); } 100% { transform: scale(1); } }
+@keyframes fadein { from { opacity: 0; } }
+
+/* 01 tetra — the current four, measured into shape */
+.tetra .g { transform-origin: 50px 50px; transform-box: view-box; animation: tetraTurn 6s cubic-bezier(.7,0,.2,1) infinite; }
+.tetra .p { animation: pop 700ms cubic-bezier(.2,.8,.2,1) both; }
+.tetra .p:nth-child(2) { animation-delay: .12s } .tetra .p:nth-child(3) { animation-delay: .24s } .tetra .p:nth-child(4) { animation-delay: .36s }
+@keyframes tetraTurn { 0%, 30% { transform: rotate(0deg); } 45%, 80% { transform: rotate(90deg); } 95%, 100% { transform: rotate(180deg); } }
+
+/* 02 brackets — measurement corners lock onto a block */
+.brk .c { animation: brkIn 3.2s cubic-bezier(.7,0,.2,1) infinite; }
+.brk .c.tl { --dx: -14px; --dy: -14px } .brk .c.tr { --dx: 14px; --dy: -14px } .brk .c.bl { --dx: -14px; --dy: 14px } .brk .c.br { --dx: 14px; --dy: 14px }
+.brk .fill { animation: brkFill 3.2s cubic-bezier(.2,.8,.2,1) infinite; }
+.brk .val { animation: brkVal 3.2s steps(1) infinite; }
+@keyframes brkIn { 0% { transform: translate(var(--dx), var(--dy)); opacity: 0; } 25%, 85% { transform: none; opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)); opacity: 0; } }
+@keyframes brkFill { 0%, 30% { transform: scale(0); } 45%, 85% { transform: scale(1); } 100% { transform: scale(0); } }
+@keyframes brkVal { 0%, 45% { opacity: 0; } 50%, 85% { opacity: 1; } 100% { opacity: 0; } }
+
+/* 03 dither r — the letter resolves out of pixels in Bayer order */
+.dith rect { animation: dithIn 3.6s steps(1) infinite; animation-delay: var(--d); }
+@keyframes dithIn { 0% { opacity: 0; } 8%, 88% { opacity: 1; } 100% { opacity: 0; } }
+.dith .scan { animation: scan 3.6s linear infinite; }
+@keyframes scan { 0% { transform: translateY(-8px); opacity: 0; } 30% { opacity: .9; } 60% { transform: translateY(100px); opacity: 0; } 100% { transform: translateY(100px); opacity: 0; } }
+
+/* 04 echo — a letter and its copies: the original and its recreations */
+.echo .e { animation: echoOut 3s cubic-bezier(.7,0,.2,1) infinite; }
+.echo .e1 { --x: -6px; --y: 6px } .echo .e2 { --x: -12px; --y: 12px } .echo .e3 { --x: -18px; --y: 18px }
+@keyframes echoOut { 0%, 15% { transform: none; } 45%, 75% { transform: translate(var(--x), var(--y)); } 100% { transform: none; } }
+
+/* 05 caliper — jaws close on what they measure */
+.cal .jl { animation: calL 3s cubic-bezier(.7,0,.2,1) infinite; } .cal .jr { animation: calR 3s cubic-bezier(.7,0,.2,1) infinite; }
+.cal .read { animation: brkVal 3s steps(1) infinite; }
+@keyframes calL { 0%, 10% { transform: translateX(-18px); } 40%, 80% { transform: none; } 100% { transform: translateX(-18px); } }
+@keyframes calR { 0%, 10% { transform: translateX(18px); } 40%, 80% { transform: none; } 100% { transform: translateX(18px); } }
+
+/* 06 curve — the measured easing, with a dot riding it */
+.crv .path { stroke-dasharray: 160; animation: draw 3.4s cubic-bezier(.2,.8,.2,1) infinite; }
+@keyframes draw { 0% { stroke-dashoffset: 160; } 40%, 100% { stroke-dashoffset: 0; } }
+.crv .dotMove { display: block; } .crv .dotStill { display: none; }
+.crv.still .dotMove { display: none; } .crv.still .dotStill { display: block; }
+.crv .h { animation: fadein 3.4s ease infinite; }
+
+/* 07 swatches — a palette fans out */
+.sw .s { transform-origin: 30px 86px; transform-box: view-box; animation: fan 3.6s cubic-bezier(.7,0,.2,1) infinite; }
+.sw .s1 { --r: -26deg } .sw .s2 { --r: -6deg } .sw .s3 { --r: 14deg }
+@keyframes fan { 0%, 10% { transform: rotate(0deg); } 40%, 80% { transform: rotate(var(--r)); } 100% { transform: rotate(0deg); } }
+
+/* 08 twin — a window and the recreation that slides out of it */
+.twin .copy { animation: twinOut 3.4s cubic-bezier(.7,0,.2,1) infinite; }
+@keyframes twinOut { 0%, 15% { transform: translate(-16px, -16px); opacity: 0; } 45%, 85% { transform: none; opacity: 1; } 100% { transform: translate(-16px, -16px); opacity: 0; } }
+.twin .ln { animation: fadein 3.4s ease infinite; }
+
+/* 09 aperture — an iris opens to see the site */
+.ap .blades { transform-origin: 50px 50px; transform-box: view-box; animation: iris 3.6s cubic-bezier(.7,0,.2,1) infinite; }
+.ap .blades path { transform-box: view-box; transform-origin: 0 0; }
+.ap .core { animation: pop 3.6s cubic-bezier(.2,.8,.2,1) infinite; }
+@keyframes iris { 0%, 10% { transform: rotate(0deg) scale(1); } 45%, 80% { transform: rotate(60deg) scale(1.18); } 100% { transform: rotate(0deg) scale(1); } }
+
+/* 10 dot grid — an R lights up in a measured grid */
+.grid circle.on { animation: dotOn 3.2s cubic-bezier(.2,.8,.2,1) infinite; animation-delay: var(--d); }
+@keyframes dotOn { 0% { fill: #3a343c; transform: scale(.6); } 15%, 85% { fill: var(--volt); transform: scale(1); } 100% { fill: #3a343c; transform: scale(.6); } }
+
+/* 11 ruler — the wordmark measured: ticks grow, a marker slides */
+.ruler .t { transform-origin: bottom; animation: tick 3s cubic-bezier(.2,.8,.2,1) infinite; animation-delay: var(--d); }
+@keyframes tick { 0% { transform: scaleY(0); } 20%, 85% { transform: scaleY(1); } 100% { transform: scaleY(0); } }
+.ruler .m { animation: slide 3s cubic-bezier(.7,0,.2,1) infinite; transform-box: view-box; }
+@keyframes slide { 0%, 10% { transform: translateX(0); } 60%, 85% { transform: translateX(64px); } 100% { transform: translateX(0); } }
+
+/* 12 loop — one line draws the r and closes on a dot */
+.loop .path { stroke-dasharray: 220; animation: drawL 3.4s cubic-bezier(.6,0,.2,1) infinite; }
+@keyframes drawL { 0% { stroke-dashoffset: 220; } 55%, 85% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -220; } }
+.loop .dot { animation: pop 3.4s cubic-bezier(.2,.8,.2,1) infinite; animation-delay: 1.4s; }
+
+/* 13 split — half original, half recreation, the seam sweeps */
+.split .r { clip-path: inset(0 0 0 50%); animation: seam 3.4s cubic-bezier(.7,0,.2,1) infinite; }
+@keyframes seam { 0%, 10% { clip-path: inset(0 0 0 100%); } 50%, 80% { clip-path: inset(0 0 0 50%); } 100% { clip-path: inset(0 0 0 100%); } }
+.split .bar { animation: seamBar 3.4s cubic-bezier(.7,0,.2,1) infinite; transform-box: view-box; }
+@keyframes seamBar { 0%, 10% { transform: translateX(36px); } 50%, 80% { transform: none; } 100% { transform: translateX(36px); } }
+
+/* 14 pixel wordmark — relume in Doto, dots settling */
+.px text { font-family: var(--pixel); font-weight: 900; }
+.px .w { animation: pxIn 3s cubic-bezier(.2,.8,.2,1) infinite; }
+@keyframes pxIn { 0% { letter-spacing: 12px; opacity: 0; } 30%, 85% { letter-spacing: 0px; opacity: 1; } 100% { letter-spacing: 12px; opacity: 0; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>relume<br><span>logo lab</span></h1>
+    <p>Fourteen marks, each animated the way it would move on the site. Click a card's stage to replay it, ★ the ones you like, then show only your picks to compare them.</p>
+  </div>
+  <div class="ctrl">
+    <button class="btn" id="bg" type="button" aria-pressed="false">Light stages</button>
+    <button class="btn" id="mine" type="button" aria-pressed="false">Only my ★</button>
+    <button class="btn" id="slow" type="button" aria-pressed="false">Slow motion</button>
+  </div>
+</header>
+<main id="grid"></main>
+
+<script>
+const C = { ink: '#141115', paper: '#f2f0f3', volt: '#c0f63c', salmon: '#ee9070', sky: '#3fa0e8', plum: '#9c78a8', sun: '#f5e14a', line: '#3a343c', dim: '#857d8a' };
+// a mark reads on both grounds: "fg" is paper on ink and ink on paper
+const FG = 'currentColor';
+
+// Bayer 4×4 order for the dither r
+const B4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+const R_PIX = ['11011110', '11111111', '11100011', '11000000', '11000000', '11000000', '11000000', '11000000'];
+const ditherR = () => R_PIX.flatMap((row, y) => [...row].map((v, x) => v === '1' ? `<rect x="${14 + x * 9}" y="${14 + y * 9}" width="8" height="8" fill="${C.volt}" style="--d:${(B4[(y % 4) * 4 + (x % 4)] / 16 * 1.1).toFixed(2)}s"/>` : '')).join('') + `<rect class="scan" x="8" y="0" width="84" height="3" fill="${C.paper}" opacity="0"/>`;
+// a 5×5 dot grid where an R lights up
+const R_DOT = ['11110', '10001', '11110', '10100', '10010'];
+const dotR = () => R_DOT.flatMap((row, y) => [...row].map((v, x) => `<circle class="${v === '1' ? 'on' : ''}" cx="${18 + x * 16}" cy="${18 + y * 16}" r="5.5" fill="${v === '1' ? C.volt : C.line}" style="--d:${((x + y) * 0.06).toFixed(2)}s"/>`)).join('');
+
+const LOGOS = [
+  { id: 'tetra', name: 'Tetra (current, animated)', idea: 'The four marks you have now, but they arrive measured: each pops into its own shape and colour, then the set turns a quarter at a time. Familiar, playful, works as a 16px favicon.',
+    svg: () => `<g class="g"><circle class="p" cx="28" cy="28" r="20" fill="${C.salmon}"/><rect class="p" x="54" y="8" width="40" height="40" fill="${C.volt}"/><rect class="p" x="8" y="54" width="40" height="40" fill="${C.sky}"/><circle class="p" cx="74" cy="74" r="20" fill="${C.plum}"/></g>` },
+  { id: 'brk', name: 'Brackets', idea: 'Measurement corners close in on a block, it fills, and a reading appears. Says “we measure” in one glance; the still is four corners around a volt square.',
+    svg: () => `<rect class="fill" x="26" y="26" width="48" height="48" fill="${C.volt}"/>${[['tl', 'M10 30 V10 H30'], ['tr', 'M70 10 H90 V30'], ['bl', 'M10 70 V90 H30'], ['br', 'M70 90 H90 V70']].map(([k, d]) => `<path class="c ${k}" d="${d}" fill="none" stroke="${FG}" stroke-width="7" stroke-linecap="square"/>`).join('')}<text class="val" x="50" y="56" text-anchor="middle" font-family="Martian Mono, monospace" font-size="11" font-weight="600" fill="${C.ink}">48px</text>` },
+  { id: 'dith', name: 'Dither r', idea: 'An “r” resolving out of pixels in dither order, then a scan line passes over it: the same pixel language as the site’s hero. Very ownable, a little retro.',
+    svg: ditherR },
+  { id: 'echo', name: 'Echo', idea: 'A heavy “r” and the copies that peel off it: an original and its recreations. Uses the site’s display face; the still keeps three echoes.',
+    svg: () => `${[[3, C.plum], [2, C.sky], [1, C.salmon]].map(([k, c]) => `<text class="e e${k}" x="50" y="80" text-anchor="middle" font-family="Bricolage Grotesque" font-weight="800" font-stretch="75%" font-size="96" fill="${c}" style="transform:translate(${-6 * k}px,${6 * k}px)">r</text>`).join('')}<text x="50" y="80" text-anchor="middle" font-family="Bricolage Grotesque" font-weight="800" font-stretch="75%" font-size="96" fill="${C.volt}">r</text>` },
+  { id: 'cal', name: 'Caliper', idea: 'Two jaws close on a dot and read its size. The most literal “measure” mark; precise and engineering-flavoured.',
+    svg: () => `<path d="M14 30 H86" stroke="${FG}" stroke-width="6"/><g class="jl"><path d="M22 24 V76" stroke="${FG}" stroke-width="7"/></g><g class="jr"><path d="M78 24 V76" stroke="${FG}" stroke-width="7"/></g><circle cx="50" cy="56" r="25" fill="${C.volt}"/><text class="read" x="50" y="18" text-anchor="middle" font-family="Martian Mono, monospace" font-size="10" font-weight="600" fill="${FG}">50.0</text>` },
+  { id: 'crv', name: 'Curve', idea: 'A cubic-bezier easing curve with its handles, and a dot riding it: relume measures motion, not just colour. Distinctive and techy.',
+    svg: () => `<rect x="8" y="8" width="84" height="84" fill="none" stroke="${C.line}" stroke-width="2"/><g class="h"><path d="M18 82 L52 82 M82 18 L48 18" stroke="${C.dim}" stroke-width="2"/><circle cx="52" cy="82" r="4" fill="${C.dim}"/><circle cx="48" cy="18" r="4" fill="${C.dim}"/></g><path class="path" d="M18 82 C 52 82, 48 18, 82 18" fill="none" stroke="${C.volt}" stroke-width="8" stroke-linecap="round"/><circle class="dotStill" cx="82" cy="18" r="8" fill="${FG}"/><circle class="dotMove" r="8" fill="${FG}"><animateMotion dur="3.4s" repeatCount="indefinite" path="M18 82 C 52 82, 48 18, 82 18" keyPoints="0;0;1;1" keyTimes="0;0.35;0.85;1" calcMode="spline" keySplines="0 0 1 1;0.7 0 0.2 1;0 0 1 1"/></circle>` },
+  { id: 'sw', name: 'Swatches', idea: 'Three paint chips fan out from one pin: a design language as a palette. Warm and friendly; the still is the open fan.',
+    svg: () => `${[[1, C.salmon], [2, C.sky], [3, C.volt]].map(([k, c]) => `<rect class="s s${k}" x="22" y="10" width="26" height="80" rx="6" fill="${c}" stroke="${C.ink}" stroke-width="2" style="transform:rotate(${[-26, -6, 14][k - 1]}deg)"/>`).join('')}<circle cx="30" cy="80" r="4" fill="${C.ink}"/>` },
+  { id: 'twin', name: 'Twin', idea: 'A browser window and the recreation that slides out of it. Tells the whole story (site in, new site out) but is busier at small sizes.',
+    svg: () => `<rect x="8" y="10" width="62" height="54" rx="4" fill="none" stroke="${FG}" stroke-width="5"/><path d="M8 22 H70" stroke="${FG}" stroke-width="5"/><g class="copy"><rect x="30" y="36" width="62" height="54" rx="4" fill="${C.volt}"/><path d="M30 48 H92" stroke="${C.ink}" stroke-width="4"/><g class="ln"><path d="M40 60 H70 M40 70 H80 M40 80 H62" stroke="${C.ink}" stroke-width="4" stroke-linecap="round"/></g></g>` },
+  { id: 'ap', name: 'Aperture', idea: 'An iris opens around a bright core: relume “sees” a site. Calm and premium, reads as a lens or an eye.',
+    svg: () => `<g class="blades">${[0, 60, 120, 180, 240, 300].map((a) => `<path d="M50 50 L50 8 A42 42 0 0 1 86.4 29 Z" fill="${FG}" opacity="${0.55 + (a / 300) * 0.45}" transform="rotate(${a} 50 50)"/>`).join('')}</g><circle class="core" cx="50" cy="50" r="15" fill="${C.volt}"/>` },
+  { id: 'grid', name: 'Dot grid R', idea: 'An R lights up across a measured dot grid, sweeping in diagonally. Systematic, very legible as a favicon.',
+    svg: dotR },
+  { id: 'ruler', name: 'Ruler', idea: 'A ruler whose ticks grow in and a marker that slides to the reading: the wordmark sits on it. Works best as a lockup rather than an icon.',
+    svg: () => `<path d="M8 70 H92" stroke="${FG}" stroke-width="5"/>${Array.from({ length: 11 }, (_, i) => `<rect class="t" x="${10 + i * 8}" y="${i % 5 === 0 ? 46 : 56}" width="3" height="${i % 5 === 0 ? 24 : 14}" fill="${FG}" style="--d:${(i * 0.04).toFixed(2)}s"/>`).join('')}<g class="m"><path d="M14 30 L22 42 L30 30 Z" fill="${C.volt}"/><rect x="21" y="40" width="2" height="30" fill="${C.volt}"/></g>` },
+  { id: 'loop', name: 'Loop r', idea: 'One continuous line draws an “r” and lands on a dot, like a pen measuring a stroke. Elegant, signature-like, good in motion.',
+    svg: () => `<path class="path" d="M22 86 V40 C22 22, 40 14, 58 18 C 72 21, 80 30, 80 40" fill="none" stroke="${C.volt}" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><circle class="dot" cx="80" cy="66" r="9" fill="${FG}"/>` },
+  { id: 'split', name: 'Split', idea: 'A circle half original, half recreation, with a seam that sweeps across: the compare view as a mark. Clean and conceptual.',
+    svg: () => `<circle cx="50" cy="50" r="40" fill="${C.salmon}"/><g class="r"><circle cx="50" cy="50" r="40" fill="${C.volt}"/></g><rect class="bar" x="48" y="4" width="4" height="92" fill="${FG}"/>` },
+  { id: 'px', name: 'Pixel wordmark', idea: 'No symbol: “relume” set in the site’s dotted pixel face, letters settling into place. Pairs with any of the marks above.',
+    svg: () => `<text class="w" x="50" y="60" text-anchor="middle" font-size="26" fill="${C.volt}">relume</text>`, wordOnly: true },
+];
+
+const grid = document.getElementById('grid');
+let picks = new Set();
+try { picks = new Set(JSON.parse(localStorage.getItem('relume-logo-picks') || '[]')); } catch {}
+const save = () => { try { localStorage.setItem('relume-logo-picks', JSON.stringify([...picks])); } catch {} };
+const svgOf = (L, cls = '') => `<svg viewBox="0 0 100 100" class="${L.id} ${cls}" aria-hidden="true">${L.svg()}</svg>`;
+
+LOGOS.forEach((L, i) => {
+  const card = document.createElement('article');
+  card.className = 'card' + (picks.has(L.id) ? ' picked' : '');
+  card.innerHTML = `
+    <div class="stage" title="Click to replay"><span class="num">${String(i + 1).padStart(2, '0')}</span>
+      <div class="mark">${svgOf(L)}</div>
+      <div class="lockup">${L.wordOnly ? `<span class="word" style="font-family:var(--pixel);font-weight:900;color:var(--volt);letter-spacing:0">relume</span>` : `<span class="mk">${svgOf(L, 'still')}</span><span class="word">relume</span>`}</div>
+    </div>
+    <div class="meta">
+      <div class="row"><h2>${L.name}</h2><div class="acts"><button class="btn pick" type="button" aria-pressed="${picks.has(L.id)}">★ ${picks.has(L.id) ? 'picked' : 'pick'}</button><button class="btn replay" type="button">Replay</button></div></div>
+      <p>${L.idea}</p>
+      <div class="favs"><small>favicon</small>${[16, 32, 64].map((s) => `<span style="width:${s + 12}px;height:${s + 12}px"><svg width="${s}" height="${s}" viewBox="0 0 100 100" class="${L.id} still" style="color:${C.paper}">${L.svg()}</svg></span>`).join('')}${[16, 32].map((s) => `<span class="l" style="width:${s + 12}px;height:${s + 12}px"><svg width="${s}" height="${s}" viewBox="0 0 100 100" class="${L.id} still" style="color:${C.ink}">${L.svg()}</svg></span>`).join('')}</div>
+    </div>`;
+  const replay = () => { const m = card.querySelector('.mark'); m.innerHTML = svgOf(L); };
+  card.querySelector('.stage').addEventListener('click', replay);
+  card.querySelector('.replay').addEventListener('click', replay);
+  const pb = card.querySelector('.pick');
+  pb.addEventListener('click', () => {
+    picks.has(L.id) ? picks.delete(L.id) : picks.add(L.id);
+    const on = picks.has(L.id);
+    pb.setAttribute('aria-pressed', String(on)); pb.textContent = on ? '★ picked' : '★ pick';
+    card.classList.toggle('picked', on); save();
+  });
+  grid.appendChild(card);
+});
+
+// global toggles
+const tog = (id, fn) => { const b = document.getElementById(id); b.addEventListener('click', () => { const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', String(on)); fn(on); }); };
+tog('bg', (on) => document.querySelectorAll('.stage').forEach((s) => s.classList.toggle('light', on)));
+tog('mine', (on) => document.body.classList.toggle('hide-others', on));
+tog('slow', (on) => document.getAnimations().forEach((a) => (a.playbackRate = on ? 0.3 : 1)));
+</script>
+</body>
+</html>
