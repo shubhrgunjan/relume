@@ -1,0 +1,15 @@
+Every website has a feel. The way it moves. The weight of its type. The colours it chooses.
+
+Most of that never makes it into a prompt.
+
+relume measures it.
+
+It visits a site the way you would. It scrolls it, hovers it, and watches every animation, frame by frame. Then it turns what it sees into a design language your AI agent can actually follow.
+
+Colours. Type. Spacing. Motion. Behaviour.
+
+Then your agent builds something new, in the same language. A bike brand that feels like Resend. An incident tool that feels like Linear. A beauty brand that feels like Cosmos.
+
+And relume checks the result, the same way it measured the original.
+
+Give your agent taste it can measure. relume.

@@ -7,3 +7,5 @@ film/frames/
 film/score.wav
 film/audio/*.wav
 film/studio/data/
+film/*.mp4
+film/final/
