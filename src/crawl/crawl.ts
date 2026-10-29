@@ -358,7 +358,7 @@ export function pageKey(url: string) {
 }
 
 export async function crawlSite(home: string, outDir: string, opt: CrawlOptions) {
-  const browser = await chromium.launch({ headless: true, args: ['--autoplay-policy=no-user-gesture-required', '--disable-blink-features=AutomationControlled'] });
+  const browser = await launchBrowser();
   try {
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, userAgent: UA });
     const p = await ctx.newPage();
@@ -395,5 +395,21 @@ export async function crawlSite(home: string, outDir: string, opt: CrawlOptions)
     return summary;
   } finally {
     await browser.close();
+  }
+}
+
+/** Playwright's own Chromium when it is installed; otherwise an installed Chrome, Edge, Brave or Chromium
+ * (Playwright ships no Chromium for some systems, e.g. macOS 13). RELUME_BROWSER_CHANNEL / RELUME_BROWSER_PATH
+ * pick one explicitly. */
+async function launchBrowser() {
+  const args = ['--autoplay-policy=no-user-gesture-required', '--disable-blink-features=AutomationControlled'];
+  const channel = process.env.RELUME_BROWSER_CHANNEL, executablePath = process.env.RELUME_BROWSER_PATH;
+  if (channel || executablePath) return chromium.launch({ headless: true, args, channel, executablePath });
+  try { return await chromium.launch({ headless: true, args }); } catch (e) {
+    if (!/Executable doesn't exist|not supported|does not support|install/i.test((e as Error).message)) throw e;
+    for (const ch of ['chrome', 'msedge', 'chrome-beta', 'chromium']) { try { return await chromium.launch({ headless: true, args, channel: ch }); } catch {} }
+    const paths = ['/Applications/Brave Browser.app/Contents/MacOS/Brave Browser', '/Applications/Chromium.app/Contents/MacOS/Chromium', '/usr/bin/chromium', '/usr/bin/chromium-browser', '/usr/bin/brave-browser', '/snap/bin/chromium'];
+    for (const p of paths) { try { return await chromium.launch({ headless: true, args, executablePath: p }); } catch {} }
+    throw new Error('No browser for relume: run "npx playwright install chromium", or install Google Chrome.');
   }
 }
