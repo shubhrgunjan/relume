@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Muse — Beauty, collected.</title>
+<meta name="description" content="A new perspective on makeup. Discover a look, collect a feeling, and make beauty your own with Muse.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css"><link rel="stylesheet" href="motion.css"><link rel="stylesheet" href="muse.css">
+</head>
+<body>
+<header class="site-header" data-intro="intro-fade-1">
+<nav class="nav-left" aria-label="Main navigation"><a class="brand-mark" href="#home" aria-label="Muse home">✳</a><a href="#studio">Explore</a><a href="#looks">The looks</a><a href="#community">The collective</a></nav>
+<a class="wordmark" href="#home">MUSE</a>
+<div class="nav-right"><button class="plain saved-open">Saved <span class="saved-count">0</span></button><button class="button-primary explore-open">Find your Muse <span aria-hidden="true">↗</span></button></div>
+</header>
+<main>
+<section class="hero" id="home" aria-labelledby="hero-title">
+<canvas id="orbit" aria-hidden="true"></canvas>
+<div class="hero-content" data-intro="intro-fade-1">
+<h1 class="text-display" id="hero-title" data-intro="intro-fade-4" style="--i:0">Beauty starts with<br><span id="hero-phrase">a little curiosity.</span></h1>
+<div class="search-anchor"></div>
+<button class="button-primary hero-button explore-open" data-intro="intro-fade-4" style="--i:2">Explore your next look <span aria-hidden="true">↗</span></button>
+</div>
+<a class="scroll-cue" href="#studio" aria-label="Discover Muse below">⌄</a>
+<div class="hero-note"><span class="orbit-mark" aria-hidden="true">✳</span><span>A whole world<br>of self-expression.</span></div>
+</section>
+<form class="hero-search" id="search-form" role="search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="search-input" type="search" aria-label="Search beauty inspiration" placeholder="Search for a softer look"><button type="submit" aria-label="Search looks">↗</button></form>
+<section class="showcase section" id="studio" aria-labelledby="studio-title">
+<div class="container"><div class="section-heading"><h2 class="text-h2" id="studio-title" data-reveal="reveal-fade-39">Make beauty your own.</h2><div class="rail-controls"><button class="round" id="previous" aria-label="Previous studio panel">←</button><button class="round" id="next" aria-label="Next studio panel">→</button></div></div></div>
+<div class="showcase-rail" id="showcase-rail">
+<article class="showcase-panel color-panel" data-reveal="reveal-fade-39" style="--i:0"><div class="color-mosaic"><video class="mosaic-video" autoplay muted loop playsinline preload="metadata" poster="assets/beauty-8.jpg" aria-label="A gently shifting study of lip colors"><source src="assets/color.mp4" type="video/mp4"></video><img src="assets/beauty-1.jpg" alt="Sculptural beauty packaging"><img src="assets/beauty-0.jpg" alt="A study of beauty textures"><span class="color-chip"><i></i> A feeling in color</span></div><div class="panel-caption"><span>01</span> Follow a feeling.</div></article>
+<article class="showcase-panel ritual-panel" data-reveal="reveal-fade-39" style="--i:1"><div class="ritual"><video autoplay muted loop playsinline preload="metadata" poster="assets/beauty-4.jpg" aria-label="A considered daily skincare ritual in motion"><source src="assets/ritual.mp4" type="video/mp4"></video><span class="floating-label">A moment, just for you.</span></div><div class="panel-caption"><span>02</span> Find your everyday.</div></article>
+<article class="showcase-panel board-panel" data-reveal="reveal-fade-39" style="--i:2"><div class="mini-board"><div class="board-toolbar"><span>Your beauty board</span><span>↗</span></div><div class="board-tabs"><button class="active" data-board="all">All</button><button data-board="soft">Soft</button><button data-board="bold">Bold</button></div><div class="board-grid" id="mini-grid"></div><div class="board-bottom"><span>Little things. All you.</span><span>✳</span></div><div class="board-tags"><span>Everyday</span><span>Texture</span><span>Color</span><span>Ritual</span></div></div><div class="panel-caption"><span>03</span> Keep what moves you.</div></article>
+<article class="showcase-panel closeup-panel" data-reveal="reveal-fade-39" style="--i:3"><div class="editorial-image"><video autoplay muted loop playsinline preload="metadata" poster="assets/beauty-9.jpg" aria-label="An expressive makeup color study"><source src="assets/expression.mp4" type="video/mp4"></video><span class="floating-label">No rules. Just possibilities.</span></div><div class="panel-caption"><span>04</span> Try something unexpected.</div></article>
+<article class="showcase-panel texture-panel" data-reveal="reveal-fade-39" style="--i:0"><div class="video-study"><video autoplay muted loop playsinline preload="metadata" poster="assets/beauty-3.jpg" aria-label="A moving study of beauty textures"><source src="assets/texture.mp4" type="video/mp4"></video><span class="floating-label">The beauty of the details.</span></div><div class="panel-caption"><span>05</span> Get a little closer.</div></article>
+<article class="showcase-panel glow-panel" data-reveal="reveal-fade-39" style="--i:1"><div class="video-study"><video autoplay muted loop playsinline preload="metadata" poster="assets/beauty-7.jpg" aria-label="A warm beauty color study in motion"><source src="assets/glow.mp4" type="video/mp4"></video><span class="floating-label">A different point of view.</span></div><div class="panel-caption"><span>06</span> See yourself differently.</div></article>
+</div>
+</section>
+<section class="looks-section section container" id="looks" aria-labelledby="looks-title">
+<div class="looks-copy"><h2 class="text-h2" id="looks-title">A look for every you.</h2><div class="look-list" role="group" aria-label="Choose a beauty mood"><button class="look-choice active" data-look="0" aria-pressed="true">Everyday, undone</button><button class="look-choice" data-look="1" aria-pressed="false">Petal state of mind</button><button class="look-choice" data-look="2" aria-pressed="false">A bolder kind of soft</button><button class="look-choice" data-look="3" aria-pressed="false">After the golden hour</button><button class="look-choice" data-look="4" aria-pressed="false">Less, but a little more</button><button class="look-choice" data-look="5" aria-pressed="false">Something unexpected</button></div><button class="text-link explore-open">Explore the beauty edit <span>↗</span></button></div>
+<div class="look-images" aria-label="Changing images for the selected beauty mood"><div class="look-image look-tall" id="look-tall"></div><div class="look-image look-top" id="look-top"></div><div class="look-image look-bottom" id="look-bottom"></div><button class="button-secondary save-look" id="save-look">+ Save this look</button></div>
+</section>
+<section class="community section" id="community" aria-labelledby="community-title">
+<div class="container section-heading"><h2 class="text-h2" id="community-title">Beauty is better<br>when it’s shared.</h2><button class="button-secondary saved-open">Your saved inspiration <span aria-hidden="true">↗</span></button></div>
+<div class="community-window"><div class="community-track" id="community-track"></div></div>
+<div class="container community-bottom"><p class="text-small-regular">A few ways to see beauty. A thousand ways to make it yours.</p><div class="words-window" aria-hidden="true"><div class="words-track"><span>THE EVERYDAY</span><span>COLOR STUDIES</span><span>THE BEAUTY EDIT</span><span>OUT OF OFFICE</span><span>IN GOOD LIGHT</span><span>THE EVERYDAY</span><span>COLOR STUDIES</span><span>THE BEAUTY EDIT</span><span>OUT OF OFFICE</span><span>IN GOOD LIGHT</span></div></div><p class="concept-label">Illustrative moodboards from the Muse studio.</p></div>
+</section>
+</main>
+<footer class="site-footer"><div class="footer-main"><div><h2 class="text-display">Your next look<br>is out there.</h2><button class="button-primary explore-open">Go find it <span aria-hidden="true">↗</span></button></div><div class="footer-links"><a href="#studio">Explore</a><a href="#looks">The looks</a><a href="#community">The collective</a><button class="text-link saved-open">Saved inspiration</button></div><div class="footer-aside"><a class="wordmark" href="#home">MUSE</a><p class="text-body">Beauty, collected.<br>Made to be your own.</p></div></div><div class="footer-bottom"><span>© 2026 Muse</span><span>An independent beauty concept.</span><button class="text-link" id="motion-toggle" aria-pressed="false">Pause motion</button></div></footer>
+<dialog id="explorer" aria-labelledby="explorer-title"><div class="dialog-top"><span class="wordmark">MUSE</span><button class="round close-dialog" aria-label="Close inspiration explorer">×</button></div><h2 class="text-h2" id="explorer-title">Follow your curiosity.</h2><form id="dialog-search" role="search"><input type="search" id="dialog-query" placeholder="Try soft, rose, or golden…" aria-label="Search looks"><button class="button-primary">Search</button></form><div class="explorer-tabs"><button class="button-secondary" data-explore="all" aria-pressed="true">All inspiration</button><button class="button-secondary" data-explore="soft" aria-pressed="false">Soft</button><button class="button-secondary" data-explore="bold" aria-pressed="false">Bold</button><button class="button-secondary" data-explore="saved" aria-pressed="false">Saved</button></div><p id="result-label" class="text-small-regular" aria-live="polite"></p><div id="explorer-results"></div><p class="dialog-note">A visual beauty concept. Your saved inspiration stays on this device.</p></dialog>
+<div class="toast" id="toast" role="status"></div>
+<script type="module" src="muse.js"></script>
+</body></html>

@@ -134,7 +134,12 @@ for (const spec of pairs) {
   full(join(rec.dir, 'shot-desktop.jpg'), join(out, 'media', `${id}-recreation-full.jpg`));
   const secs = (dna, key) => { const pg = (dna.composition?.pages || []).find((p) => p.key === key) || dna.composition?.pages?.[0]; return pg ? { height: pg.pageHeight, sections: pg.sections.map((x) => ({ kind: x.kind, y: Math.round(x.box[1]), h: Math.round(x.box[3]), heading: x.heading?.text || '' })) } : null; };
   const srcDna = JSON.parse(readFileSync(join(CAT, slug, 'dna.json'), 'utf8')), recDna = JSON.parse(readFileSync(join(checkDir, 'dna.json'), 'utf8'));
+  // the skill itself, downloadable from the site: anyone can use a catalogue language without running relume
+  const skillRoot = join(CAT, slug, 'skill');
+  const skillName = existsSync(skillRoot) ? readdirSync(skillRoot).find((d) => statSync(join(skillRoot, d)).isDirectory()) : undefined;
+  if (skillName) { mkdirSync(join(out, 'skills'), { recursive: true }); execFileSync('tar', ['czf', join(out, 'skills', `${slug}.tar.gz`), '-C', skillRoot, skillName]); }
   result.push({
+    skill: skillName ? { name: skillName, file: `skills/${slug}.tar.gz` } : null,
     pages: { source: secs(srcDna, src.key), recreation: secs(recDna, rec.key) },
     id, slug, recreationPath: urlPath, name: DISPLAY.get(id) || id,
     source: { ...summary(JSON.parse(readFileSync(join(CAT, slug, 'dna.json'), 'utf8'))), page: src.url, marks: marks(join(src.dir, 'motion.json.gz')), annotations: annotations(src.dir) },

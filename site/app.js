@@ -161,7 +161,11 @@ reg('tunnel', (p) => {
 const pairsEl = document.getElementById('pairs');
 const hostOf = (d) => new URL(d.source.url).hostname.replace(/^www\./, '');
 const recHref = (d) => /^https?:/.test(d.recreationPath) ? d.recreationPath : d.recreationPath.startsWith('/recreations/') ? d.recreationPath.slice(1) : `recreations/${d.recreationPath.replace(/^\//, '')}/`;
-for (const d of [...data].sort((a, b) => b.report.overall - a.report.overall)) {
+// the lineup: these first, in this order; any newer recreation follows, best first
+const ORDER = ['spoke', 'tessera', 'northwind-edge', 'ledgerline', 'muse', 'drift'];
+const rank = (d) => { const i = ORDER.indexOf(d.id); return i < 0 ? ORDER.length : i; };
+const SITE = 'https://relume.shubhrgunjan.me';
+for (const d of [...data].sort((a, b) => rank(a) - rank(b) || b.report.overall - a.report.overall)) {
   const a = document.createElement('article');
   a.className = 'pair';
   a.setAttribute('data-rise', '');
@@ -175,9 +179,18 @@ for (const d of [...data].sort((a, b) => b.report.overall - a.report.overall)) {
         <div class="score${d.report.pass ? '' : ' no'}"><b>${d.report.overall}</b><span>${d.report.pass ? 'passes' : 'check score'}</span></div></div>
       <ul class="dims">${Object.entries(d.report.scores).map(([k, v]) => `<li class="${v < 85 ? 'low' : ''}"><span>${DIM_LABEL[k] || k}</span><i style="--v:${v}%"></i><b>${v}</b></li>`).join('')}</ul>
       <div class="row"><a class="btn solid" href="compare.html#${d.id}">Compare side by side <i>→</i></a><a class="btn line" href="${recHref(d)}" target="_blank" rel="noopener">Open ${esc(name)} ↗</a></div>
+      ${d.skill ? `<div class="skill"><span>Use the ${esc(host)} language in your agent</span><code>curl -fsSL ${SITE}/${d.skill.file} | tar xz -C .claude/skills/</code><button class="btn line sm" type="button" data-copy="curl -fsSL ${SITE}/${d.skill.file} | tar xz -C .claude/skills/">copy</button><a class="btn line sm" href="${d.skill.file}" download>skill ↓</a></div>` : ''}
     </div>`;
   pairsEl.appendChild(a);
 }
+
+// copy buttons on the cards
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-copy]');
+  if (!b) return;
+  try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = 'copied'; } catch { b.textContent = 'select it'; }
+  setTimeout(() => { b.textContent = 'copy'; }, 1600);
+});
 
 // =========== 4. BURST: the film's collage warp; scroll speed is motion.accelerate()
 const burst = pixelCanvas(document.getElementById('burstCanvas'), 2);

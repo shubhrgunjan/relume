@@ -16,6 +16,7 @@ while :; do
   cp "$OUT/compare.json" site/data/compare.json
   cp -r "$OUT/media/." site/media/
   [ -d "$OUT/recreations" ] && cp -r "$OUT/recreations/." site/recreations/
+  [ -d "$OUT/skills" ] && mkdir -p site/skills && cp -r "$OUT/skills/." site/skills/
   rm -rf "$OUT"
   echo "$(date -Is) exported $(node -p 'require("./site/data/compare.json").length') recreations" >> publish.log
   if [ -n "${VERCEL_TOKEN:-}" ] && [ -f site/.vercel/project.json ]; then

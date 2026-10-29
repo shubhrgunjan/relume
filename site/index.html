@@ -178,6 +178,10 @@ nav.top .links a:hover { color: var(--ink); background: var(--paper); }
 .pair .dims li.low b { color: var(--salmon); }
 .pair .row { display: flex; gap: 10px; flex-wrap: wrap; }
 @media (max-width: 560px) { .pair .dims { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.pair .skill { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 6px 8px; align-items: center; padding-top: 14px; border-top: 1px solid var(--line); }
+.pair .skill span { grid-column: 1 / -1; font: 500 11px/1.4 var(--mono); font-stretch: 87.5%; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; }
+.pair .skill code { min-width: 0; overflow-x: auto; white-space: nowrap; padding: 9px 10px; background: var(--ink); box-shadow: inset 0 0 0 1px var(--line); font: 400 12px/1 var(--mono); font-stretch: 87.5%; color: var(--mute); scrollbar-width: none; }
+.btn.sm { height: 34px; padding: 0 12px; font-size: 12px; }
 
 /* compare viewer */
 dialog.cmp { width: min(1500px, 100vw); max-width: 100vw; height: min(940px, 100svh); max-height: 100svh; margin: auto; padding: 0; border: 0; background: var(--ink); color: var(--paper); box-shadow: 0 0 0 1px var(--line); overflow: hidden; }
@@ -270,11 +274,31 @@ dialog.cmp::backdrop { background: rgb(10 8 11 / 0.82); backdrop-filter: blur(6p
 .k-copy h2 { font-size: clamp(44px, 6.6vw, 112px); line-height: 0.86; background: var(--ink); color: var(--lime); padding: 16px 20px 20px; max-width: 12ch; }
 .k-copy p { max-width: 36ch; font-size: 18px; background: var(--paper); color: var(--ink); padding: 16px 18px; }
 #install { padding-block: 18vh 8vh; }
-.install-inner { max-width: 1120px; display: grid; gap: 30px; }
+.install-inner { max-width: 1120px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 30px; }
+.install-inner > * { min-width: 0; }
+#heroUrl { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.star { flex-wrap: wrap; }
 .install-inner h2 { font-size: clamp(56px, 9vw, 160px); line-height: 0.84; }
 .install-inner h2 em { font-style: normal; color: var(--volt); }
-.install-inner .hint { max-width: 640px; margin: 14px auto 0; font: 400 15px/1.5 var(--display); color: var(--dim); }
+.install-inner .hint { max-width: 760px; margin: 0; font: 400 15px/1.5 var(--display); color: var(--dim); }
 .install-inner .hint code { font: 500 12.5px/1 var(--mono); color: var(--mute); }
+.manual { min-width: 0; max-width: 1120px; margin: 0; text-align: left; overflow: hidden; background: var(--ink-2); box-shadow: 0 0 0 1px var(--line); }
+.manual summary { cursor: pointer; padding: 16px 20px; font: 600 15px/1.3 var(--display); color: var(--paper); list-style: none; }
+.manual summary::-webkit-details-marker { display: none; }
+.manual summary::after { content: "+"; float: right; color: var(--volt); font: 600 18px/1 var(--mono); }
+.manual[open] summary::after { content: "−"; }
+.manual ol { margin: 0; padding: 0 20px 6px 40px; min-width: 0; display: grid; gap: 14px; font: 400 15px/1.55 var(--display); color: var(--mute); }
+.manual ol b { color: var(--paper); font-weight: 600; }
+.manual ol li { min-width: 0; }
+.manual pre { max-width: 100%; margin: 8px 0 0; padding: 12px 14px; overflow-x: auto; background: var(--ink); box-shadow: inset 0 0 0 1px var(--line); font: 400 12.5px/1.6 var(--mono); font-stretch: 87.5%; color: var(--paper); white-space: pre; }
+.manual code { font: 500 12.5px/1 var(--mono); font-stretch: 87.5%; color: var(--paper); }
+.manual .agent { margin: 12px 0 0; font: 500 12px/1.4 var(--mono); font-stretch: 87.5%; color: var(--volt); text-transform: uppercase; letter-spacing: 0.04em; }
+.manual .agent code { color: var(--dim); text-transform: none; }
+.manual .note { margin: 0; padding: 4px 20px 20px; font: 400 14px/1.5 var(--display); color: var(--dim); }
+.star { justify-self: start; display: inline-flex; align-items: center; gap: 10px; margin: 0; padding: 12px 18px; box-shadow: inset 0 0 0 1px var(--line); font: 600 15px/1 var(--display); color: var(--paper); text-decoration: none; transition: box-shadow 160ms ease, color 160ms ease; }
+.star span { color: var(--sun, #f5e14a); font-size: 18px; }
+.star em { font-style: normal; font-weight: 400; color: var(--dim); }
+.star:hover { box-shadow: inset 0 0 0 1px var(--volt); }
 .cmd { display: flex; flex-wrap: wrap; }
 .cmd code { flex: 1 1 480px; min-width: 0; font: 500 clamp(12px, 1.2vw, 15px)/1.5 var(--mono); font-stretch: 87.5%; background: var(--paper); color: var(--ink); padding: 17px 18px; overflow-x: auto; white-space: nowrap; }
 .cmd .btn { height: auto; min-height: 54px; }
@@ -294,7 +318,7 @@ footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12
 <canvas id="trail" aria-hidden="true"></canvas>
 <nav class="top pad" id="nav">
   <a class="mark" href="#hero" aria-label="relume home"><i><u></u><u></u><u></u><u></u></i>relume</a>
-  <div class="links"><a href="#tunnel">Pipeline</a><a href="#catalog">Catalogue</a><a href="#check">Check</a><a href="#install">Install</a></div>
+  <div class="links"><a href="#tunnel">Pipeline</a><a href="#catalog">Catalogue</a><a href="#check">Check</a><a href="#install">Install</a><a href="https://github.com/shubhrgunjan/relume" target="_blank" rel="noopener">★ GitHub</a></div>
 </nav>
 
 <main>
@@ -373,6 +397,30 @@ footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12
       <h2 class="disp" data-wipe>Give your agent <em>taste</em> it can measure.</h2>
       <div class="cmd"><code id="cmd">curl -fsSL https://relume.shubhrgunjan.me/install.sh | sh</code><button class="btn solid" id="copy" type="button">copy</button></div>
       <p class="hint">Installs what it needs (Node, git, ffmpeg, a headless browser), finds your agents — Claude Code, Codex, Gemini, Antigravity, Cursor, Windsurf, VS Code, OpenCode, Goose — and asks which to set up. <code>--agents claude,codex</code> · <code>--yes</code> · <code>--uninstall</code></p>
+      <details class="manual">
+        <summary>If the one-liner fails, set it up by hand</summary>
+        <ol>
+          <li><b>Requirements:</b> Node 20+, git and ffmpeg (<code>brew install node git ffmpeg</code> · <code>sudo apt install nodejs git ffmpeg</code>).</li>
+          <li><b>Get relume:</b><pre>git clone https://github.com/shubhrgunjan/relume ~/.relume
+cd ~/.relume && npm install</pre></li>
+          <li><b>A browser to measure with:</b> <code>npx playwright install chromium</code>. If Playwright has none for your system (e.g. macOS 13), use your Chrome instead: add <code>RELUME_BROWSER_CHANNEL=chrome</code> to the server's environment below.</li>
+          <li><b>Check the server starts</b> (it answers with its tools; Ctrl-C to stop): <pre>npm --prefix ~/.relume run -s stdio</pre></li>
+          <li><b>Register it with your agent</b> (the command is <code>npm</code>, the arguments <code>--prefix ~/.relume run -s stdio</code>):
+            <p class="agent">Claude Code</p><pre>claude mcp add --scope user -e RELUME_DATA=$HOME/.relume/data relume -- npm --prefix $HOME/.relume run -s stdio</pre>
+            <p class="agent">Codex · <code>~/.codex/config.toml</code></p><pre>[mcp_servers.relume]
+command = "npm"
+args = ["--prefix", "/Users/you/.relume", "run", "-s", "stdio"]
+tool_timeout_sec = 900.0</pre>
+            <p class="agent">Cursor <code>~/.cursor/mcp.json</code> · Gemini CLI <code>~/.gemini/settings.json</code> · Antigravity <code>~/.gemini/antigravity/mcp_config.json</code> · Windsurf <code>~/.codeium/windsurf/mcp_config.json</code></p><pre>{ "mcpServers": { "relume": {
+  "command": "npm",
+  "args": ["--prefix", "/Users/you/.relume", "run", "-s", "stdio"],
+  "env": { "RELUME_DATA": "/Users/you/.relume/data" } } } }</pre>
+          </li>
+          <li><b>Restart your agent</b> and ask it: “extract https://linear.app with relume and build me a page in its language”.</li>
+        </ol>
+        <p class="note">Only want a language, not the tool? Every catalogue entry above has its skill as a download: unpack it into <code>.claude/skills/</code> (or your agent's skills folder) and build.</p>
+      </details>
+      <a class="star" href="https://github.com/shubhrgunjan/relume" target="_blank" rel="noopener"><span>★</span> Star relume on GitHub <em>if it gave your agent some taste</em></a>
       <div class="tools"><span class="chip">extract_site</span><span class="chip">get_skill</span><span class="chip">get_dna</span><span class="chip">see_reference</span><span class="chip dim">check_style</span><span class="chip dim">get_pitfalls</span><span class="chip ghost">search_catalog</span><span class="chip ghost">compare_entries</span></div>
     </div>
     <canvas id="logo" aria-hidden="true"></canvas>
