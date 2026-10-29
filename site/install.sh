@@ -250,6 +250,16 @@ if [ -z "$REMOTE" ]; then
     if [ -n "$BROWSER_ENV" ]; then note "using your installed browser ($BROWSER_ENV)"
     else later "No browser relume can drive: install Google Chrome, then run this again."; fi
   fi
+  # Playwright records video with its own ffmpeg; where it ships none (e.g. macOS 13), any ffmpeg with VP8 works
+  if [ "$DRY" = 0 ] && ! sh -c "cd '$DIR' && '$NODEBIN/npx' --yes playwright install ffmpeg >/dev/null 2>&1" </dev/null; then
+    FF=$(command -v ffmpeg || true)
+    REV=$(cd "$DIR" && "$NODE" -p 'require("./node_modules/playwright-core/browsers.json").browsers.find((b) => b.name === "ffmpeg").revision' 2>/dev/null || true)
+    if [ -n "$FF" ] && [ -n "$REV" ]; then
+      CACHE="${PLAYWRIGHT_BROWSERS_PATH:-$( [ "$PLAT" = darwin ] && echo "$HOME/Library/Caches/ms-playwright" || echo "$HOME/.cache/ms-playwright" )}"
+      mkdir -p "$CACHE/ffmpeg-$REV" && ln -sf "$FF" "$CACHE/ffmpeg-$REV/ffmpeg-$( [ "$PLAT" = darwin ] && echo mac || echo linux )" && touch "$CACHE/ffmpeg-$REV/INSTALLATION_COMPLETE"
+      note "video recording uses $FF"
+    else later "Playwright's video recorder is missing and no ffmpeg was found: motion recording will fail."; fi
+  fi
 
   # one launcher every agent runs: works from any working directory, with relume's node and data
   if [ "$DRY" = 0 ]; then
