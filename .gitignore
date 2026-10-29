@@ -2,3 +2,8 @@ node_modules/
 data/
 *.log
 site/media/*.mp4
+film/stills/
+film/frames/
+film/score.wav
+film/audio/*.wav
+film/studio/data/

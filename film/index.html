@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>relume · every site has a feel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Doto:wght@500..900&family=Martian+Mono:wdth,wght@75..112.5,300..600&family=Instrument+Serif&display=swap" rel="stylesheet">
+<style>
+/* relume film. Every frame is a function of t (seek), timed to the music's bar grid. Nothing runs on the clock. */
+:root { --ink: #0f0d10; --ink2: #1a171b; --paper: #f2efe8; --volt: #c0f63c; --salmon: #ee9070; --sky: #3fa0e8; --plum: #9c78a8; --lilac: #f4dcf8; --sun: #f5e14a; --line: #3a343c;
+  --display: "Bricolage Grotesque", sans-serif; --mono: "Martian Mono", monospace; --pixel: "Doto", monospace; --serif: "Instrument Serif", serif; }
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+#stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--ink); font-family: var(--display); color: var(--paper); }
+.layer { position: absolute; inset: 0; display: none; }
+canvas.full { position: absolute; inset: 0; width: 1920px; height: 1080px; }
+.abs { position: absolute; }
+/* paper prints: a site printed on paper with a torn edge */
+.print { position: absolute; width: 760px; background: var(--paper); padding: 14px; box-shadow: 0 30px 60px rgb(0 0 0 / 0.55); transform-origin: center; }
+.print img { display: block; width: 100%; }
+.print::after { content: ""; position: absolute; inset: 0; background: url(#) ; mix-blend-mode: multiply; }
+.chip { position: absolute; font: 500 22px/1 var(--mono); font-stretch: 87.5%; padding: 8px 12px; background: var(--volt); color: #0f0d10; white-space: nowrap; }
+.box { position: absolute; border: 3px solid var(--volt); }
+.code { position: absolute; font: 400 22px/1.5 var(--mono); font-stretch: 87.5%; color: var(--paper); white-space: pre; }
+.code b { color: var(--volt); font-weight: 400; }
+.big { position: absolute; left: 0; right: 0; text-align: center; font: 800 210px/0.86 var(--display); font-stretch: 75%; letter-spacing: -0.05em; }
+.px { font-family: var(--pixel); font-weight: 900; }
+.card { position: absolute; border-radius: 6px; overflow: hidden; background: #000; box-shadow: 0 30px 80px rgb(0 0 0 / 0.6); }
+.card img { display: block; width: 100%; }
+.tag { position: absolute; font: 500 24px/1 var(--mono); font-stretch: 87.5%; padding: 9px 13px; background: var(--ink); color: var(--paper); white-space: nowrap; }
+.tag.v { background: var(--volt); color: var(--ink); }
+#grain { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: overlay; opacity: 0.22; }
+#vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120% 90% at 50% 50%, transparent 55%, rgb(0 0 0 / 0.55)); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <!-- 0 hook -->
+  <div class="layer" id="L-hook"><canvas class="full" id="hookC" width="1920" height="1080"></canvas></div>
+  <!-- 1 every site has a feel -->
+  <div class="layer" id="L-feel"><canvas class="full" id="feelBg" width="1920" height="1080"></canvas><div id="prints"></div><div id="cutout" class="abs" style="left:0;right:0;top:400px;height:300px"></div></div>
+  <!-- 2 measure -->
+  <div class="layer" id="L-measure"><div id="mHero" class="abs" style="inset:0"></div><div id="mBoxes" class="abs" style="inset:0"></div><canvas class="full" id="mCurve" width="1920" height="1080"></canvas><div id="mCode" class="code" style="right:60px;top:120px;width:620px"></div><div id="mCount" class="abs" style="left:60px;bottom:50px;font:500 26px/1.6 var(--mono);font-stretch:87.5%"></div></div>
+  <!-- 3 drop -->
+  <div class="layer" id="L-drop"><canvas class="full" id="dropC" width="1920" height="1080"></canvas></div>
+  <!-- 4 compile -->
+  <div class="layer" id="L-compile" style="perspective:1400px"><div id="tunnel" class="abs" style="inset:0;transform-style:preserve-3d"></div><div id="skill" class="abs" style="left:560px;top:140px;width:800px;height:800px"></div></div>
+  <!-- 5 rebuild -->
+  <div class="layer" id="L-rebuild"><div id="rb" class="abs" style="inset:0"></div></div>
+  <!-- 6 portals -->
+  <div class="layer" id="L-portal"><canvas class="full" id="portalC" width="1920" height="1080"></canvas></div>
+  <!-- 7 outro -->
+  <div class="layer" id="L-outro"><canvas class="full" id="outroC" width="1920" height="1080"></canvas><div id="oWord" class="abs" style="left:0;right:0;top:600px;text-align:center"></div></div>
+  <canvas id="grain" width="960" height="540"></canvas>
+  <div id="vignette"></div>
+</div>
+
+<script>
+// ---------------------------------------------------------------- timing (music: Pixel Dreams, cut on bar lines)
+const BAR = 2.97222, Q = BAR / 4, E8 = BAR / 8, S16 = BAR / 16;
+const b = (k) => k * BAR;
+window.DURATION = 60;
+window.CHAPTERS = [
+  { t: 0, label: 'Hook' }, { t: b(0.5), label: 'Every site has a feel' }, { t: b(2), label: 'Measure' },
+  { t: b(6), label: 'Drop · relume measures it' }, { t: b(7), label: 'Compile' }, { t: b(12), label: 'Rebuild' },
+  { t: b(16), label: 'Portals' }, { t: b(19), label: 'Outro' },
+];
+const SCENES = [['hook', 0, b(0.5)], ['feel', b(0.5), b(2)], ['measure', b(2), b(6)], ['drop', b(6), b(7)], ['compile', b(7), b(12)], ['rebuild', b(12), b(16)], ['portal', b(16), b(19)], ['outro', b(19), 60]];
+
+// ---------------------------------------------------------------- helpers
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a = 0, c = 1) => Math.min(c, Math.max(a, v));
+const lerp = (a, c, k) => a + (c - a) * k;
+const prog = (t, a, c) => clamp((t - a) / (c - a));
+const out3 = (k) => 1 - Math.pow(1 - k, 3), out5 = (k) => 1 - Math.pow(1 - k, 5), inOut = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2), expo = (k) => (k === 1 ? 1 : 1 - Math.pow(2, -10 * k));
+const back = (k) => { const c1 = 1.7, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+const rng = (seed) => () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let x = Math.imul(seed ^ (seed >>> 15), 1 | seed); x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x; return ((x ^ (x >>> 14)) >>> 0) / 4294967296; };
+const C = { ink: '#0f0d10', paper: '#f2efe8', volt: '#c0f63c', salmon: '#ee9070', sky: '#3fa0e8', plum: '#9c78a8', lilac: '#f4dcf8', sun: '#f5e14a' };
+const BAYER = [0, 48, 12, 60, 3, 51, 15, 63, 32, 16, 44, 28, 35, 19, 47, 31, 8, 56, 4, 52, 11, 59, 7, 55, 40, 24, 36, 20, 43, 27, 39, 23, 2, 50, 14, 62, 1, 49, 13, 61, 34, 18, 46, 30, 33, 17, 45, 29, 10, 58, 6, 54, 9, 57, 5, 53, 42, 26, 38, 22, 41, 25, 37, 21].map((v) => v / 64);
+const B4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => v / 16);
+const R_PIX = ['11011110', '11111111', '11100011', '11000000', '11000000', '11000000', '11000000', '11000000'];
+const SITES = ['linear', 'stripe', 'vercel', 'resend', 'cosmos', 'lenis'];
+let PAIRS = [];
+const img = (src) => { const i = new Image(); i.src = src; return i; };
+const HERO = {}, REC = {}, PAGE = {}, RPAGE = {};
+for (const s of SITES) { HERO[s] = img(`assets/sites/${s}-src-hero.jpg`); REC[s] = img(`assets/sites/${s}-rec-hero.jpg`); PAGE[s] = img(`assets/sites/${s}-src-page.jpg`); RPAGE[s] = img(`assets/sites/${s}-rec-page.jpg`); }
+const PLATE = { paper: img('assets/portal-paper.jpg'), chrome: img('assets/portal-chrome.jpg') };
+
+// the Dither r: pixel grid with Bayer reveal order
+function drawR(ctx, cx, cy, cell, k, color = C.volt, gap = 0.12) {
+  const w = 8 * cell;
+  R_PIX.forEach((row, y) => [...row].forEach((v, x) => {
+    if (v !== '1') return;
+    if (B4[(y % 4) * 4 + (x % 4)] >= k) return;
+    ctx.fillStyle = color;
+    ctx.fillRect(cx - w / 2 + x * cell, cy - w / 2 + y * cell, cell * (1 - gap), cell * (1 - gap));
+  }));
+}
+const ctx = (id) => $(id).getContext('2d');
+
+// ---------------------------------------------------------------- 0 HOOK: one pixel, then the r resolves and a scan passes
+function hook(t) {
+  const c = ctx('hookC'); c.fillStyle = C.ink; c.fillRect(0, 0, 1920, 1080);
+  const blink = t < 0.32 ? (Math.floor(t / 0.08) % 2 ? 1 : 0.25) : 1;
+  const k = prog(t, 0.32, 0.92);
+  if (k <= 0) { c.fillStyle = C.volt; c.globalAlpha = blink; c.fillRect(960 - 14, 540 - 14, 28, 28); c.globalAlpha = 1; return; }
+  const cell = lerp(28, 46, out3(prog(t, 0.32, 1.4)));
+  drawR(c, 960, 540, cell, k);
+  // scan line
+  const s = prog(t, 0.95, 1.35);
+  if (s > 0 && s < 1) { c.fillStyle = 'rgba(242,239,232,0.85)'; c.fillRect(960 - 220, 540 - 190 + s * 380, 440, 6); }
+  // shatter into the first print at the end
+  const sh = prog(t, 1.32, 1.486);
+  if (sh > 0) { c.fillStyle = C.ink; c.globalAlpha = sh; c.fillRect(0, 0, 1920, 1080); c.globalAlpha = 1; }
+}
+
+// ---------------------------------------------------------------- 1 FEEL: prints of real sites, torn paper, cut-out letters
+const printEls = [];
+(function buildPrints() {
+  const host = $('prints'), r = rng(7);
+  for (let i = 0; i < 12; i++) {
+    const s = SITES[i % 6], el = document.createElement('div');
+    el.className = 'print';
+    // torn edge: a jagged polygon, different per print
+    const pts = []; const N = 26;
+    for (let k = 0; k <= N; k++) pts.push(`${(k / N * 100).toFixed(1)}% ${(r() * 2.2).toFixed(1)}%`);
+    for (let k = 0; k <= N; k++) pts.push(`${(100 - r() * 1.6).toFixed(1)}% ${(k / N * 100).toFixed(1)}%`);
+    for (let k = N; k >= 0; k--) pts.push(`${(k / N * 100).toFixed(1)}% ${(100 - r() * 2.2).toFixed(1)}%`);
+    for (let k = N; k >= 0; k--) pts.push(`${(r() * 1.6).toFixed(1)}% ${(k / N * 100).toFixed(1)}%`);
+    el.style.clipPath = `polygon(${pts.join(',')})`;
+    el.innerHTML = `<img src="assets/sites/${s}-src-hero.jpg">`;
+    el.dataset.x = (180 + r() * 980).toFixed(0); el.dataset.y = (60 + r() * 520).toFixed(0); el.dataset.rot = ((r() - 0.5) * 14).toFixed(1); el.dataset.w = (620 + r() * 260).toFixed(0);
+    host.appendChild(el); printEls.push(el);
+  }
+})();
+const CUT_FONTS = [['var(--serif)', 400, C.paper, C.ink], ['var(--display)', 800, C.ink, C.volt], ['var(--mono)', 500, C.paper, '#3a343c'], ['var(--display)', 300, C.ink, C.paper], ['var(--pixel)', 900, C.volt, C.ink], ['var(--serif)', 400, C.ink, C.lilac]];
+const WORDS = 'every site has a feel.';
+(function buildCutout() {
+  const host = $('cutout'), r = rng(21);
+  [...WORDS].forEach((ch, i) => {
+    const s = document.createElement('span'), f = CUT_FONTS[Math.floor(r() * CUT_FONTS.length)];
+    s.textContent = ch === ' ' ? ' ' : ch;
+    s.dataset.font = f[0]; s.dataset.wt = f[1]; s.dataset.fg = f[2]; s.dataset.bg = f[3]; s.dataset.rot = ((r() - 0.5) * 16).toFixed(1); s.dataset.dy = ((r() - 0.5) * 40).toFixed(0);
+    s.style.cssText = 'display:inline-block;padding:0 6px;font-size:150px;line-height:1.1;';
+    host.appendChild(s);
+  });
+  host.style.textAlign = 'center';
+})();
+function feel(t) {
+  const lt = t - b(0.5), len = b(2) - b(0.5);
+  const bg = ctx('feelBg'); bg.fillStyle = '#d9d4ca'; bg.fillRect(0, 0, 1920, 1080);
+  // prints land one per eighth-note, then the pile slides away
+  printEls.forEach((el, i) => {
+    const at = i * E8 * 0.62;
+    const k = prog(lt, at, at + 0.16);
+    el.style.display = k > 0 ? 'block' : 'none';
+    const w = +el.dataset.w, sc = lerp(1.25, 1, out5(k));
+    el.style.width = w + 'px';
+    el.style.left = el.dataset.x + 'px'; el.style.top = el.dataset.y + 'px';
+    const away = prog(lt, len - 1.05, len - 0.2);
+    el.style.transform = `translate(${-away * 2200}px, ${away * 120}px) rotate(${+el.dataset.rot + away * -10}deg) scale(${sc})`;
+  });
+  // cut-out letters assemble, then snap into one clean line
+  const host = $('cutout');
+  const ak = prog(lt, len - 2.0, len - 0.9), snap = prog(lt, len - 0.75, len - 0.6);
+  host.style.display = ak > 0 ? 'block' : 'none';
+  [...host.children].forEach((s, i) => {
+    const k = prog(lt, len - 2.0 + i * 0.045, len - 1.85 + i * 0.045);
+    s.style.opacity = k > 0 ? 1 : 0;
+    if (snap < 1) {
+      s.style.fontFamily = s.dataset.font; s.style.fontWeight = s.dataset.wt; s.style.color = s.dataset.fg; s.style.background = s.dataset.bg;
+      s.style.transform = `translateY(${+s.dataset.dy * (1 - out3(k)) + (1 - k) * 60}px) rotate(${s.dataset.rot}deg)`;
+    } else {
+      s.style.fontFamily = 'var(--display)'; s.style.fontWeight = 800; s.style.fontStretch = '75%'; s.style.color = C.ink; s.style.background = 'transparent'; s.style.transform = 'none'; s.style.letterSpacing = '-0.04em'; s.style.padding = '0 1px';
+    }
+  });
+}
+
+// ---------------------------------------------------------------- 2 MEASURE: a site, then the measurements land on it
+// boxes are in the 1440×900 hero's coordinates
+const MEASURE = [
+  { s: 'linear', boxes: [[75, 270, 800, 140, '64px / 510 · −0.022em'], [75, 432, 520, 34, '15/1.60 · rgb(138,143,152)'], [60, 525, 1320, 375, 'ui-mock · 34 rows']], code: ['--color-accent: <b>#5e69d1</b>', '--radius-2: <b>9px</b>', 'intro-fade-blur-up', '  blur(<b>10px</b>) · y <b>20%</b>', '  <b>1000ms</b> stagger <b>34ms</b>'] },
+  { s: 'stripe', boxes: [[210, 264, 900, 210, '56px / 500 · sohne-var'], [210, 516, 210, 54, 'r 16.5px · 150ms'], [1180, 0, 260, 760, 'gradient · 4 stops']], code: ['--color-accent: <b>#635bff</b>', 'gradient ribbon', '  linear-gradient(<b>4 stops</b>)', 'scroll: <b>native</b>', 'cards: shadow <b>3 layers</b>'] },
+  { s: 'resend', boxes: [[165, 330, 420, 200, '96px / 400 · serif'], [160, 500, 200, 50, 'r 16px · glass'], [700, 160, 520, 520, '3d-scene · three.js r149']], code: ['--color-accent: <b>#6565ec</b>', 'live 3D: <b>webgl2</b>', 'spring curves: <b>4</b>', 'entrances <b>319ms</b>', 'mask: linear-gradient(<b>to top</b>)'] },
+  { s: 'cosmos', boxes: [[390, 315, 660, 150, '88px / 700'], [405, 495, 545, 60, 'search pill · 552×64 · r 9999'], [20, 80, 240, 240, 'canvas · drifting']], code: ['signature: <b>search field</b>', 'placeholder: <b>animated</b>', 'one of 8 active · <b>blur</b>', 'marquee <b>46px/s</b>', 'pages measured: <b>4</b>'] },
+];
+function measure(t) {
+  const lt = t - b(2), i = Math.min(3, Math.floor(lt / BAR)), m = MEASURE[i], bt = lt - i * BAR;
+  // hero: scaled to the frame, a slow push-in
+  const H = $('mHero');
+  if (H.dataset.s !== m.s) { H.innerHTML = `<img src="assets/sites/${m.s}-src-hero.jpg" style="position:absolute;left:0;top:0;width:1920px;height:1200px;object-fit:cover;transform-origin:50% 40%">`; H.dataset.s = m.s; }
+  const im = H.firstChild; im.style.transform = `scale(${1.02 + bt / BAR * 0.05})`; im.style.filter = `brightness(${0.62 + 0.38 * out3(prog(bt, 0, 0.25))})`;
+  // boxes snap in on beats with their labels
+  const sx = 1920 / 1440, sy = 1200 / 900, scale = 1.02 + bt / BAR * 0.05;
+  const B = $('mBoxes'); let html = '';
+  m.boxes.forEach(([x, y, w, h, label], j) => {
+    const k = prog(bt, Q * 0.5 + j * Q * 0.75, Q * 0.5 + j * Q * 0.75 + 0.12);
+    if (k <= 0) return;
+    const X = (960 + (x * sx - 960) * scale), Y = (480 + (y * sy - 480) * scale), W = w * sx * scale, Hh = h * sy * scale;
+    const grow = back(k);
+    html += `<div class="box" style="left:${X - 10 * (1 - k)}px;top:${Y - 10 * (1 - k)}px;width:${W * grow + 20 * (1 - k)}px;height:${Hh * grow + 20 * (1 - k)}px;opacity:${k}"></div><div class="chip" style="left:${X}px;top:${Math.max(8, Y - 46)}px;opacity:${k}">${label}</div>`;
+  });
+  // during the stutter before the drop the boxes would sit on the wrong site
+  B.innerHTML = i === 3 && bt > BAR * 0.5 ? '' : html;
+  // the easing curve draws in the last beat, with a dot riding it
+  const cv = ctx('mCurve'); cv.clearRect(0, 0, 1920, 1080);
+  const ck = prog(bt, Q * 2.6, Q * 3.6);
+  if (ck > 0) {
+    const ox = 1250, oy = 760, W = 300, Hh = 230;
+    cv.fillStyle = 'rgba(15,13,16,0.82)'; cv.fillRect(ox - 30, oy - Hh - 40, W + 60, Hh + 80);
+    cv.strokeStyle = '#3a343c'; cv.lineWidth = 2; cv.strokeRect(ox, oy - Hh, W, Hh);
+    const p = [0.22, 1, 0.36, 1], pt = (u) => { const a = 1 - u; return [3 * a * a * u * p[0] + 3 * a * u * u * p[2] + u * u * u, 3 * a * a * u * p[1] + 3 * a * u * u * p[3] + u * u * u]; };
+    cv.strokeStyle = C.volt; cv.lineWidth = 7; cv.lineCap = 'round'; cv.beginPath();
+    for (let u = 0; u <= ck; u += 0.01) { const [x, y] = pt(u); u === 0 ? cv.moveTo(ox + x * W, oy - y * Hh) : cv.lineTo(ox + x * W, oy - y * Hh); }
+    cv.stroke();
+    const [dx, dy] = pt(ck); cv.fillStyle = C.paper; cv.beginPath(); cv.arc(ox + dx * W, oy - dy * Hh, 11, 0, 7); cv.fill();
+    cv.font = '500 20px Martian Mono'; cv.fillStyle = C.paper; cv.fillText('cubic-bezier(0.22, 1, 0.36, 1)', ox - 10, oy + 32);
+  }
+  // tracking dots follow the heading
+  const td = prog(bt, Q * 1.5, Q * 3.8);
+  if (td > 0) { const r = rng(i * 99); for (let n = 0; n < 14; n++) { const x = 300 + r() * 900 + Math.sin(bt * 3 + n) * 20, y = 360 + r() * 320 + Math.cos(bt * 2.4 + n) * 14; cv.fillStyle = C.sun; cv.globalAlpha = clamp(td * 3 - n * 0.1); cv.beginPath(); cv.arc(x, y, 7, 0, 7); cv.fill(); } cv.globalAlpha = 1; }
+  // code and counters
+  const code = $('mCode'); const ck2 = prog(bt, 0.2, Q * 3);
+  code.innerHTML = m.code.map((l, j) => (ck2 * m.code.length > j ? l : '')).join('\n');
+  code.style.background = 'rgba(15,13,16,0.82)'; code.style.padding = '22px 26px'; code.style.display = ck2 > 0 ? 'block' : 'none';
+  const n = (v) => Math.round(v).toLocaleString('en');
+  $('mCount').innerHTML = `<span style="background:#0f0d10;padding:6px 12px">frames ${n(lerp(0, 4431, prog(lt, 0, b(4))))} · tracks ${n(lerp(0, 200, prog(lt, 0, b(4))))} · elements ${n(lerp(0, 1856, prog(lt, 0, b(4))))}</span>`;
+  // the last half-bar before the drop stutters: quick cuts through all four sites
+  if (i === 3 && bt > BAR * 0.5) { const j = Math.floor((bt - BAR * 0.5) / S16) % 4; im.src = `assets/sites/${MEASURE[j].s}-src-hero.jpg`; H.dataset.s = 'x'; }
+}
+
+// ---------------------------------------------------------------- 3 DROP: relume measures it.
+function drop(t) {
+  const lt = t - b(6), c = ctx('dropC');
+  c.fillStyle = lt < 0.06 ? C.volt : C.ink; c.fillRect(0, 0, 1920, 1080);
+  if (lt < 0.06) return;
+  // a dither burst expands from the centre, then the words settle
+  const k = prog(lt, 0.06, 0.6);
+  const cell = 24;
+  for (let y = 0; y < 1080 / cell; y++) for (let x = 0; x < 1920 / cell; x++) {
+    const d = Math.hypot(x * cell - 960, y * cell - 540) / 1100, th = BAYER[(y % 8) * 8 + (x % 8)];
+    if (Math.abs(d - k * 1.2) < 0.12 * th) { c.fillStyle = th > 0.5 ? C.volt : C.paper; c.fillRect(x * cell, y * cell, cell - 2, cell - 2); }
+  }
+  const w = out5(prog(lt, 0.1, 0.5));
+  c.save(); c.translate(960, 560); c.scale(lerp(1.4, 1, w), lerp(1.4, 1, w));
+  c.textAlign = 'center'; c.fillStyle = C.paper; c.font = '900 150px Doto'; c.fillText('relume', 0, -40);
+  c.fillStyle = C.volt; c.font = '800 128px "Bricolage Grotesque"'; c.fillText('measures it.', 0, 110);
+  c.restore();
+}
+
+// ---------------------------------------------------------------- 4 COMPILE: tokens fly through depth, then stack into a skill
+const TOKENS = [];
+(function buildTokens() {
+  const r = rng(5), host = $('tunnel');
+  const kinds = [];
+  for (const s of SITES) kinds.push(['sw', s], ['type', s], ['rad', s]);
+  for (let i = 0; i < 36; i++) {
+    const [k, s] = kinds[i % kinds.length], el = document.createElement('div');
+    el.className = 'abs';
+    const col = [C.volt, C.salmon, C.sky, C.plum, C.lilac, C.sun, '#5e69d1', '#635bff', '#6565ec'][i % 9];
+    if (k === 'sw') el.innerHTML = `<div style="width:240px;height:300px;background:${col};padding:18px;display:flex;align-items:flex-end;font:500 20px/1 Martian Mono;color:#0f0d10">${col}</div>`;
+    else if (k === 'type') el.innerHTML = `<div style="width:300px;height:300px;background:#f2efe8;color:#0f0d10;padding:20px;font:800 150px/1 'Bricolage Grotesque';font-stretch:75%">Aa<div style="font:500 20px/1.4 Martian Mono">${['64/510', '56/500', '96/400', '88/700', '160/400', '64/450'][i % 6]}</div></div>`;
+    else el.innerHTML = `<div style="width:260px;height:260px;border:6px solid ${col};border-radius:${[9, 16, 24, 9999, 4, 12][i % 6]}px;display:grid;place-items:center;font:500 22px Martian Mono;color:${col}">r ${[9, 16, 24, '∞', 4, 12][i % 6]}</div>`;
+    el.dataset.x = ((r() - 0.5) * 2400).toFixed(0); el.dataset.y = ((r() - 0.5) * 1300).toFixed(0); el.dataset.z = (r() * 5000).toFixed(0); el.dataset.rot = ((r() - 0.5) * 40).toFixed(0);
+    host.appendChild(el); TOKENS.push(el);
+  }
+})();
+const SKILL_LINES = ['---', 'name: resend-design-language', '---', '', '# What makes this site feel like itself', '- The hero: a live 3D scene, moving', '- Search: a designed pill, animated', '- One of 8 active at a time · blur', '', '## Tokens', '--color-accent: #6565ec', '--radius-2: 16px', '--ease-3: cubic-bezier(0.22, 1, 0.36, 1)', '', '## Motion', 'intro-fade-up · 1000ms ease-in-out', 'reveal-fade · stagger 548ms'];
+function compile(t) {
+  const lt = t - b(7), len = b(12) - b(7);
+  const fly = prog(lt, 0, len * 0.62), stack = prog(lt, len * 0.55, len);
+  TOKENS.forEach((el, i) => {
+    const z0 = +el.dataset.z, z = -5000 + ((z0 + fly * 9000) % 6000);
+    const gather = out3(stack);
+    const x = lerp(+el.dataset.x, 0, gather) + 960 - 130, y = lerp(+el.dataset.y, 0, gather) + 540 - 150, zz = lerp(z, -2600 - i * 30, gather);
+    el.style.transform = `translate3d(${x}px, ${y}px, ${zz}px) rotate(${lerp(+el.dataset.rot, 0, gather)}deg)`;
+    el.style.opacity = clamp(1 - gather * 1.3) * clamp((zz + 5000) / 1500);
+  });
+  // the backdrop sits on the layer, not the 3D plane (anything deeper than the plane would hide behind it)
+  $('L-compile').style.background = `radial-gradient(60% 60% at 50% 50%, #1a171b, ${C.ink})`;
+  // skill pages type in
+  const sk = $('skill'), shown = Math.floor(prog(lt, len * 0.6, len - 0.4) * SKILL_LINES.length);
+  sk.style.display = stack > 0.1 ? 'block' : 'none';
+  sk.style.background = C.paper; sk.style.padding = '46px 56px'; sk.style.color = C.ink; sk.style.font = '400 25px/1.55 Martian Mono'; sk.style.fontStretch = '87.5%';
+  sk.style.transform = `translateY(${(1 - out3(prog(lt, len * 0.55, len * 0.7))) * 900}px) rotate(${(1 - out3(prog(lt, len * 0.55, len * 0.7))) * 6}deg)`;
+  sk.style.boxShadow = '0 40px 90px rgba(0,0,0,.6)';
+  sk.innerHTML = SKILL_LINES.slice(0, shown).map((l) => (l.startsWith('#') ? `<b style="font-family:'Bricolage Grotesque';font-weight:800;font-size:34px">${l.replace(/^#+ /, '')}</b>` : l.startsWith('--') || l.includes('cubic') ? `<span style="background:${C.volt}">${l}</span>` : l || '&nbsp;')).join('<br>');
+}
+
+// ---------------------------------------------------------------- 5 REBUILD: each original becomes its recreation
+const RB = [['resend', 'Spoke', 92], ['linear', 'Tessera', 89], ['cosmos', 'Muse', 80], ['stripe', 'Ledgerline', 91], ['vercel', 'Northwind Edge', 90], ['lenis', 'Drift', 90]];
+function rebuild(t) {
+  const lt = t - b(12), per = (b(16) - b(12)) / RB.length, i = Math.min(RB.length - 1, Math.floor(lt / per)), pt = lt - i * per, [s, name, score] = RB[i];
+  const seam = inOut(prog(pt, per * 0.28, per * 0.7));
+  const scroll = out3(prog(pt, 0, per)) * 160;
+  const host = $('rb');
+  host.innerHTML = `
+    <div class="abs" style="inset:0;overflow:hidden"><img src="assets/sites/${s}-src-hero.jpg" style="position:absolute;left:0;top:${-scroll}px;width:1920px;height:1200px;object-fit:cover"></div>
+    <div class="abs" style="inset:0;overflow:hidden;clip-path:inset(0 0 0 ${(1 - seam) * 100}%)"><img src="assets/sites/${s}-rec-hero.jpg" style="position:absolute;left:0;top:${-scroll}px;width:1920px;height:1200px;object-fit:cover"></div>
+    <div class="abs" style="top:0;bottom:0;left:${(1 - seam) * 1920 - 3}px;width:6px;background:${C.volt};opacity:${seam > 0 && seam < 1 ? 1 : 0}"></div>
+    <div class="tag" style="left:48px;top:${980}px">${PAIRS.find((p) => p.short === s)?.source || s}</div>
+    <div class="tag v" style="right:48px;top:980px;opacity:${seam}">${name} · built with relume</div>
+    <div class="abs px" style="right:60px;top:60px;font-size:150px;line-height:1;color:${C.volt};opacity:${seam}">${Math.round(score * out3(prog(pt, per * 0.45, per * 0.95)))}</div>`;
+}
+
+// ---------------------------------------------------------------- 6 PORTALS: infinite zoom through four materials
+const neon = document.createElement('canvas'), pastel = document.createElement('canvas');
+(function buildPlates() {
+  for (const cv of [neon, pastel]) { cv.width = 1920; cv.height = 1080; }
+  let c = neon.getContext('2d'); c.fillStyle = '#050607'; c.fillRect(0, 0, 1920, 1080);
+  for (let k = 0; k < 14; k++) { const s = Math.pow(0.8, k), w = 1700 * s, h = 960 * s; c.strokeStyle = k % 2 ? C.sky : C.volt; c.globalAlpha = 0.85 * s + 0.1; c.lineWidth = 10 * s + 1; c.shadowColor = c.strokeStyle; c.shadowBlur = 40 * s; c.strokeRect(960 - w / 2, 540 - h / 2, w, h); }
+  c.globalAlpha = 1; c.shadowBlur = 0;
+  c = pastel.getContext('2d'); const g = c.createLinearGradient(0, 0, 1920, 1080); g.addColorStop(0, '#f4dcf8'); g.addColorStop(0.5, '#ffd9c4'); g.addColorStop(1, '#cfe4fb'); c.fillStyle = g; c.fillRect(0, 0, 1920, 1080);
+  for (let k = 0; k < 10; k++) { const s = Math.pow(0.78, k); c.fillStyle = ['#f4dcf8', '#ffe3d1', '#d9ecfc'][k % 3]; c.globalAlpha = 0.55; c.beginPath(); c.ellipse(960, 540, 1100 * s, 640 * s, 0, 0, 7); c.fill(); }
+  c.globalAlpha = 1;
+})();
+function portal(t) {
+  const lt = t - b(16), len = b(19) - b(16), c = ctx('portalC');
+  const plates = [PLATE.paper, PLATE.chrome, neon, pastel], recs = ['resend', 'cosmos', 'linear', 'lenis'];
+  const p = inOut(prog(lt, 0, len * 0.86)) * (plates.length - 1), i = Math.min(plates.length - 2, Math.floor(p)), q = p - i;
+  const Z = 5.2, s = Math.pow(Z, q);
+  const draw = (k, sc) => {
+    const w = 1920 * sc, h = 1080 * sc; c.drawImage(plates[k], 960 - w / 2, 540 - h / 2, w, h);
+    // a framed recreation in the middle of each material
+    const fw = 1920 / Z * sc, fh = 1080 / Z * sc; c.fillStyle = C.ink; c.fillRect(960 - fw / 2 - 6 * sc, 540 - fh / 2 - 6 * sc, fw + 12 * sc, fh + 12 * sc);
+    return [fw, fh];
+  };
+  c.fillStyle = '#000'; c.fillRect(0, 0, 1920, 1080);
+  const [fw, fh] = draw(i, s);
+  c.save(); c.beginPath(); c.rect(960 - fw / 2, 540 - fh / 2, fw, fh); c.clip();
+  draw(i + 1, s / Z);
+  const cr = REC[recs[i + 1]]; const cw = 1920 / Z / Z * s, ch = 1080 / Z / Z * s; c.drawImage(cr, 960 - cw / 2, 540 - ch / 2, cw, ch);
+  c.restore();
+  // the catalogue wall arrives at the end
+  const wk = prog(lt, len * 0.82, len);
+  if (wk > 0) {
+    c.fillStyle = C.ink; c.globalAlpha = wk; c.fillRect(0, 0, 1920, 1080); c.globalAlpha = 1;
+    const cols = 4, gw = 440, gh = 275;
+    SITES.forEach((st, k) => [HERO[st], REC[st]].forEach((im, j) => {
+      const n = k * 2 + j, x = 60 + (n % cols) * (gw + 20), y = 70 + Math.floor(n / cols) * (gh + 20);
+      const kk = out3(clamp(wk * 2 - n * 0.05));
+      c.globalAlpha = kk; c.drawImage(im, x, y + (1 - kk) * 40, gw, gh); c.globalAlpha = 1;
+      if (j) { c.fillStyle = C.volt; c.fillRect(x, y + gh - 30, 130, 30); c.fillStyle = C.ink; c.font = '500 16px Martian Mono'; c.fillText(RB.find((r) => r[0] === st)[1], x + 8, y + gh - 10); }
+    }));
+  }
+}
+
+// ---------------------------------------------------------------- 7 OUTRO: everything to one pixel, then the mark
+function outro(t) {
+  const lt = t - b(19), c = ctx('outroC');
+  c.fillStyle = C.ink; c.fillRect(0, 0, 1920, 1080);
+  const collapse = out3(prog(lt, 0, 0.7));
+  if (collapse < 1) {
+    // the wall's tiles rush to the centre as pixels
+    const r = rng(3);
+    for (let n = 0; n < 240; n++) { const x0 = r() * 1920, y0 = r() * 1080; const x = lerp(x0, 960, collapse), y = lerp(y0, 540, collapse); c.fillStyle = [C.volt, C.paper, C.salmon, C.sky][n % 4]; const sz = lerp(22, 6, collapse); c.fillRect(x, y, sz, sz); }
+  }
+  const k = prog(lt, 0.7, 1.4);
+  if (collapse >= 1 || k > 0) drawR(c, 960, 430, 30, k);
+  const w = out3(prog(lt, 1.3, 2.0));
+  $('oWord').innerHTML = `<div style="opacity:${w};transform:translateY(${(1 - w) * 30}px)"><div style="font:900 120px/1 Doto;color:${C.paper}">relume</div><div style="margin-top:26px;font:400 30px/1 Martian Mono;font-stretch:87.5%;color:${C.volt}">relume.shubhrgunjan.me</div><div style="margin-top:22px;font:400 22px/1 Martian Mono;font-stretch:87.5%;color:#857d8a">curl -fsSL relume.shubhrgunjan.me/install.sh | sh</div></div>`;
+}
+
+// ---------------------------------------------------------------- grain: tiled noise, a fresh offset every frame
+const grainTile = document.createElement('canvas');
+(function () { grainTile.width = grainTile.height = 256; const g = grainTile.getContext('2d'), d = g.createImageData(256, 256), r = rng(11); for (let i = 0; i < d.data.length; i += 4) { const v = r() * 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; } g.putImageData(d, 0, 0); })();
+function grain(f) {
+  const g = ctx('grain'), r = rng(f * 7 + 1), ox = Math.floor(r() * 256), oy = Math.floor(r() * 256);
+  g.fillStyle = g.createPattern(grainTile, 'repeat'); g.save(); g.translate(-ox, -oy); g.fillRect(0, 0, 960 + 256, 540 + 256); g.restore();
+}
+
+// ---------------------------------------------------------------- seek
+const RUN = { hook, feel, measure, drop, compile, rebuild, portal, outro };
+window.seek = (t, f = Math.floor(t * 60)) => {
+  for (const [name, a, c] of SCENES) {
+    const on = t >= a && t < c;
+    $('L-' + name).style.display = on ? 'block' : 'none';
+    if (on) RUN[name](t);
+  }
+  grain(f);
+};
+fetch('assets/sites/pairs.json').then((r) => r.json()).then((p) => { PAIRS = p; }).catch(() => {});
+// canvas text does not trigger font loading: load every face the canvases use before the first frame
+['900 150px Doto', '800 128px "Bricolage Grotesque"', '500 20px "Martian Mono"', '400 30px "Martian Mono"'].forEach((f) => document.fonts.load(f));
+document.fonts.ready.then(() => window.seek(0));
+</script>
+</body>
+</html>

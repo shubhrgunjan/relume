@@ -1,0 +1,140 @@
+[
+ {
+  "source": "linear.app",
+  "short": "linear",
+  "name": "Tessera",
+  "score": 89,
+  "facts": {
+   "accent": "#5e69d1",
+   "background": "#08090a",
+   "colors": [
+    "#08090a",
+    "#0f1011",
+    "#5e69d1",
+    "#f7f8f8",
+    "#8a8f98",
+    "rgb(255 255 255 / 0.08)"
+   ],
+   "head": "64px / 510",
+   "font": "Inter",
+   "radius": "9999px",
+   "easing": "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+   "duration": 420
+  }
+ },
+ {
+  "source": "stripe.com",
+  "short": "stripe",
+  "name": "Ledgerline",
+  "score": 91,
+  "facts": {
+   "accent": "rgb(84 82 251 / 0.75)",
+   "background": "#f6f9fc",
+   "colors": [
+    "#f6f9fc",
+    "#ffffff",
+    "#e5edf5",
+    "#0d1738",
+    "#64748d",
+    "#425466"
+   ],
+   "head": "56px / 500",
+   "font": "sohne-var",
+   "radius": "4px",
+   "easing": "cubic-bezier(0.25, 1, 0.5, 1)",
+   "duration": 300
+  }
+ },
+ {
+  "source": "vercel.com",
+  "short": "vercel",
+  "name": "Northwind Edge",
+  "score": 90,
+  "facts": {
+   "accent": "#0072f5",
+   "background": "#fafafa",
+   "colors": [
+    "#fafafa",
+    "#171717",
+    "#4d4d4d",
+    "#ebebeb",
+    "#0072f5",
+    "rgb(255 255 255 / 0.16)"
+   ],
+   "head": "64px / 450",
+   "font": "Geist",
+   "radius": "9999px",
+   "easing": "cubic-bezier(0.4, 0, 0.2, 1)",
+   "duration": 150
+  }
+ },
+ {
+  "source": "resend.com",
+  "short": "resend",
+  "name": "Spoke",
+  "score": 92,
+  "facts": {
+   "accent": "#6565ec",
+   "background": "#000000",
+   "colors": [
+    "#000000",
+    "#161618",
+    "#a1a4a5",
+    "#f0f0f0",
+    "rgb(80 80 80 / 0.15)",
+    "#6565ec"
+   ],
+   "head": "96px / 400",
+   "font": "Inter",
+   "radius": "9999px",
+   "easing": "cubic-bezier(0.4, 0, 0.2, 1)",
+   "duration": 200
+  }
+ },
+ {
+  "source": "cosmos.so",
+  "short": "cosmos",
+  "name": "Muse",
+  "score": 80,
+  "facts": {
+   "accent": "#a88e6c",
+   "background": "#ffffff",
+   "colors": [
+    "#ffffff",
+    "#f7f5f3",
+    "rgb(13 13 13 / 0.12)",
+    "rgb(0 0 0 / 0.05)",
+    "rgb(0 0 0 / 0.2)",
+    "#0d0d0d"
+   ],
+   "head": "88px / 700",
+   "font": "cosmosOracle",
+   "radius": "9999px",
+   "easing": "cubic-bezier(0.4, 0, 0.2, 1)",
+   "duration": 500
+  }
+ },
+ {
+  "source": "lenis.darkroom.engineering",
+  "short": "lenis",
+  "name": "Drift",
+  "score": 90,
+  "facts": {
+   "accent": null,
+   "background": "#000000",
+   "colors": [
+    "#000000",
+    "#efefef",
+    "#ff98a2",
+    "#101010",
+    "rgb(239 239 239 / 0.8)",
+    "rgb(0 0 0 / 0.2)"
+   ],
+   "head": "160px / 400",
+   "font": "Roboto",
+   "radius": "9999px",
+   "easing": "cubic-bezier(0.19, 1, 0.22, 1)",
+   "duration": 600
+  }
+ }
+]

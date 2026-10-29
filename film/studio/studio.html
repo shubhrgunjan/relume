@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reel Studio</title>
+<style>
+@font-face{font-family:Inter;src:url(/proj/fonts/Inter.ttf);font-weight:100 900}
+@font-face{font-family:JBM;src:url(/proj/fonts/JBM.ttf);font-weight:100 800}
+:root{
+  --bg:#0a0a0a;--panel:#111;--card:#181818;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
+  --text:#f5f5f5;--sub:#8a8a8a;--silver:#c9c9c9;--live:#3DD185;--warn:#f5b84a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font:14px/1.45 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,textarea,input{font:inherit;color:inherit}
+.mono{font-family:JBM,ui-monospace,monospace}
+#app{display:grid;grid-template-columns:1fr 400px;grid-template-rows:56px 1fr;height:100vh}
+header{grid-column:1/3;display:flex;align-items:center;gap:14px;padding:0 20px;border-bottom:1px solid var(--line)}
+header img{width:26px;height:26px;border-radius:7px}
+header h1{font-size:15px;font-weight:600;letter-spacing:-.01em}
+header .sub{color:var(--sub);font-size:13px}
+.pill{display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 12px;border-radius:99px;background:rgba(255,255,255,.06);font-size:12.5px;color:var(--silver)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--sub)}
+.dot.on{background:var(--live);box-shadow:0 0 0 0 rgba(61,209,133,.6);animation:pulse 1.6s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 8px rgba(61,209,133,0)}100%{box-shadow:0 0 0 0 rgba(61,209,133,0)}}
+header .grow{flex:1}
+main{display:flex;flex-direction:column;min-width:0;min-height:0;padding:20px;gap:14px}
+#viewport{position:relative;flex:1;min-height:0;display:grid;place-items:center}
+#frame{position:relative;aspect-ratio:16/9;height:100%;max-width:100%;background:#000;border-radius:10px;overflow:hidden;box-shadow:0 0 0 1px var(--line2)}
+#frame iframe{position:absolute;left:0;top:0;width:1920px;height:1080px;border:0;transform-origin:0 0;pointer-events:none}
+#reloaded{position:absolute;top:12px;right:12px;opacity:0;transition:opacity .4s}
+#reloaded.show{opacity:1}
+.transport{display:flex;align-items:center;gap:12px}
+.btn{height:34px;padding:0 14px;border-radius:9px;border:1px solid var(--line2);background:var(--card);cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.btn:hover{background:#202020}
+.btn.icon{width:38px;padding:0;justify-content:center}
+.time{font-family:JBM,monospace;font-size:13px;color:var(--silver);min-width:118px}
+#track{position:relative;flex:1;height:44px;cursor:pointer;user-select:none}
+#track .rail{position:absolute;left:0;right:0;top:18px;height:8px;border-radius:4px;background:rgba(255,255,255,.07);overflow:hidden}
+#track .fill{position:absolute;left:0;top:0;bottom:0;background:rgba(255,255,255,.22)}
+#track .head{position:absolute;top:10px;width:2px;height:24px;background:#fff;border-radius:1px;margin-left:-1px}
+#track .ch{position:absolute;top:0;font-size:10.5px;color:var(--sub);white-space:nowrap;transform:translateX(2px)}
+#track .tick{position:absolute;top:14px;width:1px;height:16px;background:var(--line2)}
+#track .nm{position:absolute;top:32px;width:9px;height:9px;margin-left:-4.5px;border-radius:50%;background:var(--warn)}
+#track .nm.done{background:var(--live)}
+aside{border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0;background:var(--panel)}
+section{padding:16px 18px;border-bottom:1px solid var(--line)}
+section h2{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--sub);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+#activity{flex:1;min-height:0;overflow:auto;padding:4px 18px 16px}
+.ev{padding:9px 0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:52px 1fr;gap:10px}
+.ev .t{font-family:JBM,monospace;font-size:11px;color:var(--sub);padding-top:2px}
+.ev .m{color:var(--silver);font-size:13px}
+.ev.latest .m{color:var(--text)}
+.ev .kind{font-family:JBM,monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--live);margin-right:6px}
+#notesBox textarea{width:100%;min-height:76px;resize:vertical;border-radius:10px;border:1px solid var(--line2);background:var(--card);padding:10px 12px;outline:none}
+#notesBox textarea:focus{border-color:rgba(255,255,255,.3)}
+.row{display:flex;align-items:center;gap:10px;margin-top:10px}
+.row label{display:flex;align-items:center;gap:6px;color:var(--sub);font-size:12.5px;cursor:pointer}
+.row .grow{flex:1}
+.primary{background:#f5f5f5;color:#000;border-color:#f5f5f5;font-weight:600}
+.primary:hover{background:#fff}
+#notes{max-height:28vh;overflow:auto;padding:0 18px}
+.note{padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
+.note .meta{font-family:JBM,monospace;font-size:11px;color:var(--sub);display:flex;gap:8px;align-items:center;margin-bottom:3px}
+.note .meta a{color:var(--silver);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.tag{font-family:JBM,monospace;font-size:10px;padding:2px 7px;border-radius:99px;background:rgba(245,184,74,.14);color:var(--warn)}
+.tag.done{background:rgba(61,209,133,.14);color:var(--live)}
+.note .reply{color:var(--sub);margin-top:4px;font-size:12.5px}
+#approveBox{padding:16px 18px}
+#approve{width:100%;height:44px;justify-content:center;font-weight:600;background:var(--live);color:#04140b;border-color:var(--live)}
+#approve:disabled{opacity:.5;cursor:default}
+#approveMsg{color:var(--sub);font-size:12.5px;margin-top:8px}
+.bar{height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;background:var(--live);width:0}
+.empty{color:var(--sub);font-size:13px;padding:10px 0}
+kbd{font-family:JBM,monospace;font-size:11px;padding:1px 5px;border-radius:4px;border:1px solid var(--line2);color:var(--sub)}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <img src="/proj/img/mascot.png" alt="">
+    <h1>relume Studio</h1>
+    <span class="sub">relume film · “Every site has a feel” · 60 s · 1920×1080 · renders on the Thor</span>
+    <span class="grow"></span>
+    <span class="pill"><span class="dot" id="liveDot"></span><span id="liveText">Connecting…</span></span>
+  </header>
+
+  <main>
+    <div id="viewport">
+      <div id="frame">
+        <iframe id="comp" src="about:blank" title="composition"></iframe>
+        <span class="pill" id="reloaded"><span class="dot on"></span>Updated</span>
+      </div>
+    </div>
+    <div class="transport">
+      <button class="btn icon" id="play" title="Play / pause (space)">▶</button>
+      <span class="time" id="time">0.00 / 30.00</span>
+      <div id="track"><div class="rail"><div class="fill" id="fill"></div></div><div class="head" id="head"></div></div>
+      <button class="btn" id="mute" title="Sound on/off (m)">Sound on</button>
+    </div>
+    <div class="sub" style="color:var(--sub);font-size:12px">
+      <kbd>space</kbd> play · <kbd>←</kbd><kbd>→</kbd> 1 s · <kbd>,</kbd><kbd>.</kbd> one frame · <kbd>n</kbd> note at this moment · click the timeline to jump
+    </div>
+  </main>
+
+  <aside>
+    <section style="border-bottom:0;padding-bottom:6px"><h2><span class="dot on" id="actDot"></span>What Claude is doing</h2></section>
+    <div id="activity"></div>
+
+    <section id="notesBox" style="border-top:1px solid var(--line)">
+      <h2>Ask for a change</h2>
+      <textarea id="noteText" placeholder="e.g. at the stock card, hold the dither cards a bit longer"></textarea>
+      <div class="row">
+        <label><input type="checkbox" id="stamp" checked> at <span class="mono" id="stampT">0.00s</span></label>
+        <span class="grow"></span>
+        <button class="btn primary" id="send">Send to Claude</button>
+      </div>
+    </section>
+    <div id="notes"></div>
+
+    <div id="approveBox">
+      <button class="btn" id="approve">Approve for final render</button>
+      <div id="approveMsg">Nothing renders until you approve. Claude watches this page and picks up your notes.</div>
+      <div class="bar" id="rbar" style="display:none"><i id="rfill"></i></div>
+    </div>
+  </aside>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const comp = $('comp'), audio = new Audio();
+let DUR = 30, t = 0, playing = false, t0 = 0, wall0 = 0, ver = null, chapters = [], notes = [], done = {}, muted = false, audioVer = '';
+
+// ---------- composition iframe
+function fit() {
+  const f = $('frame'), r = f.getBoundingClientRect();
+  comp.style.transform = `scale(${r.width / 1920})`;
+}
+new ResizeObserver(fit).observe($('frame'));
+
+function cw() { try { return comp.contentWindow; } catch (e) { return null; } }
+function seek(x) {
+  t = Math.max(0, Math.min(DUR, x));
+  const w = cw();
+  if (w && w.seek) { try { w.seek(t, Math.floor(t * 60)); } catch (e) { console.error(e); } }
+  drawTime();
+}
+function load(keepT) {
+  const at = keepT ? t : 0;
+  comp.onload = async () => {
+    const w = cw();
+    try { if (w.document.fonts) await w.document.fonts.ready; } catch (e) {}
+    DUR = (w && w.DURATION) || 30;
+    chapters = (w && w.CHAPTERS) || [];
+    drawTrack();
+    seek(at);
+  };
+  comp.src = '/proj/index.html?v=' + Date.now();
+}
+
+// ---------- transport
+function drawTime() {
+  $('time').textContent = `${t.toFixed(2)} / ${DUR.toFixed(2)}`;
+  const k = t / DUR * 100;
+  $('fill').style.width = k + '%'; $('head').style.left = k + '%';
+  $('stampT').textContent = t.toFixed(2) + 's';
+}
+function drawTrack() {
+  const tr = $('track');
+  tr.querySelectorAll('.ch,.tick,.nm').forEach(e => e.remove());
+  for (const c of chapters) {
+    const x = c.t / DUR * 100;
+    const tk = document.createElement('div'); tk.className = 'tick'; tk.style.left = x + '%'; tr.appendChild(tk);
+    const l = document.createElement('div'); l.className = 'ch'; l.style.left = x + '%'; l.textContent = c.name; tr.appendChild(l);
+  }
+  for (const n of notes) if (n.at != null && !n.approve) {
+    const m = document.createElement('div'); m.className = 'nm' + (done[n.id] ? ' done' : ''); m.style.left = (n.at / DUR * 100) + '%';
+    m.title = n.text; tr.appendChild(m);
+  }
+}
+function play(on) {
+  playing = on; $('play').textContent = on ? '❚❚' : '▶';
+  if (on) {
+    if (t >= DUR - .01) seek(0);
+    t0 = t; wall0 = performance.now();
+    if (!muted && audio.src) { audio.currentTime = t; audio.play().catch(() => {}); }
+  } else audio.pause();
+}
+function tick() {
+  if (playing) {
+    let x = (!muted && audio.src && !audio.paused) ? audio.currentTime : t0 + (performance.now() - wall0) / 1000;
+    if (x >= DUR) { x = DUR; play(false); }
+    seek(x);
+  }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+$('play').onclick = () => play(!playing);
+$('mute').onclick = () => { muted = !muted; $('mute').textContent = muted ? 'Sound off' : 'Sound on'; if (muted) audio.pause(); else if (playing) { audio.currentTime = t; audio.play().catch(() => {}); } };
+const trackSeek = e => { const r = $('track').getBoundingClientRect(); seek((e.clientX - r.left) / r.width * DUR); if (playing) play(true); };
+$('track').addEventListener('pointerdown', e => { trackSeek(e); const mv = ev => trackSeek(ev); window.addEventListener('pointermove', mv); window.addEventListener('pointerup', () => window.removeEventListener('pointermove', mv), { once: true }); });
+window.addEventListener('keydown', e => {
+  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+  if (e.code === 'Space') { e.preventDefault(); play(!playing); }
+  else if (e.key === 'ArrowRight') { seek(t + 1); if (playing) play(true); }
+  else if (e.key === 'ArrowLeft') { seek(t - 1); if (playing) play(true); }
+  else if (e.key === '.') { play(false); seek(t + 1 / 60); }
+  else if (e.key === ',') { play(false); seek(t - 1 / 60); }
+  else if (e.key === 'n') { e.preventDefault(); play(false); $('noteText').focus(); }
+  else if (e.key === 'm') $('mute').click();
+});
+
+// ---------- notes
+async function sendNote() {
+  const text = $('noteText').value.trim(); if (!text) return;
+  const at = $('stamp').checked ? +t.toFixed(2) : null;
+  $('send').disabled = true;
+  try { await fetch('/api/note', { method: 'POST', body: JSON.stringify({ text, at }) }); $('noteText').value = ''; poll(); }
+  finally { $('send').disabled = false; }
+}
+$('send').onclick = sendNote;
+$('noteText').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) sendNote(); });
+$('approve').onclick = async () => {
+  if (!confirm('Approve this version for the final 1920×1080 60 fps render on the Thor?')) return;
+  await fetch('/api/approve', { method: 'POST', body: '{}' }); poll();
+};
+
+// ---------- live state
+const fmtClock = s => new Date(s * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+async function poll() {
+  let s;
+  try { s = await (await fetch('/api/state')).json(); } catch (e) { $('liveText').textContent = 'Studio server offline'; $('liveDot').className = 'dot'; return; }
+  // composition changed on disk → hot reload, keep the playhead
+  if (ver === null) { ver = s.version; load(false); }
+  else if (s.version !== ver) { ver = s.version; const wasPlaying = playing; play(false); load(true); flashUpdated(); if (wasPlaying) setTimeout(() => play(true), 600); }
+  const wv = String(s.version);
+  if (wv !== audioVer) { audioVer = wv; const at = audio.currentTime; audio.src = '/proj/score.wav?v=' + Date.now(); audio.currentTime = at || 0; }
+  // activity
+  const act = s.activity || [];
+  const last = act[act.length - 1];
+  const fresh = last && (s.now - last.ts) < 300;
+  $('liveDot').className = 'dot' + (fresh ? ' on' : '');
+  $('actDot').className = 'dot' + (fresh ? ' on' : '');
+  $('liveText').textContent = s.render && s.render.state === 'rendering' ? 'Rendering final…' : fresh ? 'Claude is working' : 'Idle · waiting for your notes';
+  $('activity').innerHTML = act.length ? act.slice().reverse().map((a, i) =>
+    `<div class="ev${i === 0 ? ' latest' : ''}"><span class="t">${fmtClock(a.ts)}</span><span class="m">${a.kind ? `<span class="kind">${esc(a.kind)}</span>` : ''}${esc(a.msg)}</span></div>`).join('')
+    : '<div class="empty">Nothing yet.</div>';
+  // notes
+  notes = s.notes || []; done = s.done || {};
+  $('notes').innerHTML = notes.filter(n => !n.approve).slice().reverse().map(n => {
+    const d = done[n.id];
+    return `<div class="note"><div class="meta"><span class="tag${d ? ' done' : ''}">${d ? 'done' : 'open'}</span>${n.at != null ? `<a data-at="${n.at}">${(+n.at).toFixed(2)}s</a>` : ''}<span>${fmtClock(n.ts)}</span></div>
+      <div>${esc(n.text)}</div>${d && d.reply ? `<div class="reply">↳ ${esc(d.reply)}</div>` : ''}</div>`;
+  }).join('');
+  $('notes').querySelectorAll('a[data-at]').forEach(a => a.onclick = () => { play(false); seek(+a.dataset.at); });
+  drawTrack();
+  // approval + render
+  const r = s.render;
+  if (s.approve) { $('approve').disabled = true; $('approve').textContent = 'Approved'; }
+  if (r) {
+    $('rbar').style.display = ''; $('rfill').style.width = (r.progress || 0) * 100 + '%';
+    $('approveMsg').textContent = r.msg || '';
+    if (r.state === 'idle' || r.state === 'changes') { $('approve').disabled = false; $('approve').textContent = 'Approve for final render'; }
+  }
+}
+function flashUpdated() { const e = $('reloaded'); e.classList.add('show'); setTimeout(() => e.classList.remove('show'), 1600); }
+poll(); setInterval(poll, 1000);
+</script>
+</body>
+</html>
