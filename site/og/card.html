@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>relume · share card</title>
+<!-- Source of og.jpg (1200×630): rendered by bench/og-card.mjs. Not linked from the site. -->
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Martian+Mono:wdth,wght@75..112.5,400..600&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #141115; --ink-2: #1c181d; --line: #3a343c; --paper: #f2f0f3; --dim: #857d8a; --volt: #c0f63c;
+    --display: "Bricolage Grotesque", sans-serif; --mono: "Martian Mono", monospace; }
+  * { box-sizing: border-box; margin: 0; }
+  body { width: 1200px; height: 630px; overflow: hidden; background: var(--ink); color: var(--paper); font-family: var(--display); position: relative; }
+  /* a faint measurement grid, the site's ground */
+  body::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 40px 40px; opacity: 0.25; }
+  .copy { position: absolute; left: 64px; top: 58px; width: 520px; display: grid; gap: 26px; }
+  .brand { display: flex; align-items: center; gap: 12px; font: 750 34px/1 var(--display); font-stretch: 80%; letter-spacing: -0.02em; }
+  .dots { display: grid; grid-template-columns: 12px 12px; gap: 4px; }
+  .dots i { width: 12px; height: 12px; display: block; }
+  h1 { font: 800 86px/0.86 var(--display); font-stretch: 75%; letter-spacing: -0.045em; }
+  h1 span { color: var(--volt); display: block; }
+  p { font: 400 23px/1.35 var(--display); color: #c9c2ce; max-width: 480px; }
+  .url { position: absolute; left: 64px; bottom: 50px; font: 500 20px/1 var(--mono); font-stretch: 87.5%; color: var(--volt); }
+  /* the proof: an original measured, and the site an agent built from its skill */
+  .pair { position: absolute; right: 56px; top: 64px; width: 540px; height: 500px; }
+  .shot { position: absolute; width: 400px; aspect-ratio: 16 / 10; overflow: hidden; background: #000; box-shadow: 0 0 0 1px var(--line), 0 30px 60px rgb(0 0 0 / 0.55); }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
+  .shot.a { left: 0; top: 0; }
+  .shot.b { right: 0; bottom: 30px; box-shadow: 0 0 0 2px var(--volt), 0 30px 70px rgb(0 0 0 / 0.65); }
+  .tag { position: absolute; left: 10px; bottom: 10px; padding: 6px 9px; font: 500 15px/1 var(--mono); font-stretch: 87.5%; background: var(--ink); color: var(--paper); }
+  .a .tag { left: auto; right: 10px; top: 10px; bottom: auto; }
+  .b .tag { background: var(--volt); color: var(--ink); }
+  /* measurement boxes landing on the original */
+  .box { position: absolute; border: 2px solid var(--volt); }
+  .lbl { position: absolute; padding: 4px 7px; background: var(--volt); color: var(--ink); font: 600 13px/1 var(--mono); font-stretch: 87.5%; white-space: nowrap; }
+  .score { position: absolute; right: -6px; top: 150px; width: 128px; padding: 14px 16px; background: var(--ink); box-shadow: 0 0 0 1px var(--line); display: grid; gap: 4px; }
+  .score b { font: 800 60px/0.85 var(--display); font-stretch: 75%; color: var(--volt); }
+  .score span { font: 500 12px/1.3 var(--mono); font-stretch: 87.5%; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; }
+  .arrow { position: absolute; left: 172px; top: 270px; font: 800 56px/1 var(--display); color: var(--volt); }
+</style>
+</head>
+<body>
+  <div class="copy">
+    <div class="brand"><span class="dots"><i style="background:#f5e14a"></i><i style="background:#ee9070"></i><i style="background:#3fa0e8"></i><i style="background:#c4f46e"></i></span>relume</div>
+    <h1>Every site has a feel.<span>relume measures it.</span></h1>
+    <p>Point it at any website. It measures the colours, type, layout and every animation, then teaches your AI agent to build new sites that feel the same.</p>
+  </div>
+  <div class="url">relume.shubhrgunjan.me</div>
+  <div class="pair">
+    <div class="shot a"><img id="a" alt=""><span class="tag" id="ta"></span>
+      <div class="box" style="left:22px;top:66px;width:150px;height:60px"></div><span class="lbl" style="left:22px;top:40px">96px serif · -0.01em</span>
+    </div>
+    <div class="shot b"><img id="b" alt=""><span class="tag" id="tb"></span></div>
+    <div class="score"><b id="s"></b><span>check score</span></div>
+  </div>
+<script>
+  // filled by bench/og-card.mjs: ?a=<source img>&b=<recreation img>&ta=…&tb=…&s=…
+  const q = new URLSearchParams(location.search);
+  for (const k of ['a', 'b']) document.getElementById(k).src = q.get(k);
+  for (const k of ['ta', 'tb', 's']) document.getElementById(k).textContent = q.get(k);
+</script>
+</body>
+</html>
