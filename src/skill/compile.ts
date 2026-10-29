@@ -627,7 +627,7 @@ function signatureMoments(dna: DNA) {
     }
     // the most distinctive behaviours, one line each (narrative is already grouped and ranked)
     const items = (sec.behaviour?.items || []).filter((i: any) => SIG.includes(i.kind));
-    const narr = (sec.behaviour?.narrative || []).filter((l: string) => !/gradient mask|repeats every/.test(l)).slice(0, items.length ? 3 : 0);
+    const narr = (sec.behaviour?.narrative || []).filter((l: string) => !/gradient mask|repeats every/.test(l) && !/^(\d+× — )?An? (span|div|li|a|p|section|svg)\b/i.test(l)).slice(0, items.length ? 3 : 0);
     if (parts.length || narr.length) out.push(`- **${where}**: ${[...parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1) + '.'), ...narr].join(' ')}`);
   }
   if (!out.length) return 'This site is mostly still: its character is in the layout, type and the motion recipes below. Read references/blueprint.md first.';

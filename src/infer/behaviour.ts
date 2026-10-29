@@ -137,7 +137,7 @@ function domBehaviours(m: Motion, rows: Map<number, Row>, t0: number, t1: number
   const tracks = m.tracks.filter((tr) => tr.samples.length > 2 && tr.samples[tr.samples.length - 1][0] >= t0 && tr.samples[0][0] <= t1 && onScreen(tr.id));
   // siblings that change state together: a set where one is "on" and the rest are dimmed (opacity or a CSS
   // filter such as grayscale/brightness/opacity()), or items that fade in from nothing one after another
-  const level = (s: any[]) => { const f = String(s[4] || 'none'); const fo = f.match(/opacity\(([\d.]+)\)/); const gr = f.match(/grayscale\(([\d.]+)\)/); const br = f.match(/brightness\(([\d.]+)\)/); return +s[2] * (fo ? +fo[1] : 1) * (gr ? 1 - 0.5 * +gr[1] : 1) * (br ? Math.min(1, +br[1]) : 1); };
+  const level = (s: any[]) => { const f = String(s[4] || 'none'); const fo = f.match(/opacity\(([\d.]+)\)/); const gr = f.match(/grayscale\(([\d.]+)\)/); const br = f.match(/brightness\(([\d.]+)\)/); const bl = f.match(/blur\(([\d.]+)px\)/); return +s[2] * (fo ? +fo[1] : 1) * (gr ? 1 - 0.5 * +gr[1] : 1) * (br ? Math.min(1, +br[1]) : 1) * (bl ? 1 / (1 + +bl[1] / 4) : 1); };
   // group by shared class list (a set of cards in separate columns) and fall back to the parent
   const bySib = new Map<string, typeof tracks>();
   const seen = new Set<number>();
@@ -158,9 +158,10 @@ function domBehaviours(m: Motion, rows: Map<number, Row>, t0: number, t1: number
     const lo = median(g.map((tr) => Math.min(...tr.samples.map(level))));
     const ups = g.flatMap((tr) => tr.samples.filter((s, i) => i > 0 && level(s) > (hi + lo) / 2 && level(tr.samples[i - 1]) <= (hi + lo) / 2).map((s) => s[0])).sort((a, b) => a - b);
     const gaps = ups.slice(1).map((t, i) => t - ups[i]).filter((d) => d > 60);
-    const viaFilter = g.some((tr) => tr.samples.some((s) => /grayscale|brightness|opacity\(/.test(String(s[4]))));
-    if (lo < 0.06) items.push({ kind: 'staged-reveal', what: `${g.length} children of ${describe(m, rows, pid)}`, params: { steps: g.length, intervalMs: gaps.length ? r0(median(gaps)) : null, fadeIn: true }, box: boxOf(pid) });
-    else items.push({ kind: 'active-one-of-n', what: `${g.length} siblings of ${describe(m, rows, pid)}`, params: { members: g.length, activeLevel: r2(hi), dimmedLevel: r2(lo), via: viaFilter ? 'filter' : 'opacity', switchEveryMs: gaps.length ? r0(median(gaps)) : null }, box: boxOf(pid) });
+    const viaFilter = g.some((tr) => tr.samples.some((s) => /grayscale|brightness|opacity\(|blur\(/.test(String(s[4]))));
+    const viaBlur = g.some((tr) => tr.samples.some((s) => /blur\([1-9]/.test(String(s[4]))));
+    if (lo < 0.06) items.push({ kind: 'staged-reveal', what: describe(m, rows, pid), params: { steps: g.length, intervalMs: gaps.length ? r0(median(gaps)) : null, fadeIn: true }, box: boxOf(pid) });
+    else items.push({ kind: 'active-one-of-n', what: describe(m, rows, pid), params: { members: g.length, activeLevel: r2(hi), dimmedLevel: r2(lo), via: viaBlur ? 'blur' : viaFilter ? 'filter' : 'opacity', switchEveryMs: gaps.length ? r0(median(gaps)) : null }, box: boxOf(pid) });
   }
   // movers and progress bars
   for (const tr of tracks) {
@@ -316,7 +317,7 @@ function parallaxRegions(f: Frames, scrollAt: (tS: number) => number, pagePxPerF
 }
 
 function activeSets(m: Motion, rows: Map<number, Row>): BehaviourItem[] {
-  const level = (s: any[]) => { const f = String(s[4] || 'none'); const fo = f.match(/opacity\(([\d.]+)\)/); const gr = f.match(/grayscale\(([\d.]+)\)/); const br = f.match(/brightness\(([\d.]+)\)/); return +s[2] * (fo ? +fo[1] : 1) * (gr ? 1 - 0.5 * +gr[1] : 1) * (br ? Math.min(1, +br[1]) : 1); };
+  const level = (s: any[]) => { const f = String(s[4] || 'none'); const fo = f.match(/opacity\(([\d.]+)\)/); const gr = f.match(/grayscale\(([\d.]+)\)/); const br = f.match(/brightness\(([\d.]+)\)/); const bl = f.match(/blur\(([\d.]+)px\)/); return +s[2] * (fo ? +fo[1] : 1) * (gr ? 1 - 0.5 * +gr[1] : 1) * (br ? Math.min(1, +br[1]) : 1) * (bl ? 1 / (1 + +bl[1] / 4) : 1); };
   const norm = (cls: string) => cls.split(/\s+/).filter((c) => c && !/^(opacity|grayscale|brightness|saturate|is-|active|on$|selected)/.test(c)).sort().join(' ');
   const groups = new Map<string, { flips: { t: number; up: boolean; id: number }[]; hi: number[]; lo: number[]; viaFilter: boolean }>();
   for (const tr of m.tracks) {
@@ -344,7 +345,10 @@ function activeSets(m: Motion, rows: Map<number, Row>): BehaviourItem[] {
     const gaps = ups.slice(1).map((t, i) => t - ups[i]).filter((d) => d > 500);
     const boxes = members.length ? members.map((r) => r.box) : [];
     const box: [number, number, number, number] | undefined = boxes.length ? [Math.min(...boxes.map((b) => b[0])), Math.min(...boxes.map((b) => b[1])), Math.max(...boxes.map((b) => b[0] + b[2])) - Math.min(...boxes.map((b) => b[0])), Math.max(...boxes.map((b) => b[1] + b[3])) - Math.min(...boxes.map((b) => b[1]))] : undefined;
-    out.push({ kind: 'active-one-of-n', what: `${Math.max(members.length, ids.size)} × ${key.split(' ').slice(0, 3).join(' ')}`, params: { members: Math.max(members.length, ids.size), activeLevel: r2(median(g.hi)), dimmedLevel: r2(median(g.lo)), via: g.viaFilter ? 'opacity + filter (grayscale)' : 'opacity', switchEveryMs: gaps.length ? r0(median(gaps)) : null }, box });
+    const n = Math.max(members.length, ids.size), tag0 = key.slice(0, key.indexOf('.'));
+    const first = members[0] || rows.get([...ids][0]);
+    const noun = tag0 === 'img' || tag0 === 'picture' ? 'images' : tag0 === 'video' ? 'videos' : first?.text ? `items like “${first.text.slice(0, 24)}”` : first && descendants(rows, first.id).some((d) => d.tag === 'img') ? 'cards' : 'items';
+    out.push({ kind: 'active-one-of-n', what: `a set of ${n} ${noun}`, params: { members: Math.max(members.length, ids.size), activeLevel: r2(median(g.hi)), dimmedLevel: r2(median(g.lo)), via: g.viaFilter ? 'opacity + filter' : 'opacity', switchEveryMs: gaps.length ? r0(median(gaps)) : null }, box });
   }
   return out;
 }
@@ -385,6 +389,7 @@ export function pageBehaviour(page: PageEvidence, bp: Blueprint, entryDir: strin
   // an element that has a box belongs to the section it sits in, whichever dwell stop happened to see it
   const secAt = (box?: number[], fallback = -1) => { if (!box) return fallback; let best = fallback, ov = 0; bp.sections.forEach((s, i) => { const o = Math.min(s.box[1] + s.box[3], box[1] + box[3]) - Math.max(s.box[1], box[1]); if (o > ov) { ov = o; best = i; } }); return best; };
   const out: (SectionBehaviour | null)[] = bp.sections.map(() => null);
+  const sec0Blocks = () => bp.sections[0]?.blocks || [];
   const get = (i: number) => (out[i] = out[i] || { narrative: [], items: [] });
   mkdirSync(join(entryDir, 'sections'), { recursive: true });
 
@@ -491,7 +496,9 @@ export function pageBehaviour(page: PageEvidence, bp: Blueprint, entryDir: strin
         if (seen.some((b) => Math.abs(b[0] - c.box0[0]) < 40 && Math.abs(b[1] - c.box0[1]) < 40)) continue;
         seen.push(c.box0);
         const vbox = (b: number[], v: number) => [r0(b[0]), r0(v), r0(b[2]), r0(b[3])];
-        const docked = c.vy1 < 140 && c.vy0 - c.vy1 > 100;
+        if (c.box1[2] < 4 || c.box1[3] < 4) continue; // unmounted, not moved
+        const docked = c.vy1 >= -8 && c.vy1 < 140 && c.vy0 - c.vy1 > 100;
+        if (!docked && c.vy1 < -8) continue; // simply scrolled away
         const what = describe(m, rows, c.tr.id);
         const item: BehaviourItem = docked
           ? { kind: 'scroll-dock', what, params: { verb: c.dW < 0.9 ? 'shrinks, moves up and docks into the header' : 'moves up and docks into the header', from: vbox(c.box0, c.vy0), to: vbox(c.box1, c.vy1), scrollPx: r0(c.scrolled) }, box: c.box0 as any }
@@ -499,6 +506,33 @@ export function pageBehaviour(page: PageEvidence, bp: Blueprint, entryDir: strin
         const si = secAt(item.box);
         if (si >= 0) get(si).items.push(item);
         if (seen.length >= 8) break;
+      }
+    }
+  }
+
+  // hand-off: something inside the pinned header that appears (fades or slides in) as the page scrolls, often the
+  // header's copy of a hero control (a search field, a CTA) taking over once the hero's one has scrolled away
+  {
+    const s0 = m.marks.find((k) => k.label === 'scroll:start')?.t, s1 = m.marks.find((k) => k.label === 'scroll:end')?.t;
+    const sy = (t: number) => { let y = 0; for (const x of m.scroll) { if (x[0] > t) break; y = x[2]; } return y; };
+    const pinnedTop = (id: number) => { for (let p: number | undefined = id, k = 0; p !== undefined && p >= 0 && k < 12; k++) { const r = rows.get(p); if (!r) return false; if (/sticky|fixed/.test(r.s.position) && r.box[1] < 40) return true; p = r.pid; } return false; };
+    if (s0 !== undefined && s1 !== undefined) {
+      const done: string[] = [];
+      for (const tr of m.tracks) {
+        if (!pinnedTop(tr.id)) continue;
+        const S = tr.samples.filter((x) => x[0] >= s0 && x[0] <= s1);
+        if (S.length < 3) continue;
+        const op0 = Math.min(...S.slice(0, 3).map((x) => +x[2])), op1 = +S[S.length - 1][2];
+        const w0 = +S[0][7], w1 = +S[S.length - 1][7];
+        const appears = (op0 < 0.3 && op1 > 0.8) || (w0 < 4 && w1 > 40);
+        if (!appears) continue;
+        const what = describe(m, rows, tr.id);
+        if (done.includes(what)) continue;
+        done.push(what);
+        const at = S.find((x) => +x[2] > 0.5 || +x[7] > 40)!;
+        const hero = get(0).items.some((i) => /search field/.test(i.what)) || /search/i.test(what) || ((sec0Blocks().some((b) => b.kind === 'form' && /signature/.test(b.detail))) && /field|search|text/.test(what));
+        get(0).items.push({ kind: 'scroll-dock', what, params: { verb: hero ? 'appears in the header as the hero scrolls away: the hero\'s search hands over to a search field in the header' : 'appears in the header', from: [r0(+S[0][5]), 0, r0(w0), r0(+S[0][8])], to: [r0(+S[S.length - 1][5]), r0(+S[S.length - 1][6] - sy(S[S.length - 1][0])), r0(w1), r0(+S[S.length - 1][8])], scrollPx: r0(sy(at[0]) - sy(S[0][0])) }, box: rows.get(tr.id)?.box as any });
+        if (done.length >= 3) break;
       }
     }
   }
@@ -562,7 +596,8 @@ function sentence(it: BehaviourItem): string {
     case 'autoplay-media': return `${W} is autoplaying video${p.loop ? ' on a loop' : ''}.`;
     case '3d-scene': return `${W} is a live 3D scene (${p.context}${p.library ? `, ${p.library}` : ''})${p.moving ? ', moving continuously' : ''}. Rebuild it as real 3D (three.js), not a still image.`;
     case 'animated-region': return `${W} keeps changing on its own (an animated canvas: objects moving, drifting or morphing); recreate the motion, not a frame of it.`;
-    case 'scroll-dock': return `As you scroll, ${it.what} ${p.verb} (from ${p.from[2]}×${p.from[3]} at y ${p.from[1]} to ${p.to[2]}×${p.to[3]} at y ${p.to[1]} on screen, over the first ~${p.scrollPx}px of scroll). A signature transition: build it, do not leave it static.`;
+    case 'scroll-dock': if (/^appears/.test(p.verb)) return `As you scroll ~${p.scrollPx}px, ${it.what} ${p.verb} (${p.to[2]}×${p.to[3]} at y ${p.to[1]}). A signature transition: build it, do not leave it static.`;
+      return `As you scroll, ${it.what} ${p.verb} (from ${p.from[2]}×${p.from[3]} at y ${p.from[1]} to ${p.to[2]}×${p.to[3]} at y ${p.to[1]} on screen, over the first ~${p.scrollPx}px of scroll). A signature transition: build it, do not leave it static.`;
     case 'scroll-change': return `As you scroll, ${it.what} changes ${p.props.join(' and ')} (${p.summary}).`;
   }
   return `${W}: ${it.kind}.`;

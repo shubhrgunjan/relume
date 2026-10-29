@@ -187,9 +187,10 @@ export function blueprint(h: Harvest): Blueprint {
       const inner = descendants(shell.id);
       const icon = inner.some((d) => d.svg || (d.tag === 'img' && d.box[2] <= 32));
       const button = inner.find((d) => (d.tag === 'button' || d.tag === 'a') && d !== f);
-      const ph = f.ph || inner.filter((d) => d.chars > 0 && d.tag !== 'button').map((d) => d.text).join(' ').slice(0, 60);
+      const phrases = [...new Set(inner.filter((d) => d.chars > 0 && d.tag !== 'button').map((d) => d.text.trim()).filter(Boolean))];
+      const ph = f.ph || (phrases.length > 1 ? phrases.slice(0, 4).join('” / “') + '” (several overlapping texts: an animated placeholder)' : phrases[0] || '').slice(0, 120);
       const st = shell.s;
-      const bits = [`${shell.box[2]}×${shell.box[3]}`, `radius ${normalizeRadius(st.borderTopLeftRadius)}`, (parseColor(st.backgroundColor)?.a ?? 0) > 0.02 ? `background ${normalizeColors(st.backgroundColor)}` : '', px(st.borderTopWidth) ? `border ${st.borderTopWidth} ${normalizeColors(st.borderTopColor)}` : '', st.boxShadow && st.boxShadow !== 'none' ? `shadow ${normalizeColors(st.boxShadow).slice(0, 90)}` : '', `text ${f.s.fontSize}`, icon ? 'with an icon' : '', button ? `button “${(button.text || button.aria || '').slice(0, 20)}”` : '', ph ? `placeholder “${ph}”` : ''].filter(Boolean);
+      const bits = [`${shell.box[2]}×${shell.box[3]}`, `radius ${normalizeRadius(st.borderTopLeftRadius)}`, (parseColor(st.backgroundColor)?.a ?? 0) > 0.02 ? `background ${normalizeColors(st.backgroundColor)}` : '', px(st.borderTopWidth) ? `border ${st.borderTopWidth} ${normalizeColors(st.borderTopColor)}` : '', st.boxShadow && st.boxShadow !== 'none' ? `shadow ${normalizeColors(st.boxShadow).slice(0, 90)}` : '', `text ${f.s.fontSize}`, icon ? 'with an icon' : '', button ? `button “${(button.text || button.aria || '').slice(0, 20)}”` : '', ph ? `placeholder “${ph}${/animated placeholder/.test(ph) ? '' : '”'}` : ''].filter(Boolean);
       const big = shell.box[2] >= 320 && index === 0;
       blocks.push({ kind: 'form', box: shell.box, detail: `${big ? 'signature search/input field' : f.tag === 'textarea' ? 'text area' : 'input field'}: ${bits.join(', ')}` });
     }
