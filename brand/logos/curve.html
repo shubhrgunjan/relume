@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>relume · curve variations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&family=Doto:wght@600..900&family=Martian+Mono:wdth,wght@75..112.5,400..600&display=swap" rel="stylesheet">
+<style>
+/* Variations on concept 06 (the easing curve), simplest first, then mashups with 03 Dither, 04 Echo and 14 Pixel. */
+:root { color-scheme: dark; --ink: #141115; --ink-2: #1c181d; --line: #3a343c; --paper: #f2f0f3; --mute: #b9b2be; --dim: #857d8a;
+  --volt: #c0f63c; --salmon: #ee9070; --sky: #3fa0e8; --plum: #9c78a8;
+  --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif; --mono: "Martian Mono", ui-monospace, monospace; --pixel: "Doto", var(--mono); }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--ink); color: var(--paper); font: 400 15px/1.5 var(--display); -webkit-font-smoothing: antialiased; }
+button, a { font: inherit; color: inherit; }
+header.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 20px; padding: 40px max(20px, 4vw) 24px; border-bottom: 1px solid var(--line); }
+header.top h1 { margin: 0; font: 800 clamp(40px, 6vw, 80px)/0.86 var(--display); font-stretch: 75%; letter-spacing: -0.045em; }
+header.top h1 span { color: var(--volt); }
+header.top p { margin: 10px 0 0; max-width: 600px; color: var(--mute); }
+.ctrl { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { display: inline-flex; align-items: center; height: 38px; padding: 0 14px; border: 0; background: none; box-shadow: inset 0 0 0 1px var(--line); color: var(--mute); font: 500 13px/1 var(--mono); font-stretch: 87.5%; cursor: pointer; text-decoration: none; }
+.btn:hover, .btn[aria-pressed="true"] { background: var(--paper); color: var(--ink); box-shadow: none; }
+.btn.pick[aria-pressed="true"] { background: var(--volt); color: var(--ink); }
+.fav-strip { display: flex; flex-wrap: wrap; gap: 1px; background: var(--line); border-bottom: 1px solid var(--line); }
+.fav-strip figure { flex: 1 1 160px; margin: 0; padding: 18px; background: var(--ink); display: grid; justify-items: center; gap: 8px; }
+.fav-strip figure svg { width: 72px; height: 72px; overflow: visible; }
+.fav-strip figcaption { font: 500 11px/1 var(--mono); font-stretch: 87.5%; color: var(--dim); }
+h3.sec { margin: 0; padding: 22px max(20px, 4vw) 12px; font: 500 12px/1 var(--mono); font-stretch: 87.5%; color: var(--dim); text-transform: uppercase; letter-spacing: 0.08em; }
+main { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 0; background: var(--ink); border-top: 1px solid var(--line); }
+.card { box-shadow: inset -1px -1px 0 var(--line); background: var(--ink); display: grid; grid-template-rows: auto 1fr; min-width: 0; }
+body.hide-others .card:not(.picked) { display: none; }
+.stage { position: relative; display: grid; grid-template-columns: 150px 1fr; align-items: center; gap: 24px; padding: 34px 26px; min-height: 230px; overflow: hidden; cursor: pointer; }
+.stage.light { background: var(--paper); color: var(--ink); }
+.stage .num { position: absolute; top: 12px; left: 14px; font: 500 11px/1 var(--mono); font-stretch: 87.5%; color: var(--dim); }
+.mark { width: 150px; height: 150px; }
+.mark svg, .mk svg { width: 100%; height: 100%; overflow: visible; display: block; }
+.lockup { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.mk { width: 44px; height: 44px; flex: none; }
+.word { font: 750 46px/0.9 var(--display); font-stretch: 78%; letter-spacing: -0.04em; white-space: nowrap; }
+.meta { display: grid; gap: 12px; padding: 18px 22px 22px; border-top: 1px solid var(--line); }
+.meta h2 { margin: 0; font: 700 21px/1 var(--display); font-stretch: 80%; letter-spacing: -0.02em; }
+.meta p { margin: 0; color: var(--mute); font-size: 14px; }
+.row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.favs { display: flex; align-items: center; gap: 8px; }
+.favs span { display: grid; place-items: center; background: var(--ink-2); box-shadow: inset 0 0 0 1px var(--line); }
+.favs span.l { background: var(--paper); }
+.favs small { font: 500 10px/1 var(--mono); font-stretch: 87.5%; color: var(--dim); margin-right: 2px; }
+.acts { display: flex; gap: 6px; }
+@media (max-width: 520px) { .stage { grid-template-columns: 1fr; justify-items: center; } .word { font-size: 38px; } }
+
+/* motion: base = the finished logo; .still turns every animation off */
+svg * { transform-box: fill-box; transform-origin: center; }
+.still * { animation: none !important; }
+.still .move { display: none; } :not(.still) > .rest, .mark .rest { display: none; } .still .rest { display: inline; }
+@keyframes draw { 0% { stroke-dashoffset: var(--len); } 45%, 85% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: calc(var(--len) * -1); } }
+.drawn { stroke-dasharray: var(--len); animation: draw 3.4s cubic-bezier(.6,0,.2,1) infinite; }
+@keyframes pop { 0% { transform: scale(0); } 70% { transform: scale(1.12); } 100% { transform: scale(1); } }
+.pop { animation: pop 3.4s cubic-bezier(.2,.8,.2,1) infinite; animation-delay: var(--d, 1.2s); }
+@keyframes tile { 0%, 8% { transform: scale(.6) rotate(-8deg); opacity: 0; } 25%, 88% { transform: none; opacity: 1; } 100% { transform: scale(.6) rotate(-8deg); opacity: 0; } }
+.tile { animation: tile 3.4s cubic-bezier(.2,.8,.2,1) infinite; }
+@keyframes trail { 0% { opacity: 0; transform: scale(.4); } 12%, 80% { opacity: 1; transform: none; } 100% { opacity: 0; transform: scale(.4); } }
+.tr { animation: trail 3s cubic-bezier(.2,.8,.2,1) infinite; animation-delay: var(--d); }
+@keyframes echoOut { 0%, 15% { transform: none; } 45%, 80% { transform: translate(var(--x), var(--y)); } 100% { transform: none; } }
+.ec { animation: echoOut 3.4s cubic-bezier(.7,0,.2,1) infinite; }
+@keyframes pix { 0% { opacity: 0; } 8%, 86% { opacity: 1; } 100% { opacity: 0; } }
+.pix rect { animation: pix 3.4s steps(1) infinite; animation-delay: var(--d); }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(.92); } }
+.breathe { animation: breathe 3.4s ease-in-out infinite; }
+@keyframes pxw { 0% { letter-spacing: 10px; opacity: 0; } 30%, 85% { letter-spacing: 0; opacity: 1; } 100% { letter-spacing: 10px; opacity: 0; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>curve<br><span>variations</span></h1>
+    <p>Concept 06, the measured easing curve, pared down. Simplest first; the last few mix it with your other favourites (03 Dither, 04 Echo, 14 Pixel). Click a stage to replay, ★ to shortlist.</p>
+  </div>
+  <div class="ctrl">
+    <a class="btn" href="./">← all concepts</a>
+    <button class="btn" id="bg" type="button" aria-pressed="false">Light stages</button>
+    <button class="btn" id="mine" type="button" aria-pressed="false">Only my ★</button>
+    <button class="btn" id="slow" type="button" aria-pressed="false">Slow motion</button>
+  </div>
+</header>
+<h3 class="sec">your favourites so far</h3>
+<div class="fav-strip" id="favs"></div>
+<h3 class="sec">variations of 06 · curve</h3>
+<main id="grid"></main>
+
+<script>
+const C = { ink: '#141115', paper: '#f2f0f3', volt: '#c0f63c', salmon: '#ee9070', sky: '#3fa0e8', plum: '#9c78a8', line: '#3a343c', dim: '#857d8a' };
+const FG = 'currentColor';
+// the easing curve every variation is built on: cubic-bezier(.7, 0, .3, 1) drawn in a 100×100 box
+const S = 'M18 82 C 60 82, 40 18, 82 18';
+const LEN = 112;
+const ride = (r, fill, extra = '') => `<circle class="rest" cx="82" cy="18" r="${r}" fill="${fill}"/><circle class="move" r="${r}" fill="${fill}" ${extra}><animateMotion dur="3.4s" repeatCount="indefinite" path="${S}" keyPoints="0;0;1;1" keyTimes="0;0.3;0.8;1" calcMode="spline" keySplines="0 0 1 1;0.7 0 0.3 1;0 0 1 1"/></circle>`;
+const curve = (w, col, cls = 'drawn') => `<path class="${cls}" d="${S}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" style="--len:${LEN}"/>`;
+const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+// points along the curve for the pixel version
+const bez = (t) => { const p = [[18, 82], [60, 82], [40, 18], [82, 18]], u = 1 - t; return [0, 1].map((k) => u * u * u * p[0][k] + 3 * u * u * t * p[1][k] + 3 * u * t * t * p[2][k] + t * t * t * p[3][k]); };
+
+const V = [
+  { id: 'bare', name: 'Bare curve', idea: 'Just the curve: one thick volt stroke with round ends. The simplest possible version; still reads as “motion, measured”.',
+    svg: () => curve(12, C.volt) },
+  { id: 'dot', name: 'Curve + dot', idea: 'The curve and the dot that rides it. The dot lands top-right, so the still has a clear focal point.',
+    svg: () => curve(10, C.volt) + ride(9, FG) },
+  { id: 'tile', name: 'Volt tile', idea: 'An ink curve on a rounded volt tile, app-icon style. The strongest favicon of the set.',
+    svg: () => `<rect class="tile" x="4" y="4" width="92" height="92" rx="24" fill="${C.volt}"/>` + curve(10, C.ink) },
+  { id: 'ink', name: 'Ink tile', idea: 'The same tile inverted: a volt curve inside a dark rounded square with a hairline edge. Quieter, more premium.',
+    svg: () => `<rect class="tile" x="4" y="4" width="92" height="92" rx="24" fill="#1c181d" stroke="${C.line}" stroke-width="2"/>` + curve(9, C.volt) + ride(7, C.paper) },
+  { id: 'ends', name: 'Endpoints', idea: 'The curve with a small hollow start and a solid end: from where it was to where it settles. Simple and a bit diagrammatic.',
+    svg: () => curve(8, C.volt) + `<circle cx="18" cy="82" r="7" fill="none" stroke="${FG}" stroke-width="4"/><circle class="pop" cx="82" cy="18" r="9" fill="${FG}"/>` },
+  { id: 'frame', name: 'Frame', idea: 'The original 06 without handles: a thin square frame and the curve. Reads as a graph, very calm.',
+    svg: () => `<rect x="6" y="6" width="88" height="88" fill="none" stroke="${FG}" stroke-width="4"/>` + curve(9, C.volt) },
+  { id: 'axes', name: 'Axes', idea: 'Two axes and the curve, like a timing graph. Says “measured” more directly than the frame.',
+    svg: () => `<path d="M10 6 V90 H94" fill="none" stroke="${FG}" stroke-width="5" stroke-linecap="square"/>` + curve(9, C.volt) },
+  { id: 'badge', name: 'Badge', idea: 'The curve inside a circle. Friendly and round; works as an avatar or a stamp.',
+    svg: () => `<circle class="breathe" cx="50" cy="50" r="46" fill="none" stroke="${FG}" stroke-width="5"/>` + curve(9, C.volt) },
+  { id: 'trail', name: 'Dot trail', idea: 'No line at all: dots spaced by the easing, bunched at the ends and wide in the middle. The curve, shown as timing.',
+    svg: () => Array.from({ length: 7 }, (_, i) => { const t = i / 6, x = 14 + 72 * ease(t); return `<circle class="tr" cx="${x.toFixed(1)}" cy="50" r="${i === 6 ? 9 : 6}" fill="${i === 6 ? C.volt : FG}" opacity="${i === 6 ? 1 : 0.35 + i * 0.1}" style="--d:${(i * 0.12).toFixed(2)}s"/>`; }).join('') },
+  { id: 'r', name: 'Curve r', idea: 'The easing curve grows out of a stem, so the mark is also a lowercase “r”. Initial and idea in one stroke.',
+    svg: () => `<path class="drawn" d="M26 90 V56 C26 26, 48 18, 80 18" fill="none" stroke="${C.volt}" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" style="--len:120"/>` + `<circle class="pop" cx="80" cy="18" r="8" fill="${FG}"/>` },
+  { id: 'grad', name: 'Gradient', idea: 'The curve shading from salmon to volt, like a value changing over time. A touch of colour, same simple shape.',
+    svg: () => `<defs><linearGradient id="g-grad" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="${C.salmon}"/><stop offset="1" stop-color="${C.volt}"/></linearGradient></defs>` + curve(12, 'url(#g-grad)') },
+  { id: 'echo', name: 'Echo curve · 06 + 04', idea: 'The curve with copies peeling off it, like the Echo r: an original and its recreations. Colourful but still one shape.',
+    svg: () => [[3, C.plum], [2, C.sky], [1, C.salmon]].map(([k, c]) => `<g class="ec" style="--x:${-8 * k}px;--y:${8 * k}px;transform:translate(${-8 * k}px,${8 * k}px)">${curve(7, c, '')}</g>`).join('') + curve(7, C.volt, '') },
+  { id: 'pix', name: 'Pixel curve · 06 + 03', idea: 'The curve snapped to a pixel grid and resolving in dither order, the same language as the site hero.',
+    svg: () => { const seen = new Set(), out = []; for (let i = 0; i <= 60; i++) { const [x, y] = bez(i / 60), gx = Math.round((x - 6) / 8), gy = Math.round((y - 6) / 8), k = gx + ',' + gy; if (seen.has(k)) continue; seen.add(k); out.push(`<rect x="${6 + gx * 8 - 4}" y="${6 + gy * 8 - 4}" width="8" height="8" fill="${C.volt}" style="--d:${((gx * 7 + gy * 3) % 11 / 11 * 1.1).toFixed(2)}s"/>`); } return `<g class="pix">${out.join('')}</g>`; } },
+  { id: 'pxword', name: 'Pixel word + curve · 14 + 06', idea: 'The dotted pixel wordmark with the curve as its own little mark in front. Mark and type both from the site.',
+    svg: () => curve(11, C.volt) + ride(9, FG), pixelWord: true },
+];
+
+// the four you picked, small, at the top
+const FAV = [
+  ['03 Dither r', () => { const B4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5], R = ['11011110', '11111111', '11100011', '11000000', '11000000', '11000000', '11000000', '11000000']; return R.flatMap((row, y) => [...row].map((v, x) => v === '1' ? `<rect x="${14 + x * 9}" y="${14 + y * 9}" width="8" height="8" fill="${C.volt}"/>` : '')).join(''); }],
+  ['04 Echo', () => [[3, C.plum], [2, C.sky], [1, C.salmon]].map(([k, c]) => `<text x="50" y="80" text-anchor="middle" font-family="Bricolage Grotesque" font-weight="800" font-stretch="75%" font-size="96" fill="${c}" transform="translate(${-6 * k} ${6 * k})">r</text>`).join('') + `<text x="50" y="80" text-anchor="middle" font-family="Bricolage Grotesque" font-weight="800" font-stretch="75%" font-size="96" fill="${C.volt}">r</text>`],
+  ['06 Curve', () => `<rect x="8" y="8" width="84" height="84" fill="none" stroke="${C.line}" stroke-width="2"/><path d="M18 82 L52 82 M82 18 L48 18" stroke="${C.dim}" stroke-width="2"/><path d="M18 82 C 52 82, 48 18, 82 18" fill="none" stroke="${C.volt}" stroke-width="8" stroke-linecap="round"/><circle cx="82" cy="18" r="8" fill="${C.paper}"/>`],
+  ['14 Pixel wordmark', () => `<text x="50" y="58" text-anchor="middle" font-family="Doto" font-weight="900" font-size="24" fill="${C.volt}">relume</text>`],
+];
+document.getElementById('favs').innerHTML = FAV.map(([n, f]) => `<figure><svg viewBox="0 0 100 100" style="color:${C.paper}">${f()}</svg><figcaption>${n}</figcaption></figure>`).join('');
+
+const grid = document.getElementById('grid');
+let picks = new Set();
+try { picks = new Set(JSON.parse(localStorage.getItem('relume-curve-picks') || '[]')); } catch {}
+const save = () => { try { localStorage.setItem('relume-curve-picks', JSON.stringify([...picks])); } catch {} };
+// each svg gets its own gradient id so copies on the page do not clash
+let uid = 0;
+const svgOf = (L, cls = '') => { const id = 'u' + uid++; return `<svg viewBox="0 0 100 100" class="${cls}" aria-hidden="true">${L.svg().replace(/g-grad/g, id)}</svg>`; };
+
+V.forEach((L, i) => {
+  const card = document.createElement('article');
+  card.className = 'card' + (picks.has(L.id) ? ' picked' : '');
+  const word = L.pixelWord ? `<span class="word" style="font-family:var(--pixel);font-weight:900;color:var(--volt);letter-spacing:0;font-size:40px">relume</span>` : `<span class="word">relume</span>`;
+  card.innerHTML = `
+    <div class="stage" title="Click to replay"><span class="num">06·${String.fromCharCode(97 + i)}</span>
+      <div class="mark">${svgOf(L)}</div>
+      <div class="lockup"><span class="mk">${svgOf(L, 'still')}</span>${word}</div>
+    </div>
+    <div class="meta">
+      <div class="row"><h2>${L.name}</h2><div class="acts"><button class="btn pick" type="button" aria-pressed="${picks.has(L.id)}">★ ${picks.has(L.id) ? 'picked' : 'pick'}</button><button class="btn replay" type="button">Replay</button></div></div>
+      <p>${L.idea}</p>
+      <div class="favs"><small>favicon</small>${[16, 32, 64].map((s) => `<span style="width:${s + 10}px;height:${s + 10}px"><svg width="${s}" height="${s}" viewBox="0 0 100 100" class="still" style="color:${C.paper}">${L.svg().replace(/g-grad/g, 'f' + uid++)}</svg></span>`).join('')}${[16, 32].map((s) => `<span class="l" style="width:${s + 10}px;height:${s + 10}px"><svg width="${s}" height="${s}" viewBox="0 0 100 100" class="still" style="color:${C.ink}">${L.svg().replace(/g-grad/g, 'f' + uid++)}</svg></span>`).join('')}</div>
+    </div>`;
+  const replay = () => { card.querySelector('.mark').innerHTML = svgOf(L); };
+  card.querySelector('.stage').addEventListener('click', replay);
+  card.querySelector('.replay').addEventListener('click', replay);
+  const pb = card.querySelector('.pick');
+  pb.addEventListener('click', () => {
+    picks.has(L.id) ? picks.delete(L.id) : picks.add(L.id);
+    const on = picks.has(L.id);
+    pb.setAttribute('aria-pressed', String(on)); pb.textContent = on ? '★ picked' : '★ pick';
+    card.classList.toggle('picked', on); save();
+  });
+  grid.appendChild(card);
+});
+
+const tog = (id, fn) => { const b = document.getElementById(id); b.addEventListener('click', () => { const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', String(on)); fn(on); }); };
+tog('bg', (on) => document.querySelectorAll('.stage').forEach((s) => s.classList.toggle('light', on)));
+tog('mine', (on) => document.body.classList.toggle('hide-others', on));
+tog('slow', (on) => document.getAnimations().forEach((a) => (a.playbackRate = on ? 0.3 : 1)));
+</script>
+</body>
+</html>

@@ -23,8 +23,8 @@ header.top p { margin: 10px 0 0; max-width: 560px; color: var(--mute); }
 .btn { height: 38px; padding: 0 14px; border: 0; background: none; box-shadow: inset 0 0 0 1px var(--line); color: var(--mute); font: 500 13px/1 var(--mono); font-stretch: 87.5%; cursor: pointer; }
 .btn:hover, .btn[aria-pressed="true"] { background: var(--paper); color: var(--ink); box-shadow: none; }
 .btn.pick[aria-pressed="true"] { background: var(--volt); }
-main { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 520px), 1fr)); gap: 1px; background: var(--line); }
-.card { background: var(--ink); display: grid; grid-template-rows: auto auto 1fr; min-width: 0; }
+main { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 520px), 1fr)); gap: 0; background: var(--ink); }
+.card { box-shadow: inset -1px -1px 0 var(--line); background: var(--ink); display: grid; grid-template-rows: auto auto 1fr; min-width: 0; }
 body.hide-others .card:not(.picked) { display: none; }
 .stage { position: relative; display: grid; grid-template-columns: 200px 1fr; align-items: center; gap: 28px; padding: 40px 32px; min-height: 280px; overflow: hidden; cursor: pointer; }
 .stage.light { background: var(--paper); color: var(--ink); }
@@ -143,6 +143,7 @@ svg * { transform-box: fill-box; transform-origin: center; }
     <p>Fourteen marks, each animated the way it would move on the site. Click a card's stage to replay it, ★ the ones you like, then show only your picks to compare them.</p>
   </div>
   <div class="ctrl">
+    <a class="btn" href="curve.html" style="display:inline-flex;align-items:center;text-decoration:none;background:var(--volt);color:var(--ink)">06 Curve variations →</a>
     <button class="btn" id="bg" type="button" aria-pressed="false">Light stages</button>
     <button class="btn" id="mine" type="button" aria-pressed="false">Only my ★</button>
     <button class="btn" id="slow" type="button" aria-pressed="false">Slow motion</button>
