@@ -1,5 +1,5 @@
 /* motion measured from https://linear.app. Reveal: add data-reveal="<name>" (and style="--i: n" for stagger order); motion.js adds .is-in. */
-@media (prefers-reduced-motion: reduce) { [data-intro] { animation-duration: 1ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; } [data-reveal] { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { [data-reveal], [data-intro] { transition: none !important; animation: none !important; opacity: 1 !important; transform: none !important; filter: none !important; } }
 /* intro-fade-blur-up-1: span.show-mobile.QI8oKG_titleLine “The product” (×9) */
 @keyframes intro-fade-blur-up-1 {
   from { transform: translateY(20%); opacity: 0; filter: blur(10px); }

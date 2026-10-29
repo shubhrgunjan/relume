@@ -4,10 +4,11 @@ import { appendFileSync, mkdirSync, writeFileSync, existsSync, readFileSync } fr
 import { join } from 'node:path';
 import { crawlSite, DEFAULT_VIEWPORTS } from '../crawl/crawl.js';
 import { buildDna, type DNA } from '../infer/dna.js';
-import { entryDir, readJson } from '../catalog/catalog.js';
+import { entryDir, readJson, isPrivate } from '../catalog/catalog.js';
+import { spawn } from 'node:child_process';
 import { compareDna, type Report } from './compare.js';
 
-export async function checkStyle(slug: string, url: string, log: (m: string) => void = () => {}) {
+export async function checkStyle(slug: string, url: string, log: (m: string) => void = () => {}, opts: { catalog?: boolean } = {}) {
   const src: DNA = readJson(join(entryDir(slug), 'dna.json'));
   const id = new Date().toISOString().replace(/[:.]/g, '-');
   const dir = join(entryDir(slug), 'checks', id);
@@ -18,7 +19,29 @@ export async function checkStyle(slug: string, url: string, log: (m: string) => 
   writeFileSync(join(dir, 'report.json'), JSON.stringify(report, null, 1));
   writeFileSync(join(dir, 'report.md'), reportMd(report));
   appendFileSync(join(entryDir(slug), 'checks', 'index.jsonl'), JSON.stringify({ id, url, overall: report.overall, scores: report.scores, pass: report.pass, top: report.findings.slice(0, 8).map((f) => f.dimension + ': ' + f.message) }) + '\n');
+  // every build checked against a public language is a recreation of it: it joins the catalogue on its own
+  // (whichever agent ran the check), and the site is republished when RELUME_PUBLISH is configured
+  if (opts.catalog !== false && !isPrivate(slug)) {
+    const rec = registerRecreation(slug, url, id, cand, report);
+    log(`catalogue: ${rec.name} registered as a recreation of ${slug}`);
+    if (process.env.RELUME_PUBLISH) spawn('sh', ['-c', process.env.RELUME_PUBLISH], { detached: true, stdio: 'ignore' }).unref();
+  }
   return { id, dir, report };
+}
+
+export interface Recreation { url: string; name: string; title: string; checkId: string; overall: number; pass: boolean; at: string }
+
+/** One entry per recreation URL; a later check of the same page replaces the earlier one. */
+export function registerRecreation(slug: string, url: string, checkId: string, cand: DNA, report: Report): Recreation {
+  const f = join(entryDir(slug), 'recreations.json');
+  const list: Recreation[] = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : [];
+  const key = (u: string) => u.replace(/\/(index\.html)?$/, '').toLowerCase();
+  const title = cand.source.pages?.[0]?.title || url;
+  const name = title.split(/\s[—–|·-]\s/)[0].trim().slice(0, 40) || url;
+  const rec: Recreation = { url, name, title, checkId, overall: report.overall, pass: report.pass, at: report.at };
+  const next = [...list.filter((r) => key(r.url) !== key(url) && r.name.toLowerCase() !== name.toLowerCase()), rec].sort((a, b) => a.at.localeCompare(b.at));
+  writeFileSync(f, JSON.stringify(next, null, 1));
+  return rec;
 }
 
 export function reportMd(r: Report) {

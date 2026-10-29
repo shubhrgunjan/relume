@@ -85,6 +85,16 @@ function skillMd(dna: DNA, name: string, host: string, recipes: Recipe[]) {
   donts.push(`Do not use durations or curves that are not in the motion tokens (${durations}).`);
   if (sc?.kind === 'native') donts.push('Do not add smooth-scroll libraries; the source scrolls natively.');
   else if (sc) dos.push(`Install the measured smooth scroll (${sc.library}, lerp ${sc.lerp}) via \`assets/motion.js\`.`);
+  // the visual toolset the source runs on: an agent needs to know a hero is a live three.js scene, not a picture
+  const libs = (dna.motion as any).libraries || {};
+  const kit: string[] = [];
+  if (libs.three) kit.push(`three.js (r${libs.three}) for live 3D`);
+  if (libs.spline) kit.push('Spline for 3D scenes');
+  if (libs.gsap) kit.push(`GSAP${libs.gsap.version ? ' ' + libs.gsap.version : ''}${libs.gsap.scrollTriggers?.length ? ' with ScrollTrigger' : ''}`);
+  if (libs.lottie) kit.push('Lottie for vector animation');
+  if (libs.rive) kit.push('Rive for interactive animation');
+  if (libs.framerMotion) kit.push('Framer Motion');
+  if (kit.length) dos.push(`The source animates with ${kit.join(', ')}. Use the same kind of tool for those parts: a live 3D scene must be rebuilt as real 3D, not a still render.`);
   donts.push('Do not copy the source’s logo, product names, photography, illustrations or copy; describe your own product in this language.');
 
   return `---
@@ -186,7 +196,8 @@ function tokensCss(dna: DNA) {
   for (const f of dna.typography.families) {
     const names = [...new Set([(f as any).google, f.substitute, f.family, baseFamily(f.family)].filter(Boolean) as string[])];
     const mono = f.roles.some((r) => r.startsWith('mono'));
-    L.push(`  ${fontVar(dna, f.family)}: ${names.map((n) => JSON.stringify(n)).join(', ')}, ${mono ? 'ui-monospace, monospace' : 'ui-sans-serif, system-ui, sans-serif'};`);
+    const serif = /serif|playfair|newsreader|garamond|fraunces|lora|merriweather|caslon|baskerville|didot|bodoni/i.test(names.join(' ')) && !/sans/i.test(names[0] || '');
+    L.push(`  ${fontVar(dna, f.family)}: ${names.map((n) => JSON.stringify(n)).join(', ')}, ${mono ? 'ui-monospace, monospace' : serif ? 'ui-serif, Georgia, serif' : 'ui-sans-serif, system-ui, sans-serif'};`);
   }
   for (const s of dna.typography.styles) {
     const size = s.fluid?.css?.startsWith('clamp') ? s.fluid.css : `${s.size / 16}rem`;
@@ -574,6 +585,12 @@ function blueprintMd(dna: DNA) {
       else L.push(`- made of: text only (${s.copyChars} characters)`);
       const crops = s.blocks.filter((b: any) => b.crop).slice(0, 6);
       if (crops.length) L.push(`- see each block: ${crops.map((b: any) => `[${b.kind}](../assets/reference/${b.crop})`).join(' · ')}`);
+      // the quality bar: an agent must match the source's fidelity (a photoreal render is not replaced by a vector drawing)
+      for (const b of s.blocks.filter((b: any) => b.asset?.render || b.asset?.natural).slice(0, 4)) {
+        const A = b.asset;
+        const size = A.natural ? `${A.natural[0]}×${A.natural[1]}${A.format ? ' ' + A.format : ''}${A.density ? `, ${A.density}× its on-screen width` : ''}` : '';
+        L.push(`- ${b.kind} quality: ${[size, A.render, A.loop ? 'looping' : ''].filter(Boolean).join('; ')}. Match this fidelity and pixel density with your own asset${/render|photo/.test(A.render || '') ? ' (a real 3D render or photograph, not a vector drawing)' : ''}.`);
+      }
       const art = s.blocks.filter((b: any) => b.palette?.length);
       for (const b of art.slice(0, 3)) L.push(`- ${b.kind} pixels use: ${b.palette.map((c: any) => `${c.hex} ${Math.round(c.share * 100)}%`).join(', ')}`);
       if (s.palette?.length) L.push(`- this section's pixels: ${s.palette.slice(0, 6).map((c: any) => `${c.hex} ${Math.round(c.share * 100)}%`).join(', ')} (use these for painted or image art instead of inventing colours)`);

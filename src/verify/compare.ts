@@ -1,7 +1,7 @@
 // Compare a candidate page's DNA with a source DNA: is it in the same design language? Scores each dimension
 // 0–100 and lists concrete fixes, worst first. Works for new pages (distribution match, not pixel match).
 import type { DNA } from '../infer/dna.js';
-import { parseColor } from '../lib/csscolor.js';
+import { parseColor, normalizeColors } from '../lib/csscolor.js';
 import { de2000, rgbToLab, type Lab } from '../lib/color.js';
 import { curveDistance, NAMED, type Bezier } from '../lib/easing.js';
 
@@ -136,7 +136,12 @@ export function compareDna(src: DNA, cand: DNA): Report {
   const seenKey = new Set<string>();
   // an instant flip (0ms, steps()) is a state change such as a menu unmounting, not motion anyone feels
   const isInstant = (p: any) => p.duration === 0 || /^steps\(/.test(p.easing);
-  const important = explode((src.motion.patterns as any[]).filter((p) => ['load', 'scroll', 'hover', 'scroll-linked'].includes(p.trigger) && !isContent(p) && !isInstant(p)))
+  // a one-page build is held to the home page's motion plus what recurs across pages (the language);
+  // one inner page's accordion is that page's content, not a requirement for every page
+  const home = src.source.pages[0]?.key;
+  const onePage = (cand.source.pages || []).length <= 1;
+  const inScope = (p: any) => !onePage || !p.pages?.length || p.pages.includes(home) || p.pages.length >= 2;
+  const important = explode((src.motion.patterns as any[]).filter((p) => ['load', 'scroll', 'hover', 'scroll-linked'].includes(p.trigger) && !isContent(p) && !isInstant(p) && inScope(p)))
     .sort((a, b) => b.count - a.count).filter((p) => { if (seenKey.has(p.key)) return false; seenKey.add(p.key); return true; }).slice(0, 12);
   for (const p of important) {
     const c = candByKind.get(p.key);
@@ -222,8 +227,8 @@ export function compareDna(src: DNA, cand: DNA): Report {
       }
       scores.push(sc);
       if (sc < 0.6) {
-        const what = { typewriter: `text types itself out (${p.charsPerSecond} chars/s)`, 'active-one-of-n': `one of ${p.members} is active while the rest are dimmed (${p.via}, level ${p.dimmedLevel}), switching every ${p.switchEveryMs}ms`, drift: `a layer drifts ${p.direction} at ${p.pxPerSecond}px/s`, parallax: `${p.layers} layers move at different speeds (depth)`, mover: `an element travels between ${p.positions} positions`, 'cycling-text': `a label cycles through ${p.values?.length} values every ${p.intervalMs}ms`, 'staged-reveal': `items appear one at a time, ${p.intervalMs}ms apart`, progress: `a progress bar fills over ${p.durationMs}ms`, 'mask-fade': `panels fade out through a gradient mask`, 'frame-swap': 'a sprite / frame animation', 'autoplay-media': 'autoplaying video', loop: 'a repeating animation' }[it.kind as string] || it.kind;
-        F.push({ dimension: 'behaviour', severity: ['active-one-of-n', 'typewriter', 'drift', 'parallax'].includes(it.kind) ? 8 : 5, message: `${pool.length ? 'off' : 'missing'} in section ${i + 1} (${sec.kind}): ${what}`, fix: pool.length ? 'match the measured speed/period (see_behaviour)' : `build it: see_behaviour section ${i + 1}` });
+        const what = { typewriter: `text types itself out (${p.charsPerSecond} chars/s)`, 'active-one-of-n': `one of ${p.members} is active while the rest are dimmed (${p.via}, level ${p.dimmedLevel}), switching every ${p.switchEveryMs}ms`, drift: `a layer drifts ${p.direction} at ${p.pxPerSecond}px/s`, parallax: `${p.layers} layers move at different speeds (depth)`, mover: `an element travels between ${p.positions} positions`, 'cycling-text': `a label cycles through ${p.values?.length} values every ${p.intervalMs}ms`, 'staged-reveal': `items appear one at a time, ${p.intervalMs}ms apart`, progress: `a progress bar fills over ${p.durationMs}ms`, 'mask-fade': `panels fade out through a gradient mask`, 'frame-swap': 'a sprite / frame animation', 'autoplay-media': 'autoplaying video', loop: 'a repeating animation', '3d-scene': `a live 3D scene (${p.library || p.context})`, 'animated-region': 'a canvas that animates on its own' }[it.kind as string] || it.kind;
+        F.push({ dimension: 'behaviour', severity: ['active-one-of-n', 'typewriter', 'drift', 'parallax', '3d-scene'].includes(it.kind) ? 8 : 5, message: `${pool.length ? 'off' : 'missing'} in section ${i + 1} (${sec.kind}): ${what}`, fix: pool.length ? 'match the measured speed/period (see_behaviour)' : `build it: see_behaviour section ${i + 1}` });
       }
     }
     if (scores.length) S.behaviour = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length * 100);
@@ -235,5 +240,5 @@ export function compareDna(src: DNA, cand: DNA): Report {
     : { color: 0.2, type: 0.2, spacing: 0.1, shape: 0.1, layout: 0.1, motion: 0.2, feel: 0.1 };
   const overall = Math.round(Object.entries(W).reduce((s, [k, w]) => s + (S[k] ?? 0) * w, 0));
   const findings = F.sort((a, b) => b.severity - a.severity).slice(0, 40);
-  return { source: src.source.url, candidate: cand.source.url, at: new Date().toISOString(), scores: S, overall, pass: Object.values(S).every((v) => v >= 85) && !findings.some((f) => f.severity >= 8), findings };
+  return { source: src.source.url, candidate: cand.source.url, at: new Date().toISOString(), scores: S, overall, pass: Object.values(S).every((v) => v >= 85) && !findings.some((f) => f.severity >= 8), findings: findings.map((f) => ({ ...f, message: normalizeColors(f.message), fix: f.fix && normalizeColors(f.fix) })) };
 }

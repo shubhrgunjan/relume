@@ -10,6 +10,7 @@ export interface Row {
   href?: string; type?: string; role?: string; aria?: string; cls: string; kids: number;
   s: Record<string, string>;
   media?: { src: string; nw: number; nh: number; autoplay?: boolean; loop?: boolean };
+  canvas?: { ctx: string; w: number; h: number };
   svg?: { viewBox: string | null; paths: number; strokeW: string; fillAttr: string | null; strokeAttr: string | null };
   before?: Record<string, string>; after?: Record<string, string>;
 }

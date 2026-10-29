@@ -185,12 +185,12 @@ export function buildServer(baseUrl: string, authHeader?: string) {
   }));
 
   server.registerTool('check_style', {
-    title: 'Check a page against a language', description: 'Measure your page (a URL this server can reach) with the same pipeline and compare its DNA to the entry: scores for colour, type, spacing, shape, layout, motion and feel, plus fixes worst-first. Runs as a job (~1–2 min); poll job_status.',
-    inputSchema: { slug: z.string(), url: z.string().url() }, annotations: { readOnlyHint: false, idempotentHint: false, openWorldHint: true },
-  }, wrap(async ({ slug, url }) => {
+    title: 'Check a page against a language', description: 'Measure your page (a URL this server can reach) with the same pipeline and compare its DNA to the entry: scores for colour, type, spacing, shape, layout, motion, feel, composition and behaviour, plus fixes worst-first. Runs as a job (~3–12 min); poll job_status. A build checked against a public entry joins the catalogue as its recreation (pass catalog: false to opt out).',
+    inputSchema: { slug: z.string(), url: z.string().url(), catalog: z.boolean().optional().describe('false keeps this build out of the public catalogue (by default a build checked against a public entry is listed as its recreation)') }, annotations: { readOnlyHint: false, idempotentHint: false, openWorldHint: true },
+  }, wrap(async ({ slug, url, catalog }) => {
     if (!has(slug)) return fail(`no entry ${slug}`);
     const job: Job = { id: 'c' + Date.now().toString(36), kind: 'check', slug, url, state: 'running', log: [], started: Date.now() };
-    enqueue(job, (log) => checkStyle(slug, url, log));
+    enqueue(job, (log) => checkStyle(slug, url, log, { catalog }));
     return { content: [json({ job: job.id, state: 'running', next: 'job_status' })] };
   }));
 

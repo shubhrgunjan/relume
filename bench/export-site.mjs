@@ -1,13 +1,38 @@
 // Export source/recreation pairs for the landing page's live comparison: synced recordings (both made by the
 // same crawl choreography), phase marks, hero shots, both DNAs side by side and the check report.
-// Usage: node bench/export-site.mjs <out-dir> <id>:<source-slug>:<recreation-url-path>[:<check-dir>] …
-import { readFileSync, existsSync, mkdirSync, writeFileSync, readdirSync, statSync } from 'node:fs';
+// Usage: node bench/export-site.mjs <out-dir> [<id>:<source-slug>:<recreation-url-path>[:<check-dir>] …]
+// With no pairs, every recreation registered in the catalogue (data/catalog/*/recreations.json, written by each
+// check_style against a public entry) is exported, and its static files are copied to <out>/recreations/<id>/.
+import { readFileSync, existsSync, mkdirSync, writeFileSync, readdirSync, statSync, cpSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 
-const [out, ...pairs] = process.argv.slice(2);
+const [out, ...argPairs] = process.argv.slice(2);
 const CAT = join(process.cwd(), 'data', 'catalog');
+// recreations served by this machine's static server (http://localhost:8801/<dir>/) are copied into the site
+const SERVED = process.env.RELUME_SERVED_DIR || join(process.cwd(), 'data', 'transfer');
+const DISPLAY = new Map();
+const slugId = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+function registered() {
+  const out = [];
+  for (const slug of readdirSync(CAT)) {
+    const f = join(CAT, slug, 'recreations.json');
+    if (!existsSync(f) || existsSync(join(CAT, slug, 'private.json'))) continue;
+    for (const r of JSON.parse(readFileSync(f, 'utf8'))) {
+      if (!existsSync(join(CAT, slug, 'checks', r.checkId, 'report.json'))) continue;
+      const id = slugId(r.name);
+      DISPLAY.set(id, r.name);
+      const local = r.url.match(/^https?:\/\/(?:localhost|127\.0\.0\.1):8801\/([^/?#]+)/);
+      let path = r.url;
+      if (local && existsSync(join(SERVED, local[1]))) { cpSync(join(SERVED, local[1]), join(out_, 'recreations', id), { recursive: true }); path = `/recreations/${id}/`; }
+      out.push(`${id}:${slug}:${path}:${r.checkId}`);
+    }
+  }
+  return out;
+}
+const out_ = out;
+const pairs = argPairs.length ? argPairs : registered();
 const gz = (p) => JSON.parse(gunzipSync(readFileSync(p)).toString('utf8'));
 mkdirSync(join(out, 'media'), { recursive: true });
 
@@ -82,7 +107,7 @@ function annotations(pageDir) {
   if (head) out.push({ kind: 'headline', box: head.box, label: `${px(head.s.fontSize)}px / ${head.s.fontWeight} · ${(px(head.s.letterSpacing) / px(head.s.fontSize)).toFixed(3)}em` });
   const btn = vis.filter((r) => /^(a|button)$/.test(r.tag) && r.box[3] >= 24 && r.box[3] <= 64 && r.box[2] >= 56 && r.box[2] < 320 && r.s.backgroundColor !== 'rgba(0, 0, 0, 0)' && r.box[1] > 60)
     .sort((a, b) => b.box[2] * b.box[3] - a.box[2] * a.box[3])[0];
-  if (btn) out.push({ kind: 'action', box: btn.box, label: `${btn.s.backgroundColor.replace(/\s/g, '')} · r ${btn.s.borderTopLeftRadius}${parseFloat(btn.s.transitionDuration) ? ` · ${parseFloat(btn.s.transitionDuration) * 1000}ms` : ''}` });
+  if (btn) out.push({ kind: 'action', box: btn.box, label: `${btn.s.backgroundColor.replace(/\s/g, '')} · r ${parseFloat(btn.s.borderTopLeftRadius) >= 9999 ? '9999px' : btn.s.borderTopLeftRadius}${parseFloat(btn.s.transitionDuration) ? ` · ${parseFloat(btn.s.transitionDuration) * 1000}ms` : ''}` });
   const nav = vis.filter((r) => /^(header|nav)$/.test(r.tag) && r.box[1] < 40 && r.box[2] > vw * 0.5)[0];
   if (nav) out.push({ kind: 'nav', box: nav.box, label: `${nav.box[3]}px · ${nav.s.backdropFilter !== 'none' ? nav.s.backdropFilter : nav.s.backgroundColor.replace(/\s/g, '')}` });
   const body = vis.filter((r) => r.chars > 40 && px(r.s.fontSize) <= 22 && r !== head).sort((a, b) => a.box[1] - b.box[1])[0];
@@ -92,7 +117,8 @@ function annotations(pageDir) {
 
 const result = [];
 for (const spec of pairs) {
-  const [id, slug, urlPath, checkDirArg] = spec.split(':');
+  const parts = spec.split(':');
+  const [id, slug] = parts, checkDirArg = parts.length > 4 ? parts[parts.length - 1] : parts[3], urlPath = parts.length > 4 ? parts.slice(2, -1).join(':') : parts[2];
   const src = firstPage(join(CAT, slug));
   const checkDir = checkDirArg ? join(CAT, slug, 'checks', checkDirArg) : latestCheck(slug, urlPath);
   const rec = firstPage(checkDir);
@@ -110,7 +136,7 @@ for (const spec of pairs) {
   const srcDna = JSON.parse(readFileSync(join(CAT, slug, 'dna.json'), 'utf8')), recDna = JSON.parse(readFileSync(join(checkDir, 'dna.json'), 'utf8'));
   result.push({
     pages: { source: secs(srcDna, src.key), recreation: secs(recDna, rec.key) },
-    id, slug, recreationPath: urlPath,
+    id, slug, recreationPath: urlPath, name: DISPLAY.get(id) || id,
     source: { ...summary(JSON.parse(readFileSync(join(CAT, slug, 'dna.json'), 'utf8'))), page: src.url, marks: marks(join(src.dir, 'motion.json.gz')), annotations: annotations(src.dir) },
     recreation: { ...summary(JSON.parse(readFileSync(join(checkDir, 'dna.json'), 'utf8'))), marks: marks(join(rec.dir, 'motion.json.gz')), annotations: annotations(rec.dir) },
     report: { overall: report.overall, pass: report.pass, scores: report.scores, findings: report.findings.slice(0, 6).map((f) => ({ dimension: f.dimension, message: f.message, fix: f.fix })), at: report.at },

@@ -16,8 +16,8 @@ const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<
 // findings read as sentences: drop generated class chains and inline JSON
 const tidy = (m) => String(m || '').replace(/\b([a-z][a-z0-9]*)(?:\.[A-Za-z_][\w-]*)+/g, '$1').replace(/\{[^{}]*\}/g, '').replace(/\s+—\s+→\s+/g, ' ').replace(/\(×\d+\)\s*—?\s*/g, '').replace(/\s{2,}/g, ' ').trim();
 const DIMS = ['color', 'type', 'spacing', 'shape', 'layout', 'motion', 'feel'];
-const NAMES = { linear: 'Tessera', stripe: 'Ledgerline', vercel: 'Northwind Edge', lenis: 'Drift' };
-const SOURCES = { linear: 'linear.app', stripe: 'stripe.com', vercel: 'vercel.com', lenis: 'lenis.dev' };
+const DIM_LABEL = { color: 'colour', type: 'type', spacing: 'spacing', shape: 'shape', layout: 'layout', motion: 'motion', feel: 'feel', composition: 'composition', behaviour: 'behaviour' };
+const nameOf = (d) => d.name || d.id;
 
 // smooth scrolling, as the best sites in the catalogue do it (lenis.dev measured at lerp 0.14)
 const lenis = reduce ? null : new Lenis({ lerp: 0.12 });
@@ -29,7 +29,8 @@ document.querySelectorAll('a[href^="#"]').forEach((a) => a.addEventListener('cli
 }));
 
 const data = await fetch('data/compare.json').then((r) => r.json()).catch(() => []);
-const lead = data.find((d) => d.id === 'linear') || data[0];
+// a different recreation leads the hero on every visit
+const lead = data.length ? data[Math.floor(Math.random() * data.length)] : null;
 
 // ---------- frame loop: sticky scenes read a damped progress
 const scenes = {};
@@ -81,7 +82,8 @@ if (lead) {
   });
 }
 const place = (el, box, vp) => { el.style.left = (box[0] / vp[0] * 100) + '%'; el.style.top = (box[1] / vp[1] * 100) + '%'; el.style.width = (box[2] / vp[0] * 100) + '%'; el.style.height = (box[3] / vp[1] * 100) + '%'; };
-const PHASES = ['measuring linear.app', 'measured', 'building from the skill', 'recreated'];
+const leadHost = lead ? new URL(lead.source.url).hostname.replace(/^www\./, '') : '';
+const PHASES = [`measuring ${leadHost}`, 'measured', 'building from the skill', 'recreated'];
 let heroPhase = -1;
 reg('hero', (p, t) => {
   if (!lead) return;
@@ -94,7 +96,7 @@ reg('hero', (p, t) => {
   if (phase !== heroPhase) {
     heroPhase = phase;
     const recreated = phase >= 2;
-    urlEl.innerHTML = recreated ? `<b>tessera</b> <em>· built from the linear.app skill</em>` : `<b>linear.app</b> <span>· measured by relume</span>`;
+    urlEl.innerHTML = recreated ? `<b>${esc(nameOf(lead).toLowerCase())}</b> <em>· built from the ${esc(leadHost)} skill</em>` : `<b>${esc(leadHost)}</b> <span>· measured by relume</span>`;
     stateEl.innerHTML = `<span class="chip${recreated ? '' : ' dim'}">${PHASES[phase]}</span>`;
     heroBoxes.forEach(({ el, a, b }) => { const s = recreated && b ? b : a; place(el, s.box, lead.source.annotations.viewport); el.querySelector('span').textContent = s.label; });
   }
@@ -158,32 +160,22 @@ reg('tunnel', (p) => {
 // =========== 3. CATALOGUE: drag-to-compare pairs and the synced live comparison
 const pairsEl = document.getElementById('pairs');
 const hostOf = (d) => new URL(d.source.url).hostname.replace(/^www\./, '');
-for (const d of data) {
+const recHref = (d) => /^https?:/.test(d.recreationPath) ? d.recreationPath : d.recreationPath.startsWith('/recreations/') ? d.recreationPath.slice(1) : `recreations/${d.recreationPath.replace(/^\//, '')}/`;
+for (const d of [...data].sort((a, b) => b.report.overall - a.report.overall)) {
   const a = document.createElement('article');
   a.className = 'pair';
   a.setAttribute('data-rise', '');
-  const host = hostOf(d), name = NAMES[d.id] || d.id, path = d.recreationPath.replace(/^\//, '');
-  a.innerHTML = `<div class="split" tabindex="0" role="slider" aria-label="Compare ${esc(host)} with ${esc(name)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
-      <img src="media/${d.id}-source.jpg" alt="${esc(host)} as measured"><img class="rec" src="media/${d.id}-recreation.jpg" alt="${esc(name)}, built from the ${esc(host)} skill">
-      <div class="handle"></div><span class="tag l">${esc(host)}</span><span class="tag r">${esc(name)}</span></div>
+  const host = hostOf(d), name = nameOf(d);
+  a.innerHTML = `<a class="thumbs" href="compare.html#${d.id}" aria-label="Compare ${esc(name)} with ${esc(host)}">
+      <figure><img src="media/${d.id}-source.jpg" alt="${esc(host)} as measured" loading="lazy"><figcaption>${esc(host)}</figcaption></figure>
+      <figure class="rec"><img src="media/${d.id}-recreation.jpg" alt="${esc(name)}, built from the ${esc(host)} skill" loading="lazy"><figcaption>${esc(name)}</figcaption></figure>
+    </a>
     <div class="meta">
-      <div class="title"><h3>${esc(host)} → ${esc(name)}<small>${esc(d.source.fonts.join(' · '))}${d.source.head ? ` · ${d.source.head.size}/${d.source.head.weight}` : ''} · scroll ${esc(d.source.scroll?.kind ?? '—')}</small></h3>
-        <div class="score"><b>${d.report.overall}</b><span>check score</span></div></div>
-      <div class="dims">${DIMS.map((k) => `<div style="--v:${d.report.scores[k]}%;--c:${d.report.scores[k] < 85 ? C.salmon : C.volt}"><i></i>${k.slice(0, 5)} ${d.report.scores[k]}</div>`).join('')}</div>
-      <div class="row"><a class="btn solid" href="compare.html#${d.id}">Compare side by side <i>→</i></a><a class="btn line" href="recreations/${path}/" target="_blank" rel="noopener">Open ${esc(name)} ↗</a></div>
+      <div class="title"><div><h3>${esc(name)}</h3><p>built from the <b>${esc(host)}</b> skill · ${esc(d.source.fonts.slice(0, 2).join(', '))}</p></div>
+        <div class="score${d.report.pass ? '' : ' no'}"><b>${d.report.overall}</b><span>${d.report.pass ? 'passes' : 'check score'}</span></div></div>
+      <ul class="dims">${Object.entries(d.report.scores).map(([k, v]) => `<li class="${v < 85 ? 'low' : ''}"><span>${DIM_LABEL[k] || k}</span><i style="--v:${v}%"></i><b>${v}</b></li>`).join('')}</ul>
+      <div class="row"><a class="btn solid" href="compare.html#${d.id}">Compare side by side <i>→</i></a><a class="btn line" href="${recHref(d)}" target="_blank" rel="noopener">Open ${esc(name)} ↗</a></div>
     </div>`;
-  pairsEl.appendChild(a);
-  const split = a.querySelector('.split');
-  const set = (v) => { v = clamp(v, 0.02, 0.98); split.style.setProperty('--cut', (v * 100).toFixed(1) + '%'); split.setAttribute('aria-valuenow', String(Math.round(v * 100))); };
-  split.addEventListener('pointermove', (e) => { const r = split.getBoundingClientRect(); set((e.clientX - r.left) / r.width); });
-  split.addEventListener('pointerleave', () => set(0.5));
-  split.addEventListener('keydown', (e) => { if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return; e.preventDefault(); set(+split.getAttribute('aria-valuenow') / 100 + (e.key === 'ArrowLeft' ? -0.05 : 0.05)); });
-}
-for (const id of Object.keys(NAMES).filter((k) => !data.some((d) => d.id === k))) {
-  const a = document.createElement('article');
-  a.className = 'pair pending';
-  a.setAttribute('data-rise', '');
-  a.innerHTML = `<div class="split"><span class="chip ghost">${esc(NAMES[id])} is being built from the ${esc(SOURCES[id])} skill</span></div><div class="meta"><div class="title"><h3>${esc(SOURCES[id])} → ${esc(NAMES[id])}<small>recreation in progress</small></h3><div class="score"><b>··</b><span>check score</span></div></div></div>`;
   pairsEl.appendChild(a);
 }
 
@@ -241,7 +233,7 @@ const fitChain = () => { const r = chain.getBoundingClientRect(), dpr = Math.min
 fitChain(); addEventListener('resize', fitChain);
 const reportEl = document.getElementById('report');
 if (lead) {
-  reportEl.innerHTML = `<div class="head"><span>${esc(NAMES[lead.id])} ⟶ ${esc(hostOf(lead))}</span><span>real run · ${esc(lead.report.at.slice(0, 10))}</span></div>
+  reportEl.innerHTML = `<div class="head"><span>${esc(nameOf(lead))} ⟶ ${esc(hostOf(lead))}</span><span>real run · ${esc(lead.report.at.slice(0, 10))}</span></div>
     <div class="total"><b id="ov">00</b><span>${lead.report.pass ? 'passes' : 'not yet: motion is the gap'}</span></div>
     <div class="bars" id="rbars">${DIMS.map((k) => `<div><span>${k}</span><i style="--v:0%;--c:${lead.report.scores[k] < 85 ? C.salmon : C.volt}"></i><span>··</span></div>`).join('')}</div>
     <div class="fix"><b>fix first</b>${esc(tidy(lead.report.findings[0]?.message || 'nothing').slice(0, 150))}</div>

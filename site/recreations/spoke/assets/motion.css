@@ -1,0 +1,193 @@
+/* motion measured from https://resend.com. Reveal: add data-reveal="<name>" (and style="--i: n" for stagger order); motion.js adds .is-in. */
+@media (prefers-reduced-motion: reduce) { [data-intro] { animation-duration: 1ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; } [data-reveal] { transition: none !important; } }
+/* intro-fade-1: div.mb-2.flex (×7) */
+@keyframes intro-fade-1 {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+[data-intro="intro-fade-1"] { animation: intro-fade-1 650ms linear(0 0%, 0.0144 1.56%, 0.0538 3.13%, 0.1123 4.69%, 0.1848 6.25%, 0.2668 7.81%, 0.3542 9.38%, 0.4436 10.94%, 0.5321 12.5%, 0.6174 14.06%, 0.6977 15.63%, 0.7716 17.19%, 0.8384 18.75%, 0.8974 20.31%, 0.9484 21.88%, 0.9915 23.44%, 1.0269 25%, 1.0551 26.56%, 1.0765 28.13%, 1.0918 29.69%, 1.1018 31.25%, 1.1071 32.81%, 1.1084 34.38%, 1.1065 35.94%, 1.1019 37.5%, 1.0953 39.06%, 1.0873 40.63%, 1.0783 42.19%, 1.0688 43.75%, 1.0591 45.31%, 1.0495 46.88%, 1.0404 48.44%, 1.0317 50%, 1.0238 51.56%, 1.0167 53.13%, 1.0104 54.69%, 1.005 56.25%, 1.0004 57.81%, 0.9967 59.38%, 0.9937 60.94%, 0.9915 62.5%, 0.9899 64.06%, 0.9889 65.63%, 0.9883 67.19%, 0.9882 68.75%, 0.9885 70.31%, 0.989 71.88%, 0.9898 73.44%, 0.9906 75%, 0.9916 76.56%, 0.9927 78.13%, 0.9937 79.69%, 0.9948 81.25%, 0.9957 82.81%, 0.9967 84.38%, 0.9975 85.94%, 0.9983 87.5%, 0.999 89.06%, 0.9995 90.63%, 1 92.19%, 1.0004 93.75%, 1.0007 95.31%, 1 96.88%, 1 98.44%, 1 100%) both; animation-delay: calc(0ms); }
+/* intro-fade-2: div (×5) */
+@keyframes intro-fade-2 {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+[data-intro="intro-fade-2"] { animation: intro-fade-2 1050ms linear(0 0%, 0.0089 0.96%, 0.0315 1.92%, 0.0628 2.88%, 0.0994 3.85%, 0.1389 4.81%, 0.1797 5.77%, 0.2206 6.73%, 0.2611 7.69%, 0.3004 8.65%, 0.3384 9.62%, 0.3749 10.58%, 0.4097 11.54%, 0.4428 12.5%, 0.4742 13.46%, 0.504 14.42%, 0.5323 15.38%, 0.5589 16.35%, 0.5841 17.31%, 0.6079 18.27%, 0.6303 19.23%, 0.6515 20.19%, 0.6715 21.15%, 0.6903 22.12%, 0.7081 23.08%, 0.7249 24.04%, 0.7406 25%, 0.7555 25.96%, 0.7696 26.92%, 0.7828 27.88%, 0.7953 28.85%, 0.807 29.81%, 0.8181 30.77%, 0.8286 31.73%, 0.8384 32.69%, 0.8477 33.65%, 0.8564 34.62%, 0.8647 35.58%, 0.8724 36.54%, 0.8798 37.5%, 0.8867 38.46%, 0.8932 39.42%, 0.8993 40.38%, 0.9051 41.35%, 0.9105 42.31%, 0.9157 43.27%, 0.9205 44.23%, 0.9251 45.19%, 0.9294 46.15%, 0.9334 47.12%, 0.9373 48.08%, 0.9409 49.04%, 0.9443 50%, 0.9475 50.96%, 0.9505 51.92%, 0.9533 52.88%, 0.956 53.85%, 0.9585 54.81%, 0.9609 55.77%, 0.9632 56.73%, 0.9653 57.69%, 0.9673 58.65%, 0.9691 59.62%, 0.9709 60.58%, 0.9726 61.54%, 0.9742 62.5%, 0.9756 63.46%, 0.977 64.42%, 0.9784 65.38%, 0.9796 66.35%, 0.9808 67.31%, 0.9819 68.27%, 0.9829 69.23%, 0.9839 70.19%, 0.9848 71.15%, 0.9857 72.12%, 0.9865 73.08%, 0.9873 74.04%, 0.988 75%, 0.9887 75.96%, 0.9894 76.92%, 0.99 77.88%, 0.9905 78.85%, 0.9911 79.81%, 0.9916 80.77%, 0.9921 81.73%, 0.9925 82.69%, 0.993 83.65%, 0.9934 84.62%, 0.9938 85.58%, 0.9941 86.54%, 0.9944 87.5%, 0.9948 88.46%, 0.9951 89.42%, 0.9954 90.38%, 0.9956 91.35%, 0.9959 92.31%, 0.9961 93.27%, 0.9963 94.23%, 0.9965 95.19%, 1 96.15%, 1 97.12%, 1 98.08%, 1 99.04%, 1 100%) both; animation-delay: calc(100ms); }
+/* intro-fade-up-3: div.origin-center-left.order-2 544×410 (×4) */
+@keyframes intro-fade-up-3 { 0%{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+[data-intro="intro-fade-up-3"] { animation: intro-fade-up-3 1000ms ease-in-out both; animation-delay: calc(0ms); }
+/* intro-tint-4: div.relative.rounded-full 8×8 (×3) */
+@keyframes intro-tint-4 {
+  from { background-color: #6a7282; }
+  to { background-color: #00c950; }
+}
+[data-intro="intro-tint-4"] { animation: intro-tint-4 150ms cubic-bezier(0.4, 0, 0.2, 1) both; animation-delay: calc(0ms); }
+/* intro-fade-5: div 1232×659 (×2) */
+@keyframes intro-fade-5 {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+[data-intro="intro-fade-5"] { animation: intro-fade-5 500ms ease-out both; animation-delay: calc(0ms); }
+/* intro-fade-up-scale-6: ? (×1) */
+@keyframes intro-fade-up-scale-6 { 0%{opacity:0;transform:scale(.98)translateY(5px)} to{opacity:1;transform:scale(1)translateY(0)} }
+[data-intro="intro-fade-up-scale-6"] { animation: intro-fade-up-scale-6 1500ms ease-in-out both; animation-delay: calc(0ms); }
+/* intro-fade-scale-7: ? (×1) */
+@keyframes intro-fade-scale-7 { 0%{opacity:0;transform:scale(.7)} to{opacity:1;transform:scale(1)} }
+[data-intro="intro-fade-scale-7"] { animation: intro-fade-scale-7 1000ms ease-in-out both; animation-delay: calc(0ms); }
+/* intro-fade-8: div (×1) */
+@keyframes intro-fade-8 {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+[data-intro="intro-fade-8"] { animation: intro-fade-8 240ms cubic-bezier(0.36, 0.66, 0.6, 1) both; animation-delay: calc(0ms); }
+/* intro-tint-9: div.mb-4.rounded-2xl 1024×98 (×1) */
+@keyframes intro-tint-9 {
+  from { background-color: rgb(25, 27, 30); }
+  to { background-color: rgb(20, 21, 23); }
+}
+[data-intro="intro-tint-9"] { animation: intro-tint-9 150ms cubic-bezier(0.4, 0, 0.2, 1) both; animation-delay: calc(0ms); }
+/* intro-spin-10: svg.mr-2.inline-block 14×14 (×1) */
+@keyframes intro-spin-10 {
+  from { transform: rotate(nonedeg); }
+  to { transform: rotate(90degdeg); }
+}
+[data-intro="intro-spin-10"] { animation: intro-spin-10 300ms cubic-bezier(0.4, 0, 0.2, 1) both; animation-delay: calc(0ms); }
+/* intro-fade-out-11: header.sticky.top-0 1440×58 (×1) */
+@keyframes intro-fade-out-11 {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+[data-intro="intro-fade-out-11"] { animation: intro-fade-out-11 150ms cubic-bezier(0.4, 0, 0.2, 1) both; animation-delay: calc(0ms); }
+/* intro-fade-12: div.h-(--accordion-panel-height).overflow-hidden 1022×40 (×1) */
+@keyframes intro-fade-12 {
+  from { opacity: 0; height: 0px; }
+  to { opacity: 1; height: 40px; }
+}
+[data-intro="intro-fade-12"] { animation: intro-fade-12 300ms cubic-bezier(0.4, 0, 0.2, 1) both; animation-delay: calc(0ms); }
+/* intro-height-13: div.bg-black.isolate 1440×8678 (×1) */
+@keyframes intro-height-13 {
+  from { height: 6281.3px; }
+  to { height: 9513.1px; }
+}
+[data-intro="intro-height-13"] { animation: intro-height-13 431ms cubic-bezier(0.3,1.2,1,-0.24) both; animation-delay: calc(0ms); }
+/* intro-fade-out-14: div.bg-modal.shadow-sm (×1) */
+@keyframes intro-fade-out-14 {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+[data-intro="intro-fade-out-14"] { animation: intro-fade-out-14 200ms ease-out both; animation-delay: calc(100ms); }
+/* intro-fade-out-15: img.max-w-[initial].object-scale-down (×1) */
+@keyframes intro-fade-out-15 {
+  from { opacity: 1; width: 398.7px; height: 24px; }
+  to { opacity: 0; width: 0px; height: 0px; }
+}
+[data-intro="intro-fade-out-15"] { animation: intro-fade-out-15 603ms cubic-bezier(0.92,0.47,0.99,-0.42) both; animation-delay: calc(0ms); }
+/* intro-fade-16: div.transition-[opacity,transform].duration-300 562×672 (×1) */
+@keyframes intro-fade-16 {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+[data-intro="intro-fade-16"] { animation: intro-fade-16 300ms cubic-bezier(0.215, 0.61, 0.355, 1) both; animation-delay: calc(0ms); }
+/* intro-fade-17: div.pointer-events-none.fixed 1440×900 (×1) */
+@keyframes intro-fade-17 { 0%{opacity:0} to{opacity:.5} }
+[data-intro="intro-fade-17"] { animation: intro-fade-17 3000ms ease-out both; animation-delay: calc(0ms); }
+/* reveal-fade-18: div.flex.w-full 357×135 (×9) */
+[data-reveal="reveal-fade-18"] { opacity: 0; transition: opacity 300ms cubic-bezier(0.25, 0.1, 0.35, 1); transition-delay: calc(0ms + var(--i, 0) * 548ms); }
+[data-reveal="reveal-fade-18"].is-in { opacity: 1; }
+/* reveal-fade-out-19: header.sticky.top-0 1440×58 (×4) */
+[data-reveal="reveal-fade-out-19"] { opacity: 1; transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1); }
+[data-reveal="reveal-fade-out-19"].is-in { opacity: 0; }
+/* reveal-fade-20: ? (×2) */
+[data-reveal="reveal-fade-20"] { opacity: 0; transition: opacity 650ms linear(0 0%, 0.0144 1.56%, 0.0538 3.13%, 0.1123 4.69%, 0.1848 6.25%, 0.2668 7.81%, 0.3542 9.38%, 0.4436 10.94%, 0.5321 12.5%, 0.6174 14.06%, 0.6977 15.63%, 0.7716 17.19%, 0.8384 18.75%, 0.8974 20.31%, 0.9484 21.88%, 0.9915 23.44%, 1.0269 25%, 1.0551 26.56%, 1.0765 28.13%, 1.0918 29.69%, 1.1018 31.25%, 1.1071 32.81%, 1.1084 34.38%, 1.1065 35.94%, 1.1019 37.5%, 1.0953 39.06%, 1.0873 40.63%, 1.0783 42.19%, 1.0688 43.75%, 1.0591 45.31%, 1.0495 46.88%, 1.0404 48.44%, 1.0317 50%, 1.0238 51.56%, 1.0167 53.13%, 1.0104 54.69%, 1.005 56.25%, 1.0004 57.81%, 0.9967 59.38%, 0.9937 60.94%, 0.9915 62.5%, 0.9899 64.06%, 0.9889 65.63%, 0.9883 67.19%, 0.9882 68.75%, 0.9885 70.31%, 0.989 71.88%, 0.9898 73.44%, 0.9906 75%, 0.9916 76.56%, 0.9927 78.13%, 0.9937 79.69%, 0.9948 81.25%, 0.9957 82.81%, 0.9967 84.38%, 0.9975 85.94%, 0.9983 87.5%, 0.999 89.06%, 0.9995 90.63%, 1 92.19%, 1.0004 93.75%, 1.0007 95.31%, 1 96.88%, 1 98.44%, 1 100%); }
+[data-reveal="reveal-fade-20"].is-in { opacity: 1; }
+/* reveal-fade-out-tint-21: a.group/subtle-cta.font-display 158×38 (×2) */
+[data-reveal="reveal-fade-out-tint-21"] { color: rgb(255 255 255 / 0.8); border-bottom-color: rgb(255 255 255 / 0.05); border-left-color: rgb(255 255 255 / 0.05); border-right-color: rgb(255 255 255 / 0.05); border-color: rgb(255 255 255 / 0.05); opacity: 1; translate: 0px 16px; transition: color 500ms cubic-bezier(0.36, 0.66, 0.6, 1), border-bottom-color 500ms cubic-bezier(0.36, 0.66, 0.6, 1), border-left-color 500ms cubic-bezier(0.36, 0.66, 0.6, 1), border-right-color 500ms cubic-bezier(0.36, 0.66, 0.6, 1), border-color 500ms cubic-bezier(0.36, 0.66, 0.6, 1), opacity 500ms cubic-bezier(0.36, 0.66, 0.6, 1), translate 500ms cubic-bezier(0.36, 0.66, 0.6, 1); }
+[data-reveal="reveal-fade-out-tint-21"].is-in { color: rgb(255 255 255 / 0.6); border-bottom-color: rgba(0, 0, 0, 0); border-left-color: rgba(0, 0, 0, 0); border-right-color: rgba(0, 0, 0, 0); border-color: rgba(0, 0, 0, 0); opacity: 0; translate: none; }
+/* reveal-fade-down-22: header.sticky.top-0 1440×58 (×1) */
+[data-reveal="reveal-fade-down-22"] { transform: translateY(-16px); opacity: 0; transition: transform 1000ms ease-in-out, opacity 1000ms ease-in-out; }
+[data-reveal="reveal-fade-down-22"].is-in { transform: translateY(0px); opacity: 1; }
+/* reveal-fade-23: ? (×1) */
+[data-reveal="reveal-fade-23"] { opacity: 0; transition: opacity 1050ms linear(0 0%, 0.0089 0.96%, 0.0315 1.92%, 0.0628 2.88%, 0.0994 3.85%, 0.1389 4.81%, 0.1797 5.77%, 0.2206 6.73%, 0.2611 7.69%, 0.3004 8.65%, 0.3384 9.62%, 0.3749 10.58%, 0.4097 11.54%, 0.4428 12.5%, 0.4742 13.46%, 0.504 14.42%, 0.5323 15.38%, 0.5589 16.35%, 0.5841 17.31%, 0.6079 18.27%, 0.6303 19.23%, 0.6515 20.19%, 0.6715 21.15%, 0.6903 22.12%, 0.7081 23.08%, 0.7249 24.04%, 0.7406 25%, 0.7555 25.96%, 0.7696 26.92%, 0.7828 27.88%, 0.7953 28.85%, 0.807 29.81%, 0.8181 30.77%, 0.8286 31.73%, 0.8384 32.69%, 0.8477 33.65%, 0.8564 34.62%, 0.8647 35.58%, 0.8724 36.54%, 0.8798 37.5%, 0.8867 38.46%, 0.8932 39.42%, 0.8993 40.38%, 0.9051 41.35%, 0.9105 42.31%, 0.9157 43.27%, 0.9205 44.23%, 0.9251 45.19%, 0.9294 46.15%, 0.9334 47.12%, 0.9373 48.08%, 0.9409 49.04%, 0.9443 50%, 0.9475 50.96%, 0.9505 51.92%, 0.9533 52.88%, 0.956 53.85%, 0.9585 54.81%, 0.9609 55.77%, 0.9632 56.73%, 0.9653 57.69%, 0.9673 58.65%, 0.9691 59.62%, 0.9709 60.58%, 0.9726 61.54%, 0.9742 62.5%, 0.9756 63.46%, 0.977 64.42%, 0.9784 65.38%, 0.9796 66.35%, 0.9808 67.31%, 0.9819 68.27%, 0.9829 69.23%, 0.9839 70.19%, 0.9848 71.15%, 0.9857 72.12%, 0.9865 73.08%, 0.9873 74.04%, 0.988 75%, 0.9887 75.96%, 0.9894 76.92%, 0.99 77.88%, 0.9905 78.85%, 0.9911 79.81%, 0.9916 80.77%, 0.9921 81.73%, 0.9925 82.69%, 0.993 83.65%, 0.9934 84.62%, 0.9938 85.58%, 0.9941 86.54%, 0.9944 87.5%, 0.9948 88.46%, 0.9951 89.42%, 0.9954 90.38%, 0.9956 91.35%, 0.9959 92.31%, 0.9961 93.27%, 0.9963 94.23%, 0.9965 95.19%, 1 96.15%, 1 97.12%, 1 98.08%, 1 99.04%, 1 100%) 100ms; }
+[data-reveal="reveal-fade-23"].is-in { opacity: 1; }
+/* reveal-fade-24: div.relative.hidden 1232×265 (×1) */
+[data-reveal="reveal-fade-24"] { opacity: 0; transition: opacity 2000ms ease-out; }
+[data-reveal="reveal-fade-24"].is-in { opacity: 1; }
+/* reveal-tint-25: button.flex.w-full 562×48 (×1) */
+[data-reveal="reveal-tint-25"] { background-color: rgb(255 255 255 / 0.05); color: rgb(255 255 255 / 0.6); transition: background-color 250ms cubic-bezier(0.215, 0.61, 0.355, 1), color 250ms cubic-bezier(0.215, 0.61, 0.355, 1); }
+[data-reveal="reveal-tint-25"].is-in { background-color: rgba(0, 0, 0, 0); color: rgb(74, 74, 74); }
+/* reveal-boxshadow-26: div.flex.h-fit 393×136 (×1) */
+[data-reveal="reveal-boxshadow-26"] { box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(63 219 143 / 0.4) 0px 0px 0px 1px inset, rgba(0, 0, 0, 0) 0px 0px 0px 0px; transition: box-shadow 100ms cubic-bezier(0.16, 1, 0.3, 1); }
+[data-reveal="reveal-boxshadow-26"].is-in { box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(112 184 255 / 0.4) 0px 0px 0px 1px inset, rgba(0, 0, 0, 0) 0px 0px 0px 0px; }
+/* reveal-tint-27: span.inline-flex.min-h-6 “Completed” 67×24 (×1) */
+[data-reveal="reveal-tint-27"] { background-color: rgb(24, 50, 38); color: rgb(63, 219, 143); transition: background-color 100ms cubic-bezier(0.16, 1, 0.3, 1), color 100ms cubic-bezier(0.16, 1, 0.3, 1); }
+[data-reveal="reveal-tint-27"].is-in { background-color: rgb(0, 0, 0); color: rgb(255 255 255 / 0.7); }
+/* reveal-boxshadow-28: div.flex.h-fit 344×118 (×1) */
+[data-reveal="reveal-boxshadow-28"] { box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(63 219 143 / 0.4) 0px 0px 0px 1px inset, rgba(0, 0, 0, 0) 0px 0px 0px 0px; transition: box-shadow 100ms cubic-bezier(0.16, 1, 0.3, 1); }
+[data-reveal="reveal-boxshadow-28"].is-in { box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(255 255 255 / 0.1) 0px 0px 0px 1px inset, rgba(0, 0, 0, 0) 0px 0px 0px 0px; }
+/* reveal-fade-up-scale-29: li.w-full 562×48 (×1) */
+[data-reveal="reveal-fade-up-scale-29"] { transform: translateY(0.5rem) scale(0.985); opacity: 0; transition: transform 250ms ease-out, opacity 250ms ease-out; }
+[data-reveal="reveal-fade-up-scale-29"].is-in { transform: translateY(0rem) scale(1); opacity: 1; }
+/* reveal-down-30: ul.w-full.max-h-[23rem] 562×672 (×1) */
+[data-reveal="reveal-down-30"] { transform: translate(0px, -24px); height: 624px; transition: transform 394ms cubic-bezier(0.43,0.1,0.09,0.89), height 394ms cubic-bezier(0.43,0.1,0.09,0.89); }
+[data-reveal="reveal-down-30"].is-in { transform: translate(0px, 0px); height: 672px; }
+/* reveal-down-31: li.w-full 562×48 (×1) */
+[data-reveal="reveal-down-31"] { transform: translate(0px, -46.15px); transition: transform 445ms cubic-bezier(0.42,0.04,0.07,0.99); }
+[data-reveal="reveal-down-31"].is-in { transform: translate(0px, 0px); }
+/* reveal-down-32: li.w-full 562×48 (×1) */
+[data-reveal="reveal-down-32"] { transform: translate(0px, -42.46px); transition: transform 433ms cubic-bezier(0.42,0.06,0.07,0.97); }
+[data-reveal="reveal-down-32"].is-in { transform: translate(0px, 0px); }
+/* reveal-down-33: li.w-full 562×48 (×1) */
+[data-reveal="reveal-down-33"] { transform: translate(0px, -38.77px); transition: transform 445ms cubic-bezier(0.42,0.04,0.07,0.99); }
+[data-reveal="reveal-down-33"].is-in { transform: translate(0px, 0px); }
+/* reveal-down-34: li.w-full 562×48 (×1) */
+[data-reveal="reveal-down-34"] { transform: translate(0px, -35.08px); transition: transform 433ms cubic-bezier(0.42,0.06,0.07,0.97); }
+[data-reveal="reveal-down-34"].is-in { transform: translate(0px, 0px); }
+/* reveal-down-35: li.w-full 562×48 (×1) */
+[data-reveal="reveal-down-35"] { transform: translate(0px, -31.38px); transition: transform 445ms cubic-bezier(0.42,0.04,0.07,0.99); }
+[data-reveal="reveal-down-35"].is-in { transform: translate(0px, 0px); }
+/* reveal-down-36: li.w-full 562×48 (×1) */
+[data-reveal="reveal-down-36"] { transform: translate(0px, -27.69px); transition: transform 445ms cubic-bezier(0.42,0.04,0.07,0.99); }
+[data-reveal="reveal-down-36"].is-in { transform: translate(0px, 0px); }
+/* reveal-down-37: li.w-full 562×48 (×1) */
+[data-reveal="reveal-down-37"] { transform: translate(0px, -24px); transition: transform 433ms cubic-bezier(0.42,0.06,0.07,0.97); }
+[data-reveal="reveal-down-37"].is-in { transform: translate(0px, 0px); }
+/* reveal-down-38: li.w-full 562×48 (×1) */
+[data-reveal="reveal-down-38"] { transform: translate(0px, -20.31px); transition: transform 445ms cubic-bezier(0.42,0.04,0.07,0.99); }
+[data-reveal="reveal-down-38"].is-in { transform: translate(0px, 0px); }
+/* reveal-down-39: li.w-full 562×48 (×1) */
+[data-reveal="reveal-down-39"] { transform: translate(0px, -16.62px); transition: transform 445ms cubic-bezier(0.42,0.04,0.07,0.99); }
+[data-reveal="reveal-down-39"].is-in { transform: translate(0px, 0px); }
+/* reveal-down-40: li.w-full 562×48 (×1) */
+[data-reveal="reveal-down-40"] { transform: translate(0px, -12.92px); transition: transform 445ms cubic-bezier(0.42,0.04,0.07,0.99); }
+[data-reveal="reveal-down-40"].is-in { transform: translate(0px, 0px); }
+/* reveal-down-41: li.w-full 562×48 (×1) */
+[data-reveal="reveal-down-41"] { transform: translate(0px, -9.23px); transition: transform 445ms cubic-bezier(0.42,0.04,0.07,0.99); }
+[data-reveal="reveal-down-41"].is-in { transform: translate(0px, 0px); }
+/* reveal-down-42: li.w-full 562×48 (×1) */
+[data-reveal="reveal-down-42"] { transform: translate(0px, -5.54px); transition: transform 445ms cubic-bezier(0.42,0.04,0.07,0.99); }
+[data-reveal="reveal-down-42"].is-in { transform: translate(0px, 0px); }
+/* reveal-down-43: li.w-full 562×48 (×1) */
+[data-reveal="reveal-down-43"] { transform: translate(0px, -1.85px); transition: transform 445ms cubic-bezier(0.42,0.04,0.07,0.99); }
+[data-reveal="reveal-down-43"].is-in { transform: translate(0px, 0px); }
+/* reveal-fade-out-44: div.bg-background.w-full 1440×900 (×1) */
+[data-reveal="reveal-fade-out-44"] { opacity: 0.86; transition: opacity 448ms cubic-bezier(0,0.37,0.98,0.61); }
+[data-reveal="reveal-fade-out-44"].is-in { opacity: 0; }
+/* hover hover-tint-45: a.outline-hidden.relative “Log in” 77×40 — color: rgb(161, 164, 165); → color: rgb(240, 240, 240); */
+.hover-tint-45 { transition: color 200ms cubic-bezier(0.4, 0, 0.2, 1); }
+/* hover hover-fade-scale-46: ? — transform: scale(0.9); opacity: 0; translate: none; width: 676.625px; → transform: scale(none); opacity: 1; translate: -50%; width: 482px; */
+.hover-fade-scale-46 { transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1), opacity 350ms cubic-bezier(0.22, 1, 0.36, 1), translate 350ms cubic-bezier(0.22, 1, 0.36, 1), width 350ms cubic-bezier(0.22, 1, 0.36, 1); }
+/* hover hover-tint-47: a.outline-hidden.relative “Get started” 116×40 — background-color: rgba(0, 0, 0, 0); box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px; → background-color: rgb(255 255 255 / 0.9); box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(255, 255, 255, 0.06) 0px 0px 4px 0px, rgba(255, 255, 255, 0.12) 0px 1px 14px 0px, rgba(255, 255, 255, 0.18) 0px 3px 32px 0px; */
+.hover-tint-47 { transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1); }
+/* hover hover-tint-48: a.outline-hidden.transition 114×20 — color: rgb(161, 164, 165); → color: rgb(240, 240, 240); */
+.hover-tint-48 { transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1); }
+/* hover hover-tint-49: a.outline-hidden.transition 32×32 — background-color: rgba(0, 0, 0, 0); → background-color: rgba(221, 234, 248, 0.08); */
+.hover-tint-49 { transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1); }
+/* hover hover-fade-50: ? — opacity: 0; translate: 0px -4px; → opacity: 1; translate: none; */
+.hover-fade-50 { transition: opacity 200ms cubic-bezier(0, 0, 0.2, 1), translate 200ms cubic-bezier(0, 0, 0.2, 1); }
+/* hover hover-fade-51: div.absolute.inset-0 186×32 — opacity: 0.1; → opacity: 0.15; */
+.hover-fade-51 { transition: opacity 300ms cubic-bezier(0.36, 0.66, 0.6, 1); }
+/* hover hover-fade-52: div.absolute.inset-0 186×32 — opacity: 0.05; → opacity: 0.1; */
+.hover-fade-52 { transition: opacity 150ms linear; }
+/* hover hover-tint-53: button.flex.w-fit 102×32 — background-color: rgb(255 255 255 / 0.05); → background-color: rgb(255 255 255 / 0.055); */
+.hover-tint-53 { transition: background-color 250ms cubic-bezier(0.215, 0.61, 0.355, 1); }
+/* hover hover-translate-54: svg.opacity-70.-ml-0.5 14×14 — translate: none; → translate: 0px 2px; */
+.hover-translate-54 { transition: translate 200ms cubic-bezier(0.4, 0, 1, 1); }

@@ -8,7 +8,7 @@ import type { Motion, PageEvidence, Row } from './evidence.js';
 import type { Blueprint } from './sections.js';
 
 export interface BehaviourItem {
-  kind: 'typewriter' | 'cycling-text' | 'staged-reveal' | 'active-one-of-n' | 'mover' | 'progress' | 'loop' | 'frame-swap' | 'mask-fade' | 'drift' | 'parallax' | 'autoplay-media';
+  kind: 'typewriter' | 'cycling-text' | 'staged-reveal' | 'active-one-of-n' | 'mover' | 'progress' | 'loop' | 'frame-swap' | 'mask-fade' | 'drift' | 'parallax' | 'autoplay-media' | 'animated-region' | '3d-scene';
   what: string;           // short description of the element(s)
   params: Record<string, any>;
   box?: [number, number, number, number];
@@ -168,6 +168,25 @@ function grayFrames(video: string, fromS: number, durS: number, fps: number, w =
     for (let i = 0; i < n; i++) frames.push(new Uint8Array(buf.buffer, buf.byteOffset + i * w * h, w * h));
     return { w, h, frames, times: frames.map((_, i) => fromS + i / fps) };
   } catch { return null; }
+}
+
+/** How much a page box keeps changing on screen while held still: mean absolute frame difference inside it. */
+function regionActivity(video: string, fromS: number, durS: number, box: number[], scrollY: number, vw: number, vh: number) {
+  const f = grayFrames(video, fromS, Math.min(durS, 8), 4);
+  if (!f || f.frames.length < 4) return null;
+  const sx = f.w / vw, sy = f.h / vh;
+  const x0 = Math.max(0, Math.round(box[0] * sx)), x1 = Math.min(f.w, Math.round((box[0] + box[2]) * sx));
+  const y0 = Math.max(0, Math.round((box[1] - scrollY) * sy)), y1 = Math.min(f.h, Math.round((box[1] + box[3] - scrollY) * sy));
+  if (x1 - x0 < 8 || y1 - y0 < 8) return null;
+  const diffs: number[] = [];
+  for (let i = 1; i < f.frames.length; i++) {
+    let d = 0, n = 0;
+    for (let y = y0; y < y1; y += 2) for (let x = x0; x < x1; x += 2) { d += Math.abs(f.frames[i][y * f.w + x] - f.frames[i - 1][y * f.w + x]); n++; }
+    diffs.push(d / Math.max(1, n));
+  }
+  const level = +median(diffs).toFixed(2);
+  // changing in most steps, not one blip
+  return { level, changing: diffs.filter((d) => d > 0.6).length >= diffs.length * 0.6 };
 }
 
 /** Best integer shift (dx, dy) of tile b relative to a, by sum of absolute differences. */
@@ -339,6 +358,15 @@ export function pageBehaviour(page: PageEvidence, bp: Blueprint, entryDir: strin
       if (mk && /gradient/.test(mk) && r.box[1] < win.y + vh && r.box[1] + r.box[3] > win.y && r.box[2] * r.box[3] > 20000) items.push({ kind: 'mask-fade', what: describe(m, rows, r.id), params: { mask: mk.slice(0, 160) }, box: r.box });
     }
     for (const r of h.rows) if (r.media?.autoplay && r.box[1] < win.y + vh && r.box[1] + r.box[3] > win.y) items.push({ kind: 'autoplay-media', what: describe(m, rows, r.id), params: { loop: !!r.media.loop }, box: r.box });
+    // live drawing surfaces: a WebGL canvas is a 3D scene; any canvas whose pixels keep changing is animated
+    // (rotation, morphing and shading changes are invisible to drift detection, which only sees sliding)
+    for (const r of h.rows) {
+      if (r.tag !== 'canvas' || r.box[2] * r.box[3] < 120 * 120 || !(r.box[1] < win.y + vh && r.box[1] + r.box[3] > win.y)) continue;
+      const gl = /webgl/i.test(r.canvas?.ctx || '');
+      const act = existsSync(video) ? regionActivity(video, vt(win.t0), (win.t1 - win.t0) / 1000, r.box, win.y, vw, vh) : null;
+      if (gl) items.push({ kind: '3d-scene', what: describe(m, rows, r.id), params: { context: r.canvas!.ctx, moving: act ? act.changing : null, activity: act?.level ?? null, library: m.libraries.three ? `three.js r${m.libraries.three}` : m.libraries.spline ? 'spline' : null }, box: r.box });
+      else if (act?.changing) items.push({ kind: 'animated-region', what: describe(m, rows, r.id), params: { activity: act.level, source: 'canvas' }, box: r.box });
+    }
     for (const it of items) { const tb = get(secAt(it.box, si)); if (!tb.items.some((x) => x.kind === it.kind && x.what === it.what)) tb.items.push(it); }
     const sb = get(si);
     if (!sb.window) {
@@ -434,7 +462,7 @@ export function pageBehaviour(page: PageEvidence, bp: Blueprint, entryDir: strin
 }
 
 // what a visitor notices first comes first
-const PRIORITY: BehaviourItem['kind'][] = ['active-one-of-n', 'typewriter', 'parallax', 'drift', 'mover', 'cycling-text', 'staged-reveal', 'progress', 'frame-swap', 'autoplay-media', 'mask-fade', 'loop'];
+const PRIORITY: BehaviourItem['kind'][] = ['3d-scene', 'animated-region', 'active-one-of-n', 'typewriter', 'parallax', 'drift', 'mover', 'cycling-text', 'staged-reveal', 'progress', 'frame-swap', 'autoplay-media', 'mask-fade', 'loop'];
 
 function narrate(items: BehaviourItem[]): string[] {
   const n: string[] = [];
@@ -452,6 +480,8 @@ function narrate(items: BehaviourItem[]): string[] {
     else if (it.kind === 'drift') n.push(p.source === 'dom' ? `${it.what} drifts ${p.direction} at ~${p.pxPerSecond}px/s, looping (${p.copies} cop${p.copies === 1 ? 'y' : 'ies'}).` : `Part of the view drifts ${p.direction} at ~${p.pxPerSecond}px/s on its own (painted motion: canvas, background or image).`);
     else if (it.kind === 'parallax') n.push(p.timeBased ? `Depth: ${p.layers} layers drift at different speeds (${p.speeds.join(', ')} px/s): the farther layer moves slower.` : `A layer (viewport rows ${p.viewportBand[0]}–${p.viewportBand[1]}px) moves at ${p.speedRatio}× the scroll speed: parallax depth (${p.layers} distinct speeds).`);
     else if (it.kind === 'autoplay-media') n.push(`${it.what} is autoplaying video${p.loop ? ' on a loop' : ''}.`);
+    else if (it.kind === '3d-scene') n.push(`${it.what} is a live 3D scene (${p.context}${p.library ? `, ${p.library}` : ''})${p.moving ? ', moving continuously' : ''}. Rebuild it as real 3D (three.js), not a still image.`);
+    else if (it.kind === 'animated-region') n.push(`${it.what} keeps changing on its own (canvas animation); recreate the motion, not a frame of it.`);
   }
   return [...new Set(n)].slice(0, 18);
 }

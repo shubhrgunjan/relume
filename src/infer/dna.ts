@@ -48,7 +48,7 @@ export async function buildDna(dir: string, slug: string) {
           const width = Math.min(Math.round(b.box[2]) + Math.min(0, Math.round(b.box[0])), (meta.width || 0) - left), bh = Math.min(Math.round(b.box[3]), (meta.height || 0) - btop, 1600);
           if (width < 40 || bh < 40) continue;
           const bf = `sections/${p.key}-${String(s.index).padStart(2, '0')}-${b.kind}-${n++}.jpg`;
-          try { await sharp(shot).extract({ left, top: btop, width, height: bh }).resize({ width: Math.min(720, width) }).jpeg({ quality: 80 }).toFile(join(dir, bf)); b.crop = bf; if (b.kind === 'image' || b.kind === 'illustration') b.palette = await artPalette(join(dir, bf)); } catch {}
+          try { await sharp(shot).extract({ left, top: btop, width, height: bh }).resize({ width: Math.min(720, width) }).jpeg({ quality: 80 }).toFile(join(dir, bf)); b.crop = bf; if (b.kind === 'image' || b.kind === 'illustration' || b.kind === 'video' || b.kind === '3d-scene') { b.palette = await artPalette(join(dir, bf)); b.asset = { ...(b.asset || {}), render: await renderKind(join(dir, bf)) }; } } catch {}
         }
       }
     }
@@ -120,4 +120,20 @@ async function artPalette(file: string): Promise<{ hex: string; share: number }[
   const h = (v: number) => Math.round(v).toString(16).padStart(2, '0');
   return [...buckets.values()].sort((a, b) => b.n - a.n).filter((e) => e.n / px >= 0.02).slice(0, 8)
     .map((e) => ({ hex: `#${h(e.r / e.n)}${h(e.g / e.n)}${h(e.b / e.n)}`, share: +(e.n / px).toFixed(3) }));
+}
+
+/** What kind of picture a crop is, from its tones: many smooth tones = photo or 3D render; few flat ones = flat
+ * illustration; two or three = line art. Tells an agent the fidelity it has to match. */
+async function renderKind(file: string): Promise<string> {
+  const { data, info } = await sharp(file).resize(128, 128, { fit: 'fill' }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const seen = new Set<number>();
+  let smooth = 0, edges = 0;
+  for (let i = 0; i < data.length; i += 3) {
+    seen.add(((data[i] >> 3) << 10) | ((data[i + 1] >> 3) << 5) | (data[i + 2] >> 3));
+    if ((i / 3) % info.width < info.width - 1) { const d = Math.abs(data[i] - data[i + 3]) + Math.abs(data[i + 1] - data[i + 4]) + Math.abs(data[i + 2] - data[i + 5]); if (d > 0 && d < 12) smooth++; else if (d >= 60) edges++; }
+  }
+  const px = info.width * info.height, tones = seen.size;
+  if (tones > 400 && smooth / px > 0.25) return 'photographic or 3D render (many smooth tones)';
+  if (tones < 24) return edges / px > 0.02 ? 'line art (two or three tones, hard edges)' : 'flat colour (few tones)';
+  return edges / px > 0.08 ? 'UI or text-heavy graphic' : 'flat illustration (limited palette, soft shading)';
 }

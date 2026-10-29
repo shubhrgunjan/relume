@@ -4,9 +4,9 @@
 import type { Harvest, Row } from './evidence.js';
 import { parseColor, normalizeColors, normalizeRadius, rgbaCss } from '../lib/csscolor.js';
 
-export type ContentKind = 'ui-mock' | 'illustration' | 'dataviz' | 'logos' | 'image' | 'avatar' | 'code' | 'cards' | 'testimonial' | 'tabs' | 'form' | 'video';
+export type ContentKind = 'ui-mock' | 'illustration' | 'dataviz' | 'logos' | 'image' | 'avatar' | 'code' | 'cards' | 'testimonial' | 'tabs' | 'form' | 'video' | '3d-scene';
 
-export interface Block { kind: ContentKind; box: [number, number, number, number]; detail: string; count?: number; crop?: string; palette?: { hex: string; share: number }[]; opacity?: number }
+export interface Block { kind: ContentKind; box: [number, number, number, number]; detail: string; count?: number; crop?: string; palette?: { hex: string; share: number }[]; asset?: { natural?: [number, number]; density?: number; format?: string; render?: string; loop?: boolean }; opacity?: number }
 export interface Section {
   index: number; kind: string; box: [number, number, number, number];
   layout: 'hero' | 'split' | 'centered' | 'stacked' | 'grid' | 'columns';
@@ -105,8 +105,11 @@ export function blueprint(h: Harvest): Blueprint {
       if (a > 120 * 120 && paths >= 40) { blocks.push({ kind: paths > 150 && s.box[3] < s.box[2] * 0.9 ? 'dataviz' : 'illustration', box: s.box, detail: `svg, ${paths} shapes, ${s.box[2]}×${s.box[3]}` }); claim(s); }
       else if (a > 100 * 100 && paths >= 6) { blocks.push({ kind: 'illustration', box: s.box, detail: `svg, ${paths} shapes` }); claim(s); }
     }
-    for (const c of all.filter((r) => r.tag === 'canvas' && area(r.box) > 120 * 120)) { blocks.push({ kind: 'dataviz', box: c.box, detail: `canvas ${c.box[2]}×${c.box[3]}` }); claim(c); }
-    for (const v of all.filter((r) => r.tag === 'video' && area(r.box) > 160 * 90)) { blocks.push({ kind: 'video', box: v.box, detail: `video ${v.box[2]}×${v.box[3]}` }); claim(v); }
+    for (const c of all.filter((r) => r.tag === 'canvas' && area(r.box) > 120 * 120)) {
+      const gl = /webgl/i.test(c.canvas?.ctx || '');
+      blocks.push({ kind: gl ? '3d-scene' : 'dataviz', box: c.box, detail: gl ? `live ${c.canvas!.ctx} canvas ${c.box[2]}×${c.box[3]}` : `canvas ${c.box[2]}×${c.box[3]}` }); claim(c);
+    }
+    for (const v of all.filter((r) => r.tag === 'video' && area(r.box) > 160 * 90)) { blocks.push({ kind: 'video', box: v.box, detail: `video ${v.box[2]}×${v.box[3]}`, asset: assetOf(v) }); claim(v); }
     // images: avatars (small, round), logos (row of similar small marks), photos/screens
     const imgs = all.filter((r) => (r.tag === 'img' || r.tag === 'picture') && !claimed.has(r.id));
     // a carousel repeats the same image at the same size and height: report it once, with how many copies
@@ -117,7 +120,7 @@ export function blueprint(h: Harvest): Blueprint {
       if (dup) { dup.count = (dup.count || 1) + 1; dup.detail = `${i.box[2]}×${i.box[3]}, ×${dup.count} (carousel/loop)`; claim(i); continue; }
       const round = px(i.s.borderTopLeftRadius) >= Math.min(i.box[2], i.box[3]) / 2 - 1;
       if (i.box[2] <= 64 && i.box[3] <= 64) { if (round || Math.abs(i.box[2] - i.box[3]) < 2) blocks.push({ kind: 'avatar', box: i.box, detail: `${i.box[2]}px` }); }
-      else if (area(i.box) > 160 * 100) { const b: Block = { kind: 'image', box: i.box, detail: `${i.box[2]}×${i.box[3]}`, opacity: +i.s.opacity < 0.95 ? +i.s.opacity : undefined } as Block; blocks.push(b); seenImg.set(key, b); }
+      else if (area(i.box) > 160 * 100) { const b: Block = { kind: 'image', box: i.box, detail: `${i.box[2]}×${i.box[3]}`, opacity: +i.s.opacity < 0.95 ? +i.s.opacity : undefined, asset: assetOf(i) } as Block; blocks.push(b); seenImg.set(key, b); }
       claim(i);
     }
     // logos: ≥4 small marks (svg/img, 16–64px tall) on one baseline
@@ -264,4 +267,14 @@ function uiGrammar(panels: Block[], rows: Row[], _desc: (id: number) => Row[]): 
     panelSurface: surf ? { background: normalizeColors(surf.s.backgroundColor), border: normalizeColors(`${surf.s.borderTopWidth} ${surf.s.borderTopColor}`), radius: normalizeRadius(surf.s.borderTopLeftRadius), shadow: normalizeColors(surf.s.boxShadow) } : undefined,
     sidebarWidth: side?.box[2], textColors: top(tc, 5).map(([c, n]) => { const p = parseColor(c); return [p ? rgbaCss(p) : c, n] as [string, number]; }), statusColors: status,
   };
+}
+
+/** The quality bar of a media asset: its own pixel size, how dense it is on screen, the file format. */
+function assetOf(r: Row): Block['asset'] {
+  const m = r.media;
+  if (!m) return undefined;
+  const src = decodeURIComponent(m.src || '');
+  const file = (src.match(/url=([^&]+)/)?.[1] || src).split('?')[0];
+  const format = file.match(/\.(avif|webp|png|jpe?g|gif|svg|mp4|webm|mov)$/i)?.[1]?.toLowerCase();
+  return { natural: m.nw && m.nh ? [m.nw, m.nh] : undefined, density: m.nw && r.box[2] ? +(m.nw / r.box[2]).toFixed(2) : undefined, format, loop: m.loop || undefined };
 }

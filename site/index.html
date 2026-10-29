@@ -134,29 +134,33 @@ nav.top .links a:hover { color: var(--ink); background: var(--paper); }
 @media (max-width: 860px) { .sec-head { grid-template-columns: minmax(0, 1fr); } }
 .pairs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
 @media (max-width: 960px) { .pairs { grid-template-columns: minmax(0, 1fr); } }
-.pair { background: var(--ink-2); box-shadow: 0 0 0 1px var(--line); display: flex; flex-direction: column; min-width: 0; transition: opacity 700ms var(--ease-out), transform 700ms var(--ease-out), box-shadow 200ms steps(2); }
+.pair { background: var(--ink-2); box-shadow: 0 0 0 1px var(--line); display: flex; flex-direction: column; min-width: 0; transition: opacity 700ms var(--ease-out), transform 700ms var(--ease-out), box-shadow 200ms ease; }
 .pair:hover { box-shadow: 0 0 0 1px var(--mute); }
-.pair .split { position: relative; aspect-ratio: 16 / 10; overflow: hidden; cursor: ew-resize; background: #000; touch-action: pan-y; }
-.pair .split img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; user-select: none; -webkit-user-drag: none; }
-.pair .split .rec { clip-path: inset(0 0 0 var(--cut, 50%)); }
-.pair .split .handle { position: absolute; top: 0; bottom: 0; left: var(--cut, 50%); width: 2px; margin-left: -1px; background: var(--volt); }
-.pair .split .handle::after { content: "⟷"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 34px; height: 34px; display: grid; place-items: center; background: var(--volt); color: var(--ink); font: 600 14px/1 var(--mono); }
-.pair .split .tag { position: absolute; top: 10px; font: 500 12px/1 var(--mono); font-stretch: 87.5%; padding: 5px 8px; background: var(--ink); color: var(--paper); }
-.pair .split .tag.l { left: 10px; } .pair .split .tag.r { right: 10px; background: var(--volt); color: var(--ink); }
+/* the original and the recreation, each whole, side by side */
+.pair .thumbs { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); }
+.pair figure { position: relative; margin: 0; aspect-ratio: 4 / 3; overflow: hidden; background: #000; }
+.pair figure img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; transition: transform 600ms var(--ease-out); }
+.pair .thumbs:hover img { transform: scale(1.03); }
+.pair figcaption { position: absolute; left: 8px; bottom: 8px; padding: 4px 7px; background: var(--ink); color: var(--paper); font: 500 11.5px/1 var(--mono); font-stretch: 87.5%; }
+.pair figure.rec figcaption { background: var(--volt); color: var(--ink); }
 .pair .meta { display: grid; gap: 18px; padding: 20px 20px 22px; }
-.pair .title { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; }
-.pair h3 { font: 750 30px/0.95 var(--display); font-stretch: 76%; letter-spacing: -0.03em; }
-.pair h3 small { display: block; margin-top: 8px; font: 500 12.5px/1.4 var(--mono); font-stretch: 87.5%; letter-spacing: 0; color: var(--dim); }
+.pair .title { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.pair h3 { font: 750 30px/1 var(--display); font-stretch: 76%; letter-spacing: -0.03em; margin: 0; }
+.pair .title p { margin: 6px 0 0; font: 400 14px/1.4 var(--display); color: var(--dim); }
+.pair .title p b { color: var(--mute); font-weight: 500; }
 .pair .score { text-align: right; flex: none; }
-.pair .score b { display: block; font: 900 52px/0.8 var(--pixel); color: var(--volt); }
-.pair .score span { font: 500 11px/1.4 var(--mono); font-stretch: 87.5%; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; }
-.pair .dims { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
-.pair .dims div { display: grid; gap: 5px; font: 500 10.5px/1.2 var(--mono); font-stretch: 75%; color: var(--dim); }
-.pair .dims i { height: 28px; background: var(--ink-3); position: relative; }
-.pair .dims i::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: var(--v); background: var(--c, var(--volt)); }
+.pair .score b { display: block; font: 900 44px/0.85 var(--pixel); color: var(--volt); }
+.pair .score.no b { color: var(--salmon); }
+.pair .score span { font: 500 10.5px/1.4 var(--mono); font-stretch: 87.5%; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; }
+.pair .dims { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 20px; }
+.pair .dims li { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 8px; font: 400 13px/1.2 var(--display); color: var(--mute); }
+.pair .dims li i { grid-column: 1 / -1; grid-row: 2; height: 3px; background: var(--ink-3); position: relative; }
+.pair .dims li i::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--v); background: var(--volt); }
+.pair .dims li.low i::after { background: var(--salmon); }
+.pair .dims li b { font: 500 12px/1 var(--mono); font-stretch: 87.5%; color: var(--paper); }
+.pair .dims li.low b { color: var(--salmon); }
 .pair .row { display: flex; gap: 10px; flex-wrap: wrap; }
-.pair.pending .split { cursor: default; display: grid; place-items: center; background: var(--ink-3); }
-.pair.pending .score b { color: var(--dim); }
+@media (max-width: 560px) { .pair .dims { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* compare viewer */
 dialog.cmp { width: min(1500px, 100vw); max-width: 100vw; height: min(940px, 100svh); max-height: 100svh; margin: auto; padding: 0; border: 0; background: var(--ink); color: var(--paper); box-shadow: 0 0 0 1px var(--line); overflow: hidden; }
@@ -310,7 +314,7 @@ footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12
   <section id="catalog" class="pad">
     <div class="sec-head">
       <div><span class="eyebrow">the catalogue</span><h2 class="disp" data-wipe>Famous sites, recreated.</h2></div>
-      <p data-rise>Each pair is a famous site and a new product site built from relume's skill of it, then measured and scored by the same pipeline. Drag across a pair, or open the side-by-side view: both full pages scroll together, section by section.</p>
+      <p data-rise>Each pair is a famous site and a new product site built from relume's skill of it, then measured and scored by the same pipeline. Every build an agent checks with relume joins this list on its own. Open a pair to see both full pages scroll together, section by section.</p>
     </div>
     <div class="pairs" id="pairs"></div>
   </section>
@@ -348,7 +352,7 @@ footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12
     <div class="install-inner">
       <span class="eyebrow">one line</span>
       <h2 class="disp" data-wipe>Give your agent <em>taste</em> it can measure.</h2>
-      <div class="cmd"><code id="cmd">claude mcp add --transport http relume http://agx-thor:8790/api/mcp</code><button class="btn solid" id="copy" type="button">copy</button></div>
+      <div class="cmd"><code id="cmd">curl -fsSL https://relume.shubhrgunjan.me/install.sh | sh</code><button class="btn solid" id="copy" type="button">copy</button></div>
       <div class="tools"><span class="chip">extract_site</span><span class="chip">get_skill</span><span class="chip">get_dna</span><span class="chip">see_reference</span><span class="chip dim">check_style</span><span class="chip dim">get_pitfalls</span><span class="chip ghost">search_catalog</span><span class="chip ghost">compare_entries</span></div>
     </div>
     <canvas id="logo" aria-hidden="true"></canvas>

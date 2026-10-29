@@ -323,7 +323,7 @@ async function motionVisit(browser: Browser, url: string, dir: string, opt: Craw
   const libraries = await page.evaluate(() => (window as any).__relume.libraries());
   const motion = await page.evaluate(() => (window as any).__relume.collect());
   const css = await cssText();
-  lap(`harvest (frames ${motion.stats?.frames}, over budget ${motion.stats?.overBudget}, peak tracks ${motion.stats?.maxActive})`);
+  lap(`harvest (frames ${motion.stats?.frames}, over budget ${motion.stats?.overBudget}, peak tracks ${motion.stats?.maxActive}, dropped ${motion.stats?.dropped || 0})`);
   await screenshot(page, join(dir, `shot-${vp.name}.jpg`));
   const video = page.video();
   await ctx.close();

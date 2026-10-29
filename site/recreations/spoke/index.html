@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spoke — bikes for real roads</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400&family=Playfair+Display:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/motion.css">
+<style>
+  /* Layout only. Colours, type, radii, shadows and motion come from the resend.com skill (relume). */
+  body { margin: 0; background: var(--color-background); color: var(--color-text); font-family: var(--font-sans); }
+  a { color: inherit; text-decoration: none; }
+  .muted { color: var(--color-text-tertiary); }
+  .quiet { color: var(--color-text-quaternary); }
+  .center { text-align: center; }
+
+  /* header: sticky, translucent, blurred */
+  .hdr { position: sticky; top: 0; z-index: 30; height: 58px; background: var(--color-black-a50); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--color-surface-3); }
+  .hdr .container { height: 100%; display: flex; align-items: center; gap: 8px; }
+  .brand { display: flex; align-items: center; gap: 8px; font: 600 16px/24px var(--font-sans); letter-spacing: -0.013em; margin-right: auto; }
+  .navl { display: flex; gap: 0; margin-right: auto; }
+  .hdr .button-secondary { height: 40px; }
+  /* nav menus (measured hover: scale 0.9 → 1, opacity, width morph, 350ms cubic-bezier(0.22, 1, 0.36, 1)) */
+  .menu { position: absolute; top: 52px; left: 50%; translate: -50%; width: 482px; padding: 8px; box-sizing: border-box; border-radius: 16px; background: var(--color-black-100); box-shadow: var(--shadow-3), 0 24px 48px -12px var(--color-black-a80); opacity: 0; scale: 0.9; pointer-events: none; transform-origin: top center; transition: opacity 350ms cubic-bezier(0.22, 1, 0.36, 1), scale 350ms cubic-bezier(0.22, 1, 0.36, 1), width 350ms cubic-bezier(0.22, 1, 0.36, 1); }
+  .menu.open { opacity: 1; scale: 1; pointer-events: auto; }
+  .menu-in { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .menu-in a { display: grid; grid-template-columns: 32px 1fr; gap: 2px 12px; padding: 10px; border-radius: 12px; opacity: 0; transition: opacity 350ms cubic-bezier(0.22, 1, 0.36, 1), background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1); }
+  .menu.open .menu-in a { opacity: 1; }
+  .menu-in a:hover { background: var(--color-surface-4); }
+  .menu-in .mi { grid-row: span 2; width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; border: 1px solid var(--color-border-2); color: var(--color-text-quaternary); }
+  .menu-in .mi svg { width: 16px; height: 16px; }
+  .menu-in b { font: 500 14px/1.429 var(--font-sans); color: var(--color-text); }
+  .menu-in span:last-child { font: 400 12px/1.333 var(--font-sans); color: var(--color-text-quaternary); }
+
+  /* 01 hero: a dark render under a gradient mask, serif headline on the left */
+  .hero { position: relative; height: 900px; overflow: hidden; margin-top: -58px; }
+  .hero .art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+  .hero .art.a { top: 58px; opacity: 0.8; -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 0) 15%, rgb(0, 0, 0) 25%); mask-image: linear-gradient(to top, rgba(0, 0, 0, 0) 15%, rgb(0, 0, 0) 25%); }
+  .hero .copy { position: relative; z-index: 2; padding-top: 262px; display: grid; gap: 24px; justify-items: start; max-width: 560px; }
+  .hero h1 { margin: 0; background: linear-gradient(to right bottom, rgb(255, 255, 255) 30%, rgba(255, 255, 255, 0.5)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p { margin: 0; max-width: 460px; }
+  .ctas { display: flex; gap: 8px; align-items: center; }
+  /* quiet links brighten as they come into view (measured: colour 0.6 → 0.8 alpha, 500ms) */
+  [data-reveal="subtle"] { color: rgb(255 255 255 / 0.6); transition: color 500ms cubic-bezier(0.36, 0.66, 0.6, 1); }
+  [data-reveal="subtle"].is-in { color: rgb(255 255 255 / 0.8); }
+
+  /* 02 logo strip */
+  .frame-top { position: relative; border-top: 1px solid var(--color-surface-3); border-radius: 24px 24px 0 0; }
+  .frame-top::before { content: ""; position: absolute; left: 50%; top: 0; width: 420px; height: 160px; margin-left: -210px; background: radial-gradient(50% 100% at 50% 0%, rgb(255 255 255 / 0.06), transparent); pointer-events: none; }
+  .logos { padding: 96px 0 96px; display: grid; justify-items: center; gap: 56px; }
+  .logos .rows { display: grid; gap: 40px; width: min(1010px, 100%); }
+  .logos .row { display: grid; grid-template-columns: repeat(6, 1fr); align-items: center; justify-items: center; }
+  .wm-svg { overflow: visible; }
+  .wm { display: inline-flex; align-items: center; gap: 8px; color: var(--color-text); opacity: 0.92; font: 600 20px/1 var(--font-sans); letter-spacing: -0.03em; white-space: nowrap; }
+  .wm svg { width: 22px; height: 22px; }
+  .wm.serif { font: 400 22px/1 var(--font-domaine); letter-spacing: -0.01em; }
+  .wm.mono { font: 400 15px/1.1 var(--font-mono); letter-spacing: 0.02em; }
+  .wm.caps { font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; }
+
+  /* section heads with a 3D tile */
+  .tile { display: block; width: 170px; height: 170px; margin: 0 auto 16px; }
+  .sec { padding-block: 96px; }
+  .head { display: grid; justify-items: center; gap: 16px; text-align: center; }
+  .head h2, .lhead h2 { margin: 0; }
+  .head p { margin: 0; max-width: 560px; }
+  .grad { background: linear-gradient(to right bottom, rgb(255, 255, 255) 30%, rgba(255, 255, 255, 0.5)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .warm { background: linear-gradient(90deg, #ffd99a, #e8a23c); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lhead { display: grid; gap: 16px; margin-bottom: 48px; }
+  .lhead p { margin: 0; max-width: 600px; }
+
+  /* 03 models + spec panel */
+  .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 48px auto 40px; max-width: 1024px; }
+  .chipbtn { display: grid; justify-items: center; gap: 12px; width: 64px; font: 400 12px/1.333 var(--font-sans); color: var(--color-text-quaternary); }
+  .chipbtn .ic { width: 52px; height: 52px; border-radius: 9999px; display: grid; place-items: center; border: 1px solid var(--color-border-2); background: linear-gradient(to left bottom, rgb(255 255 255 / 0.06) 0%, rgba(0, 0, 0, 0) 100%); color: var(--color-text-quaternary); transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1); }
+  .chipbtn .ic svg { width: 20px; height: 20px; }
+  .chipbtn.on, .chipbtn:hover { color: var(--color-text); }
+  .chipbtn.on .ic { border-color: var(--color-border); color: var(--color-text); box-shadow: var(--shadow-3); }
+  .panel { max-width: 1024px; margin: 0 auto; border: 1px solid var(--color-border); border-radius: 24px; overflow: hidden; background: linear-gradient(rgba(80, 80, 80, 0.15) 0%, rgba(0, 0, 0, 0) 70%); }
+  .ptabs { display: flex; align-items: center; gap: 4px; padding: 12px; border-bottom: 1px solid var(--color-border-2); }
+  .ptab { height: 28px; padding: 0 8px; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; font: 400 12px/1.333 var(--font-sans); color: var(--color-text-quaternary); }
+  .ptab.on { background: var(--color-surface-4); color: var(--color-text); box-shadow: var(--shadow-3); }
+  .ptab i { width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--color-border-2); font: 400 8px/12px var(--font-mono); text-align: center; font-style: normal; }
+  .copybtn { margin-left: auto; width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--color-border-2); display: grid; place-items: center; color: var(--color-text-quaternary); }
+  .code { margin: 0; padding: 16px 12px; font: 400 12px/1.333 var(--font-mono); color: var(--color-ui-text-2); white-space: pre; overflow-x: auto; min-height: 300px; }
+  .code .n { display: inline-block; width: 28px; color: var(--color-ui-text-3); text-align: right; margin-right: 16px; user-select: none; }
+  .code .k { color: var(--color-ui-text-1); }
+  .code .s { color: #ffd99a; }
+  .code .c { color: var(--color-ui-text-5); }
+  .pfoot { display: flex; gap: 16px; padding: 12px 16px; border-top: 1px solid var(--color-border-2); font: 400 12px/1.333 var(--font-sans); color: var(--color-text-quaternary); }
+
+  /* 04 / 06 feature cards */
+  .cards2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+  .fcard { height: 526px; display: grid; grid-template-rows: 300px auto; overflow: hidden; }
+  .fcard .vis { position: relative; overflow: hidden; display: grid; place-items: center; }
+  .fcard .txt { padding: 24px 40px 32px; display: grid; gap: 8px; align-content: start; }
+  .fcard .txt svg { width: 18px; height: 18px; color: var(--color-text-tertiary); margin-bottom: 8px; }
+  .fcard h3 { margin: 0; }
+  .fcard p { margin: 0; max-width: 300px; }
+  .fcard .more { margin-top: 12px; font: 500 12px/1 var(--font-sans); color: var(--color-text); }
+  .sendbar { display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 8px; border-radius: 12px; border: 1px solid var(--color-border-2); background: var(--color-black-100); font: 400 12px/1.333 var(--font-sans); }
+  .sendbar .badge { height: 22px; }
+  .sendbar .btn { margin-left: 32px; height: 26px; padding: 0 10px; border-radius: 9999px; border: 1px solid var(--color-border-2); display: inline-flex; align-items: center; gap: 6px; }
+  .reqs { position: absolute; left: 4px; right: 4px; bottom: 0; font: 400 14px/1.429 var(--font-mono); color: var(--color-ui-text-1); white-space: nowrap; -webkit-mask-image: linear-gradient(rgb(0, 0, 0) 60%, rgba(0, 0, 0, 0)); mask-image: linear-gradient(rgb(0, 0, 0) 60%, rgba(0, 0, 0, 0)); }
+  .reqs b { font-weight: 400; color: var(--color-ui-text-2); }
+  .timeline { position: absolute; inset: 32px 24px 0 24px; display: grid; gap: 16px; align-content: start; font: 400 11px/1.333 var(--font-sans); color: var(--color-ui-text-1); -webkit-mask-image: linear-gradient(rgb(0, 0, 0) 60%, rgba(0, 0, 0, 0)); mask-image: linear-gradient(rgb(0, 0, 0) 60%, rgba(0, 0, 0, 0)); }
+  .ev { display: grid; grid-template-columns: 32px 1fr; gap: 16px; }
+  .ev .dot { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--color-border-2); display: grid; place-items: center; }
+  .ev .meta { display: flex; gap: 16px; align-items: center; margin-bottom: 10px; }
+  .ev .tag { height: 22px; padding: 0 8px; border-radius: 6px; display: inline-flex; align-items: center; font: 500 11px/1 var(--font-sans); }
+  .ev .line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .ev .pill { padding: 2px 6px; border-radius: 6px; border: 1px solid var(--color-border-2); background: var(--color-black-100); color: var(--color-ui-text-2); }
+
+  /* 05 configurator */
+  .editor { position: relative; max-width: 1109px; margin: 64px auto 0; height: 600px; border: 1px solid var(--color-border-2); border-radius: 16px; background: linear-gradient(rgba(80, 80, 80, 0.15) 0%, rgba(0, 0, 0, 0) 70%); -webkit-mask-image: linear-gradient(rgb(0, 0, 0) 40%, rgba(0, 0, 0, 0) 100%); mask-image: linear-gradient(rgb(0, 0, 0) 40%, rgba(0, 0, 0, 0) 100%); overflow: hidden; }
+  .editor .bar { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--color-border-2); font: 400 12px/1.333 var(--font-sans); color: var(--color-text-quaternary); }
+  .editor .bar .mid { margin: 0 auto; }
+  .ebtn { height: 26px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--color-border-2); display: inline-flex; align-items: center; gap: 6px; font: 400 12px/1 var(--font-sans); color: var(--color-text); }
+  .ebtn.white { background: var(--color-surface-2); color: var(--color-background); border-color: var(--color-surface-2); }
+  .doc { width: 664px; max-width: calc(100% - 32px); margin: 28px auto 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--color-border-2); background: var(--color-background); }
+  .doc .f { display: grid; grid-template-columns: 90px 1fr; align-items: center; height: 45px; padding: 0 20px; border-bottom: 1px solid var(--color-border-2); font: 400 12px/1.333 var(--font-sans); color: var(--color-ui-text-5); }
+  .doc .f b { font-weight: 400; color: var(--color-ui-text-2); }
+  .doc .f .badge-6 { height: 24px; font-size: 12px; justify-self: start; }
+  .doc .art { height: 214px; display: block; width: 100%; }
+  .doc .blank { height: 280px; background: var(--color-surface-2); padding: 20px 40px; font: 400 12px/1.333 var(--font-sans); color: var(--color-gray-600); }
+
+  /* 06 club + analytics visuals */
+  .club { position: absolute; left: 48px; top: 48px; right: -40px; padding: 24px; border-radius: 16px; border: 1px solid var(--color-border-2); background: var(--color-black-100); -webkit-mask-image: linear-gradient(45deg, rgb(0, 0, 0) 50%, rgba(0, 0, 0, 0) 100%); mask-image: linear-gradient(45deg, rgb(0, 0, 0) 50%, rgba(0, 0, 0, 0) 100%); }
+  .club .top { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; }
+  .club .av { width: 52px; height: 52px; border-radius: 12px; display: grid; place-items: center; background: var(--color-green-200); color: var(--color-ui-status-4); box-shadow: var(--shadow-3); }
+  .club .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; font: 400 10px/1.333 var(--font-sans); color: var(--color-ui-text-5); text-transform: uppercase; letter-spacing: 0.04em; }
+  .club .grid4 b { display: block; margin-top: 10px; font: 400 13px/1 var(--font-sans); color: var(--color-ui-text-2); text-transform: none; letter-spacing: 0; }
+  .stat { position: absolute; top: 44px; width: 214px; padding: 18px; border-radius: 16px; border: 1px solid var(--color-border-2); background: var(--color-black-100); overflow: hidden; -webkit-mask-image: linear-gradient(45deg, rgb(0, 0, 0) 50%, rgba(0, 0, 0, 0) 100%); mask-image: linear-gradient(45deg, rgb(0, 0, 0) 50%, rgba(0, 0, 0, 0) 100%); }
+  .stat .k { font: 400 10px/1.333 var(--font-sans); color: var(--color-ui-text-5); text-transform: uppercase; letter-spacing: 0.04em; }
+  .stat .v { font: 400 24px/1.4 var(--font-sans); color: var(--color-ui-text-2); margin: 10px 0 14px; }
+  .stat .r { display: flex; align-items: center; gap: 8px; font: 400 12px/2.4 var(--font-sans); color: var(--color-ui-text-4); }
+  .stat .r span:last-child { margin-left: auto; color: var(--color-ui-text-5); }
+  .stat .glow { position: absolute; right: -30px; top: -10px; width: 170px; height: 170px; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--color-green-700) 55%, transparent), transparent); filter: blur(10px); }
+  .d { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+
+  /* 07 fit file window */
+  .win { max-width: 1232px; margin: 64px auto 0; height: 466px; border: 1px solid var(--color-border-2); border-radius: 16px; overflow: hidden; display: grid; grid-template-rows: 32px 1fr; background: var(--color-background); }
+  .win .tb { display: flex; align-items: center; gap: 6px; padding: 0 12px; border-bottom: 1px solid var(--color-border-2); }
+  .win .tb i { width: 8px; height: 8px; border-radius: 50%; }
+  .win .tb .tools { margin-left: auto; display: flex; gap: 6px; }
+  .win .tb .tools span { width: 22px; height: 20px; border-radius: 6px; border: 1px solid var(--color-border-2); }
+  .win .body { display: grid; grid-template-columns: 200px 1fr 1fr; min-height: 0; }
+  .files { border-right: 1px solid var(--color-border-2); padding: 12px 8px; display: grid; gap: 4px; align-content: start; }
+  .files a { display: flex; align-items: center; gap: 8px; height: 28px; padding: 0 8px; border-radius: 6px; font: 400 12px/1.333 var(--font-sans); color: var(--color-ui-text-1); }
+  .files a.on { color: var(--color-accent); }
+  .files a i { font: 400 8px/12px var(--font-mono); font-style: normal; width: 14px; height: 12px; border-radius: 4px; background: var(--color-indigo-200); color: var(--color-ui-status-5); text-align: center; }
+  .win .code { min-height: 0; overflow: hidden; }
+  .preview { position: relative; display: grid; justify-items: center; align-content: start; padding: 40px 40px 0; overflow: hidden; background: radial-gradient(60% 40% at 60% 0%, color-mix(in srgb, var(--color-indigo-600) 12%, transparent), transparent); }
+  .preview .orb { width: 56px; height: 56px; border-radius: 50%; background: radial-gradient(circle at 50% 50%, var(--color-surface-2) 0 12%, color-mix(in srgb, var(--color-indigo-600) 60%, var(--color-surface-2)) 13% 30%, var(--color-indigo-600) 31% 100%); box-shadow: 0 0 40px color-mix(in srgb, var(--color-indigo-600) 50%, transparent); margin-bottom: 28px; }
+  .preview h4 { margin: 0 0 22px; font: 400 18px/1.4 var(--font-sans); }
+  .preview p { margin: 0 0 14px; justify-self: stretch; font: 400 12px/1.333 var(--font-sans); color: var(--color-ui-text-2); }
+  .preview .cta { margin: 6px 0 22px; height: 30px; padding: 0 16px; border-radius: 4px; background: var(--color-indigo-600); color: var(--color-surface-2); font: 600 11px/30px var(--font-sans); }
+
+  /* 08 nine features */
+  .nine { display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 48px; row-gap: 56px; margin-top: 48px; }
+  .nine div { display: grid; gap: 8px; align-content: start; }
+  .nine svg { width: 18px; height: 18px; margin-bottom: 4px; color: var(--color-text); }
+  .nine h3 { margin: 0; }
+  .nine p { margin: 0; }
+  .nine u { text-decoration-color: var(--color-text-tertiary); }
+
+  /* 09 quote */
+  .quote { padding: 96px 0; display: grid; justify-items: center; gap: 32px; text-align: center; position: relative; }
+  .quote::before { content: ""; position: absolute; top: 0; left: 50%; width: 320px; height: 1px; margin-left: -160px; background: linear-gradient(90deg, transparent, var(--color-border), transparent); }
+  .quote .mark { width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 50% 30%, #1a1a1c, #050505); box-shadow: var(--shadow-5); }
+  .quote blockquote { margin: 0; max-width: 495px; }
+  .who { display: flex; align-items: center; gap: 12px; text-align: left; }
+  .who .ph { width: 32px; height: 32px; border-radius: 9999px; background: linear-gradient(135deg, #39393f, #111); box-shadow: var(--shadow-3); display: grid; place-items: center; font: 600 11px/1 var(--font-sans); }
+  .who b { display: block; font: 400 14px/1.429 var(--font-sans); }
+  .who span { font: 400 12px/1.333 var(--font-sans); color: var(--color-text-tertiary); }
+
+  /* 10 dashboard */
+  .tabs3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 48px; }
+  .tab3 { height: 58px; display: flex; align-items: center; gap: 12px; padding: 0 16px; border-radius: 16px; border: 1px solid var(--color-border-2); background: linear-gradient(rgba(80, 80, 80, 0.15) 0%, rgba(0, 0, 0, 0) 70%); font: 400 14px/1.429 var(--font-sans); letter-spacing: -0.02em; }
+  .tab3.on { border-color: color-mix(in srgb, var(--color-green-700) 45%, transparent); }
+  .tab3 .ib { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; border: 1px solid var(--color-border-2); }
+  .dash { margin-top: 20px; height: 659px; border: 1px solid var(--color-border-2); border-radius: 16px; overflow: hidden; display: grid; grid-template-columns: 200px 1fr; background: var(--color-black-100); }
+  .side { border-right: 1px solid var(--color-border-2); padding: 12px; display: flex; flex-direction: column; gap: 4px; font: 400 12px/1.333 var(--font-sans); color: var(--color-ui-text-5); }
+  .side .acct { display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 6px; color: var(--color-ui-text-2); margin-bottom: 12px; }
+  .side .acct em { font-style: normal; font-size: 10px; padding: 1px 6px; border-radius: 9999px; background: var(--color-surface-4); color: var(--color-ui-text-1); }
+  .side a { display: flex; align-items: center; gap: 10px; height: 28px; padding: 0 8px; border-radius: 6px; }
+  .side a svg { width: 14px; height: 14px; }
+  .side a.on { background: var(--color-surface-4); color: var(--color-ui-text-2); }
+  .side .me { margin-top: auto; display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 6px; }
+  .main { padding: 16px 28px; overflow: hidden; }
+  .main .top { display: flex; justify-content: flex-end; gap: 16px; font: 400 12px/1.333 var(--font-sans); color: var(--color-ui-text-5); }
+  .main h4 { margin: 4px 0 24px; font: 500 16px/1.5 var(--font-sans); color: var(--color-ui-text-2); }
+  .mcards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+  .mcard { padding: 16px; border-radius: 16px; border: 1px solid var(--color-border-2); }
+  .mcard .k, .chartc .k { font: 400 10px/1.333 var(--font-sans); color: var(--color-ui-text-5); text-transform: uppercase; letter-spacing: 0.04em; }
+  .mcard .v { font: 400 20px/1.4 var(--font-sans); color: var(--color-ui-text-2); margin: 6px 0 22px; }
+  .mcard .r { display: flex; align-items: center; gap: 8px; height: 32px; border-top: 1px solid var(--color-border-2); font: 400 11px/1 var(--font-sans); color: var(--color-ui-text-4); }
+  .mcard .r span:nth-last-child(2) { margin-left: auto; color: var(--color-ui-text-3); }
+  .mcard .r span:last-child { width: 44px; text-align: right; color: var(--color-ui-text-2); }
+  .chartc { padding: 16px; border-radius: 16px; border: 1px solid var(--color-border-2); height: 230px; }
+  .chartc .v { font: 400 20px/1.4 var(--font-sans); color: var(--color-ui-text-2); margin-top: 6px; }
+  .chartc svg { width: 100%; height: 150px; }
+
+  /* 11 testimonials marquee: three copies of the row drift left at ~27px/s */
+  .marq { overflow: hidden; margin-top: 64px; -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+  .track { display: flex; width: max-content; animation: marquee var(--dur, 177s) linear infinite; }
+  .track ul { display: flex; gap: 40px; padding: 0 20px; margin: 0; list-style: none; flex-shrink: 0; }
+  .track li { width: 450px; height: 219px; box-sizing: border-box; padding: 24px; display: grid; align-content: space-between; }
+  .track li p { margin: 0; }
+  @keyframes marquee { to { transform: translateX(calc(-100% / 3)); } }
+
+  /* 12 CTA */
+  .cta { padding: 96px 0 192px; display: grid; justify-items: center; gap: 32px; text-align: center; }
+  .cta h2 { margin: 0; }
+
+  /* 13 footer */
+  .ftr { position: relative; padding: 96px 0; border-top: 1px solid var(--color-surface-3); background: var(--color-background); }
+  .ftr::before { content: ""; position: absolute; left: 0; right: 0; top: -100px; height: 100px; background: linear-gradient(transparent, rgb(255 255 255 / 0.025)); pointer-events: none; }
+  .ftr .container { display: grid; grid-template-columns: 1.6fr repeat(5, 1fr); gap: 24px; }
+  .ftr .addr { font: 400 12px/1.333 var(--font-mono); color: var(--color-text-quaternary); display: grid; gap: 28px; align-content: start; }
+  .ftr .soc { display: flex; gap: 16px; }
+  .ftr .soc span { width: 32px; height: 32px; border-radius: 9999px; display: grid; place-items: center; border: 1px solid var(--color-surface-3); color: var(--color-text-quaternary); font: 600 11px/1 var(--font-sans); }
+  .ftr .ok { justify-self: start; display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 12px; border-radius: 9999px; background: var(--color-surface-4); font: 400 12px/1 var(--font-sans); color: var(--color-text); }
+  .ftr h6 { margin: 0 0 20px; font: 500 14px/1.429 var(--font-sans); color: var(--color-text); }
+  .ftr nav a { display: block; margin-bottom: 14px; font: 400 14px/1.429 var(--font-sans); color: var(--color-text-quaternary); transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1); }
+  .ftr nav a:hover { color: var(--color-text); }
+
+  @media (max-width: 1000px) {
+    .navl { display: none; }
+    .cards2, .nine, .tabs3, .mcards { grid-template-columns: 1fr; }
+    .logos .row { grid-template-columns: repeat(3, 1fr); row-gap: 32px; }
+    .win .body { grid-template-columns: 1fr; } .files, .win .code { display: none; }
+    .dash { grid-template-columns: 1fr; height: auto; } .side { display: none; }
+    .ftr .container { grid-template-columns: 1fr 1fr; }
+    .hero .art.a { object-position: 70% 0; opacity: 0.45; }
+  }
+  @media (prefers-reduced-motion: reduce) { .track { animation: none; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="logo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.4" fill="currentColor"/><path d="M12 2.5v7M12 14.5v7M2.5 12h7M14.5 12h7M5.3 5.3l5 5M13.7 13.7l5 5M18.7 5.3l-5 5M10.3 13.7l-5 5" stroke="currentColor" stroke-width="1.3"/></symbol>
+  <symbol id="i-road" viewBox="0 0 20 20"><circle cx="5" cy="13" r="3.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="15" cy="13" r="3.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5 13l4-6h5l1 6M9 7l2 6M12 5h3" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 20 20"><path d="M11 2L4 11h5l-1 7 7-9h-5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="i-box" viewBox="0 0 20 20"><path d="M3 6l7-3 7 3v8l-7 3-7-3zM3 6l7 3 7-3M10 9v8" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-mtn" viewBox="0 0 20 20"><path d="M2 16l5-8 3 4 2-3 6 7z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="i-city" viewBox="0 0 20 20"><path d="M3 17V7h5v10M8 17V3h6v14M14 17v-7h3v7M2 17h16" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-kid" viewBox="0 0 20 20"><circle cx="10" cy="5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5 18l2-7h6l2 7M7 11l-2-2M13 11l2-2" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-track" viewBox="0 0 20 20"><ellipse cx="10" cy="10" rx="8" ry="5" fill="none" stroke="currentColor" stroke-width="1.4"/><ellipse cx="10" cy="10" rx="4" ry="2" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-fold" viewBox="0 0 20 20"><circle cx="6" cy="14" r="3" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="14" cy="14" r="3" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M6 14l4-8 4 8M8 4h4" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-tour" viewBox="0 0 20 20"><path d="M4 4h12v9H4zM7 13v4M13 13v4M4 8h12" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 20 20"><path d="M8 2h4M9 2v5l-5 9h12l-5-9V2" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-hook" viewBox="0 0 20 20"><circle cx="6" cy="14" r="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="14" cy="14" r="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="10" cy="5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M9 7l-2 5M11 7l2 5M8.5 14h3" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-users" viewBox="0 0 20 20"><circle cx="7" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="14" cy="8" r="2.4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2 17c0-3 2.5-5 5-5s5 2 5 5M12 13c3 0 6 1.5 6 4" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 20 20"><path d="M3 3v14h14M6 13l3-4 3 2 5-6" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-ban" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5 5l10 10" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 20 20"><path d="M3 11l2-7h10l2 7v5H3zM3 11h4l1 2h4l1-2h4" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-bulb" viewBox="0 0 20 20"><path d="M7 14h6M8 17h4M10 3a5 5 0 0 0-3 9v2h6v-2a5 5 0 0 0-3-9z" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3 10h14M10 3c2 2 3 4.5 3 7s-1 5-3 7c-2-2-3-4.5-3-7s1-5 3-7z" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-hand" viewBox="0 0 20 20"><path d="M6 10V5a1.2 1.2 0 0 1 2.4 0v4M8.4 9V3.5a1.2 1.2 0 0 1 2.4 0V9M10.8 9V4.5a1.2 1.2 0 0 1 2.4 0V10M13.2 10V7a1.2 1.2 0 0 1 2.4 0v5c0 3-2 5-5 5H9c-2 0-3-1-4-2l-2-3 1-1 2 1" fill="none" stroke="currentColor" stroke-width="1.3"/></symbol>
+  <symbol id="i-server" viewBox="0 0 20 20"><rect x="3" y="3" width="14" height="6" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="3" y="11" width="14" height="6" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M6 6h1M6 14h1" stroke="currentColor" stroke-width="1.6"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 20 20"><path d="M10 2l6 3v5c0 4-3 7-6 8-3-1-6-4-6-8V5z" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 20 20"><rect x="4" y="9" width="12" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M7 9V6a3 3 0 0 1 6 0v3" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 16 16"><rect x="5" y="5" width="8" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M3 10V3h7" fill="none" stroke="currentColor" stroke-width="1.2"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M8 4.5V8l2.5 1.5" fill="none" stroke="currentColor" stroke-width="1.2"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 16 16"><path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 16 16"><path d="M8 14s5-4.5 5-8.2A5 5 0 0 0 3 5.8C3 9.5 8 14 8 14z" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="6" r="1.8" fill="none" stroke="currentColor" stroke-width="1.2"/></symbol>
+  <symbol id="i-wrench" viewBox="0 0 16 16"><path d="M10.5 2a3.5 3.5 0 0 0-3.2 4.9L2.5 11.7l1.8 1.8 4.8-4.8A3.5 3.5 0 0 0 14 5.5l-2 2-1.8-.2-.2-1.8 2-2c-.5-.3-1-.5-1.5-.5z" fill="none" stroke="currentColor" stroke-width="1.2"/></symbol>
+</svg>
+
+<header class="hdr" data-reveal="reveal-fade-down-22">
+  <div class="container">
+    <a class="brand" href="#"><svg width="22" height="22"><use href="#logo"/></svg>Spoke</a>
+    <nav class="navl"><a class="link-2" href="#" data-menu="bikes">Bikes</a><a class="link-2" href="#" data-menu="workshop">Workshop</a><a class="link-2" href="#">Rides</a><a class="link-2" href="#">Help</a><a class="link-2" href="#">Journal</a><a class="link-2" href="#">Pricing</a></nav>
+    <a class="button-outline-2" href="#">Log in</a>
+    <div class="menu" id="menu" aria-hidden="true"><div class="menu-in" id="menu-in"></div></div>
+    <a class="button-secondary" href="#">Get started</a>
+  </div>
+</header>
+
+<main>
+  <!-- 01 hero + visual -->
+  <section class="hero">
+    <img class="art a" src="media/hero.jpg" alt="" width="1440" height="900">
+    <div class="container">
+      <div class="copy">
+        <a class="button-outline-3" href="#" data-intro="intro-fade-up-3">What you missed at Spoke Ride Day <svg width="12" height="12"><use href="#i-chev"/></svg></a>
+        <h1 class="text-h1" data-intro="intro-fade-up-3">Bikes for real roads</h1>
+        <p class="text-body muted" data-intro="intro-fade-up-3" style="font-size:16px;line-height:1.5">The best way to ride further instead of fixing more. Built, fitted and serviced for commuters, clubs and long weekends.</p>
+        <div class="ctas" data-intro="intro-fade-up-3"><a class="button-secondary" href="#">Get started</a><a class="button-outline-2" href="#">Find a dealer</a></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 logo strip -->
+  <section class="container frame-top">
+    <div class="logos">
+      <p class="text-body muted center" style="margin:0;font-size:16px;line-height:1.5">Riders and shops of all sizes trust Spoke<br>to keep their most important miles rolling.</p>
+      <div class="rows" data-reveal="reveal-fade-20">
+        <div class="row">
+          <span class="wm caps"><svg><use href="#i-mtn"/></svg>Ridgeline</span><span class="wm serif">Velodrome&nbsp;Co.</span><span class="wm"><svg><use href="#i-road"/></svg>Gravel Union</span><span class="wm mono">NORTH<br>PEAK_</span><span class="wm"><svg><use href="#i-track"/></svg>cadence</span><span class="wm">ferro</span>
+        </div>
+        <div class="row">
+          <span class="wm" style="font-size:22px;letter-spacing:-0.05em">SWITCHBACK</span><span class="wm caps">Kilo</span><span class="wm"><svg><use href="#i-bolt"/></svg>halfwheel</span><span class="wm serif">Tarmac Club</span><span class="wm"><svg><use href="#i-hook"/></svg>Spindle</span><span class="wm mono">rouleur</span>
+        </div>
+      </div>
+      <a class="link-2" data-reveal="subtle" href="#" style="display:inline-flex;align-items:center;gap:4px">Explore fleets <svg width="12" height="12"><use href="#i-chev"/></svg></a>
+    </div>
+  </section>
+
+  <!-- 03 product UI showcase: models + spec -->
+  <section class="sec container">
+    <div class="head">
+      <video class="tile" src="media/wheel.mp4" poster="media/wheel.jpg" autoplay loop muted playsinline aria-hidden="true"></video>
+      <h2 class="text-h2">Ride <span class="warm">this morning</span></h2>
+      <p class="text-body muted" style="font-size:16px;line-height:1.5">A simple, honest range so you can start riding in minutes. Every bike fits your body and your roads, with a spec sheet you can actually read.</p>
+    </div>
+    <div class="chips" id="models"></div>
+    <div class="panel" data-reveal="reveal-fade-24">
+      <div class="ptabs" id="sizes"></div>
+      <pre class="code" id="spec"></pre>
+      <div class="pfoot"><span>View geometry</span><span>Download spec PDF</span></div>
+    </div>
+  </section>
+
+  <!-- 04 card row -->
+  <section class="sec container">
+    <div class="lhead">
+      <h2 class="text-h2 grad">First-class<br>rider experience</h2>
+      <p class="text-body muted" style="font-size:16px;line-height:1.5">We are a team of mechanics who love building bikes for other riders. Our goal is to make the bike we always wished we had — one that <em>just rolls</em>.</p>
+    </div>
+    <div class="cards2">
+      <article class="card fcard" data-reveal="reveal-fade-20">
+        <div class="vis">
+          <div class="sendbar" style="margin-top:-60px"><span class="badge">Booked</span>saturday@spoke.bike <svg width="10" height="10"><use href="#i-chev"/></svg><span class="btn"><svg width="12" height="12"><use href="#i-pin"/></svg>Book</span></div>
+          <div class="reqs" id="rides"></div>
+        </div>
+        <div class="txt"><svg><use href="#i-flask"/></svg><h3 class="text-title-medium">Test ride mode</h3><p class="text-body muted">Book a ride on any bike in the range and try it on your own commute, with nothing to pay until you keep it.</p><a class="more" href="#">Learn more</a></div>
+      </article>
+      <article class="card fcard" data-reveal="reveal-fade-20" style="--i:1">
+        <div class="vis">
+          <div class="timeline">
+            <div class="ev"><span class="dot" style="color:var(--color-ui-status-3)"><svg width="14" height="14"><use href="#i-wrench"/></svg></span><div>
+              <div class="meta"><span class="tag" style="background:var(--color-amber-400);color:#ffd99a">Flagged</span><span><svg width="11" height="11" style="vertical-align:-2px"><use href="#i-clock"/></svg> Oct 29 07:41:12</span></div>
+              <div class="line">on <span class="pill">Rear brake pad</span> wear <span class="pill">0.9 mm</span></div>
+              <div class="line">bike <span class="pill">Spoke Gravel 54</span> rider <span class="pill">ana@ridgeline.cc</span></div></div></div>
+            <div class="ev"><span class="dot" style="color:var(--color-ui-status-5)"><svg width="14" height="14"><use href="#i-pin"/></svg></span><div>
+              <div class="meta"><span class="tag" style="background:var(--color-indigo-200);color:var(--color-ui-status-5)">Serviced</span><span><svg width="11" height="11" style="vertical-align:-2px"><use href="#i-clock"/></svg> Oct 29 11:02:47</span></div>
+              <div class="line">at <span class="pill">Spoke Works, Leeds</span> in <span class="pill">38 min</span></div>
+              <div class="line">parts <span class="pill">2 pads</span> <span class="pill">1 cable</span></div></div></div>
+          </div>
+        </div>
+        <div class="txt"><svg><use href="#i-hook"/></svg><h3 class="text-title-medium">Service alerts</h3><p class="text-body muted">Get told before something wears out. Every time a part is flagged, booked, serviced or replaced, your bike knows.</p><a class="more" href="#">Learn more</a></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- 05 product UI showcase: configurator -->
+  <section class="sec container">
+    <div class="head">
+      <video class="tile" src="media/cassette.mp4" poster="media/cassette.jpg" autoplay loop muted playsinline aria-hidden="true"></video>
+      <h2 class="text-h2 grad">Build using a delightful configurator</h2>
+      <p class="text-body muted" style="font-size:16px;line-height:1.5">A modern builder that makes it easy for anyone to choose a frame, a size and the parts.<br>Visually build your bike and change every detail as you go.</p>
+    </div>
+    <div class="editor" data-reveal="reveal-fade-24">
+      <div class="bar"><span class="ebtn"><svg width="12" height="12"><use href="#i-wrench"/></svg>Parts</span><span class="mid">Weekend Gravel Build</span><span><svg width="11" height="11" style="vertical-align:-2px"><use href="#i-clock"/></svg> a day ago</span><span class="ebtn">Test</span><span class="ebtn white">Order</span></div>
+      <div class="doc">
+        <div class="f"><span>Frame</span><b>Spoke Gravel, 54 cm, matte graphite</b></div>
+        <div class="f"><span>Rider</span><span class="badge-6"><svg width="12" height="12"><use href="#i-users"/></svg>Saturday club</span></div>
+        <div class="f"><span>Groupset</span><b>1×12, 40T, 10–51 cassette</b></div>
+        <canvas class="art" id="build" width="664" height="214" aria-label="The build in profile"></canvas>
+        <div class="blank">Press '/' for parts</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 card row -->
+  <section class="sec container">
+    <div class="lhead">
+      <h2 class="text-h2 grad">Go beyond riding</h2>
+      <p class="text-body muted" style="font-size:16px;line-height:1.5">Group and look after your club in a simple and intuitive way.<br>Straightforward ride analytics that will help you ride better miles.</p>
+    </div>
+    <div class="cards2">
+      <article class="card fcard" data-reveal="reveal-fade-20">
+        <div class="vis">
+          <div class="club">
+            <div class="top"><span class="av"><svg width="22" height="22"><use href="#i-users"/></svg></span><div><div class="text-small-regular muted">Club</div><div class="text-title-lg">Saturday club riders <svg width="12" height="12" style="transform:rotate(90deg)"><use href="#i-chev"/></svg></div></div></div>
+            <div class="grid4"><span>All riders<b>1,034</b></span><span>Away<b>5</b></span><span>Distance<b><svg width="56" height="14" viewBox="0 0 56 14"><path d="M0 14L56 0V14z" fill="var(--color-green-700)" opacity=".7"/></svg></b></span><span>Club ID<b>sp_9a1</b></span></div>
+          </div>
+        </div>
+        <div class="txt"><svg><use href="#i-users"/></svg><h3 class="text-title-medium">Club management</h3><p class="text-body muted">Bring your club over in minutes, regardless of its size. See every rider, their bikes and the rides they joined.</p><a class="more" href="#">Learn more</a></div>
+      </article>
+      <article class="card fcard" data-reveal="reveal-fade-20" style="--i:1">
+        <div class="vis">
+          <div class="stat" style="left:40px"><span class="glow"></span><div class="k">Completion</div><div class="v">98%</div>
+            <div class="r"><span class="d" style="background:var(--color-ui-status-4)"></span>Finished<span>3,204</span></div>
+            <div class="r"><span class="d" style="background:var(--color-ui-status-2)"></span>Punctured<span>60</span></div></div>
+          <div class="stat" style="left:270px"><div class="k">Effort</div><div class="v">41%</div>
+            <div class="r"><span class="d" style="background:var(--color-ui-status-5)"></span>Zone 2<span>1,311</span></div>
+            <div class="r"><span class="d" style="background:var(--color-accent)"></span>Zone 4<span>402</span></div></div>
+        </div>
+        <div class="txt"><svg><use href="#i-chart"/></svg><h3 class="text-title-medium">Ride analytics</h3><p class="text-body muted">Unlock honest insight into how your club rides: who finishes, who flats, and where the effort really goes.</p><a class="more" href="#">Learn more</a></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- 07 product UI showcase: fit files -->
+  <section class="sec container">
+    <div class="head">
+      <video class="tile" src="media/crank.mp4" poster="media/crank.jpg" autoplay loop muted playsinline aria-hidden="true"></video>
+      <h2 class="text-h2 grad">Tune your fit using code</h2>
+      <p class="text-body muted" style="font-size:16px;line-height:1.5">Write a fit once and get the same bike in every size, without guessing at stack and reach.<br>Powered by fitkit, our open source geometry library.</p>
+      <div class="ctas" style="margin-top:8px"><a class="button-secondary" href="#">Get started <svg width="12" height="12"><use href="#i-chev"/></svg></a><a class="button-outline-2" data-reveal="subtle" href="#">Check the docs <svg width="12" height="12"><use href="#i-chev"/></svg></a></div>
+    </div>
+    <div class="win" data-reveal="reveal-fade-24">
+      <div class="tb"><i style="background:var(--color-ui-status-2)"></i><i style="background:var(--color-ui-status-3)"></i><i style="background:var(--color-ui-status-4)"></i><span class="tools"><span></span><span></span><span></span><span></span></span></div>
+      <div class="body">
+        <div class="files"><a class="on" href="#"><i>TS</i>commuter-fit.tsx</a><a href="#"><i>TS</i>gravel-fit.tsx</a><a href="#"><i>TS</i>kids-fit.tsx</a><a href="#"><i>TS</i>weekly-service.tsx</a></div>
+        <pre class="code" id="fitcode"></pre>
+        <div class="preview"><span class="orb"></span><h4>Your fit is ready, <b>Ana</b>!</h4>
+          <p>Hello Ana,</p><p>Your commuter is set for a 54 cm frame: saddle height 72.5 cm, reach 38.4 cm and a 90 mm stem. We will set it up exactly like this before it leaves the workshop.</p>
+          <span class="cta">Book a fitting</span><p style="margin:0">Ride well,<br>The Spoke workshop</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 08 nine features -->
+  <section class="sec container frame-top">
+    <h2 class="text-h2 grad" style="margin:0;max-width:448px">Reach summits, not repair shops</h2>
+    <div class="nine">
+      <div data-reveal="reveal-fade-18" style="--i:0"><svg><use href="#i-ban"/></svg><h3 class="text-title-medium">Proactive wear tracking</h3><p class="text-body muted">Be the first to know when a chain, pad or tyre is near its limit, from <u>ride data</u> and your <u>service log</u>.</p></div>
+      <div data-reveal="reveal-fade-18" style="--i:1"><svg><use href="#i-inbox"/></svg><h3 class="text-title-medium">Faster time to saddle</h3><p class="text-body muted">Ships from the workshop closest to you, with depots across the north, the south, Scotland and Wales.</p></div>
+      <div data-reveal="reveal-fade-18" style="--i:2"><svg><use href="#i-bulb"/></svg><h3 class="text-title-medium">Build confidence with fit</h3><p class="text-body muted">Get a <u>professional fit</u> with every frame, and a <u>fit file</u> you can take to any shop.</p></div>
+      <div data-reveal="reveal-fade-18" style="--i:3"><svg><use href="#i-globe"/></svg><h3 class="text-title-medium">Managed spare parts</h3><p class="text-body muted">Get the right spares sent automatically, scaled to how far you ride, with no waiting period.</p></div>
+      <div data-reveal="reveal-fade-18" style="--i:4"><svg><use href="#i-hand"/></svg><h3 class="text-title-medium">Flat-free guarantee</h3><p class="text-body muted">Tubeless set-up on every wheel, sealant checks with each service, and a <u>roadside callout</u> if it fails.</p></div>
+      <div data-reveal="reveal-fade-18" style="--i:5"><svg><use href="#i-pin"/></svg><h3 class="text-title-medium">Route and weather alerts</h3><p class="text-body muted">Know about closures, flooding and wind on your usual routes before you clip in.</p></div>
+      <div data-reveal="reveal-fade-18" style="--i:6"><svg><use href="#i-server"/></svg><h3 class="text-title-medium">Verify every part</h3><p class="text-body muted">Each component is logged against your frame number, so a stolen bike is easy to <u>prove</u> and <u>trace</u>.</p></div>
+      <div data-reveal="reveal-fade-18" style="--i:7"><svg><use href="#i-shield"/></svg><h3 class="text-title-medium">Ride-tested frames</h3><p class="text-body muted">Every frame is fatigue-tested well past standard, and ridden by our own team before it ships.</p></div>
+      <div data-reveal="reveal-fade-18" style="--i:8"><svg><use href="#i-lock"/></svg><h3 class="text-title-medium">Theft-proof by design</h3><p class="text-body muted">Hidden <u>tracking</u> in the frame and a lock that talks to your phone, insured from day one.</p></div>
+    </div>
+  </section>
+
+  <!-- 09 quote -->
+  <section class="container quote">
+    <span class="mark"><svg width="30" height="30" style="color:var(--color-text)"><use href="#logo"/></svg></span>
+    <blockquote class="text-title-lg">Spoke is changing what owning a bike feels like. Simple to buy, easy to fit, serviced before it fails. What else could we ask for.</blockquote>
+    <div class="who"><span class="ph">MO</span><div><b>Maya Okafor</b><span>Head coach at Ridgeline CC</span></div></div>
+  </section>
+
+  <!-- 10 control: tabs + dashboard -->
+  <section class="sec container">
+    <div class="head">
+      <video class="tile" src="media/computer.mp4" poster="media/computer.jpg" autoplay loop muted playsinline aria-hidden="true"></video>
+      <h2 class="text-h2 grad">Everything in your control</h2>
+      <p class="text-body muted" style="font-size:16px;line-height:1.5">All the tools you need to manage your bikes, troubleshoot with detailed ride logs, and protect your kit – without the friction.</p>
+    </div>
+    <div class="tabs3"><span class="tab3 on"><span class="ib" style="color:var(--color-green-700)"><svg width="14" height="14"><use href="#i-chart"/></svg></span>Ride analytics</span><span class="tab3"><span class="ib"><svg width="14" height="14"><use href="#i-inbox"/></svg></span>Full service history</span><span class="tab3"><span class="ib"><svg width="14" height="14"><use href="#i-globe"/></svg></span>Theft protection</span></div>
+    <div class="dash" data-intro="intro-fade-5">
+      <aside class="side">
+        <div class="acct"><svg width="14" height="14"><use href="#logo"/></svg>Spoke <em>Club</em></div>
+        <a href="#"><svg><use href="#i-road"/></svg>Rides</a><a href="#"><svg><use href="#i-pin"/></svg>Routes</a><a href="#"><svg><use href="#i-users"/></svg>Riders</a><a class="on" href="#"><svg><use href="#i-chart"/></svg>Metrics</a><a href="#"><svg><use href="#i-globe"/></svg>Bikes</a><a href="#"><svg><use href="#i-wrench"/></svg>Service</a><a href="#"><svg><use href="#i-box"/></svg>Parts</a><a href="#"><svg><use href="#i-hook"/></svg>Shops</a><a href="#"><svg><use href="#i-lock"/></svg>Settings</a>
+        <div class="me"><span class="ph" style="width:20px;height:20px;border-radius:50%;background:var(--color-surface-4);display:grid;place-items:center;font-size:9px">A</span>ana@ridgeline.cc</div>
+      </aside>
+      <div class="main">
+        <div class="top"><span>Help</span><span>Docs</span><span class="ebtn" style="height:22px;font-size:11px">Feedback</span></div>
+        <h4>Metrics</h4>
+        <div class="mcards">
+          <div class="mcard"><div class="k">Reliability</div><div class="v">Good</div><div class="r"><span class="d" style="background:var(--color-ui-status-5)"></span>Rides<span>29,486</span><span>100%</span></div><div class="r"><span class="d" style="background:var(--color-ui-status-4)"></span>Finished<span>29,486</span><span>100%</span></div></div>
+          <div class="mcard"><div class="k">Wear</div><div class="v">Good</div><div class="r"><span class="d" style="background:var(--color-ui-status-2)"></span>Punctures<span>546</span><span>1.85%</span></div><div class="r"><span class="d" style="background:var(--color-ui-status-3)"></span>Mechanicals<span>2</span><span>0.01%</span></div></div>
+          <div class="mcard"><div class="k">Training</div><div class="v">Poor</div><div class="r"><span class="d" style="background:var(--color-accent)"></span>Intervals<span>0</span><span>0%</span></div><div class="r"><span class="d" style="background:var(--color-ui-text-5)"></span>Rest days<span>137</span><span>0.46%</span></div></div>
+        </div>
+        <div class="chartc"><div class="k">Distance ridden</div><div class="v">29,486 km</div><svg id="dist" viewBox="0 0 900 150" preserveAspectRatio="none"></svg></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 testimonials marquee -->
+  <section class="sec">
+    <div class="container head">
+      <h2 class="text-h2 grad">Beyond expectations</h2>
+      <p class="text-body muted" style="font-size:16px;line-height:1.5">Spoke is behind thousands of better rides for commuters, clubs and families, on every kind of road.</p>
+    </div>
+    <div class="marq"><div class="track" id="track"></div></div>
+  </section>
+
+  <!-- 12 call to action -->
+  <section class="container cta">
+    <h2 class="text-h1-regular grad">Cycling reimagined.<br>Available today.</h2>
+    <a class="button-secondary" href="#">Get started <svg width="12" height="12"><use href="#i-chev"/></svg></a>
+  </section>
+</main>
+
+<!-- 13 footer -->
+<footer class="ftr">
+  <div class="container">
+    <div class="addr"><span>14 Mill Yard, Unit 3<br>Leeds LS9 8DT</span><div class="soc"><span>X</span><span>GH</span><span>in</span><span>YT</span></div><span class="ok"><span class="d" data-intro="intro-tint-4" style="width:8px;height:8px;background:var(--color-green-700)"></span>All workshops open</span></div>
+    <nav><h6>Bikes</h6><a href="#">Road</a><a href="#">Gravel</a><a href="#">City</a><a href="#">Cargo</a><a href="#">E-bikes</a><a href="#">Kids</a><a href="#">Frames</a></nav>
+    <nav><h6>Resources</h6><a href="#">Changelog</a><a href="#">Pricing</a><a href="#">Fleets</a><a href="#">Safety</a><a href="#">Warranty</a><a href="#">Recalls</a><a href="#">Brand</a></nav>
+    <nav><h6>Company</h6><a href="#">About</a><a href="#">Journal</a><a href="#">Careers</a><a href="#">Clubs</a><a href="#">Riders</a><a href="#">Workshops</a></nav>
+    <nav><h6>Help</h6><a href="#">Support</a><a href="#">Status</a><a href="#">Returns</a><a href="#">Fitting guide</a><a href="#">Legal</a></nav>
+    <nav><h6>Community</h6><a href="#">Events</a><a href="#">Ride Day</a><a href="#">Open source</a><a href="#">Wallpapers</a></nav>
+  </div>
+</footer>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  // wordmarks are vector marks (as logo rows are): each label becomes an inline SVG at its measured size
+  document.fonts.ready.then(() => document.querySelectorAll('.wm').forEach((el) => {
+    const cs = getComputedStyle(el), w = Math.ceil(el.getBoundingClientRect().width) + 6, h = Math.max(24, Math.ceil(el.getBoundingClientRect().height));
+    const icon = el.querySelector('svg use')?.getAttribute('href');
+    const lines = el.innerText.split('\n').filter(Boolean), tx = icon ? 30 : 0, lh = parseFloat(cs.fontSize) * 1.1;
+    const y0 = h / 2 - ((lines.length - 1) * lh) / 2;
+    el.outerHTML = `<svg class="wm-svg" role="img" aria-label="${lines.join(' ')}" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="color:var(--color-text);opacity:.92">${icon ? `<use href="${icon}" x="0" y="${h / 2 - 11}" width="22" height="22"/>` : ''}<text fill="currentColor" font-family='${cs.fontFamily.replace(/'/g, '"')}' font-size="${cs.fontSize}" font-weight="${cs.fontWeight}" letter-spacing="${cs.letterSpacing === 'normal' ? 0 : cs.letterSpacing}" style="text-transform:${cs.textTransform}">${lines.map((l, i) => `<tspan x="${tx}" y="${y0 + i * lh}" dominant-baseline="central">${l}</tspan>`).join('')}</text></svg>`;
+  }));
+
+  // nav menus: one shared panel; its width follows the menu's content
+  const MENUS = {
+    bikes: { w: 677, items: [['i-road', 'Road', 'Fast, light, all-day'], ['i-mtn', 'Gravel', 'Off the tarmac'], ['i-city', 'City', 'Upright and simple'], ['i-box', 'Cargo', 'Kids and shopping'], ['i-bolt', 'E-bikes', 'Assist up to 25 km/h'], ['i-kid', 'Kids', '14 to 24 inch wheels'], ['i-fold', 'Folding', 'Train-friendly'], ['i-shield', 'Frames', 'Build your own']] },
+    workshop: { w: 482, items: [['i-wrench', 'Servicing', 'Book a slot'], ['i-bulb', 'Bike fit', 'Measured in person'], ['i-pin', 'Find a workshop', '42 across the UK'], ['i-inbox', 'Parts', 'Delivered next day']] },
+  };
+  const menu = $('menu'); let closeT;
+  const openMenu = (k) => { clearTimeout(closeT); const m = MENUS[k]; menu.style.width = m.w + 'px'; $('menu-in').innerHTML = m.items.map(([i, t, d]) => `<a href="#"><span class="mi"><svg><use href="#${i}"/></svg></span><b>${t}</b><span>${d}</span></a>`).join(''); menu.classList.add('open'); };
+  document.querySelectorAll('[data-menu]').forEach((a) => a.addEventListener('mouseenter', () => openMenu(a.dataset.menu)));
+  document.querySelectorAll('[data-menu], #menu').forEach((el) => el.addEventListener('mouseleave', () => { closeT = setTimeout(() => menu.classList.remove('open'), 120); }));
+  menu.addEventListener('mouseenter', () => clearTimeout(closeT));
+
+  // models (the source's SDK row): round icon chips, one selected
+  const models = [['Road', 'i-road'], ['E-bike', 'i-bolt'], ['Cargo', 'i-box'], ['Gravel', 'i-mtn'], ['City', 'i-city'], ['Kids', 'i-kid'], ['Track', 'i-track'], ['Folding', 'i-fold'], ['Touring', 'i-tour'], ['MTB', 'i-mtn'], ['Tandem', 'i-users'], ['Frames', 'i-shield'], ['Parts', 'i-wrench']];
+  $('models').innerHTML = models.map(([n, i], k) => `<a class="chipbtn${k ? '' : ' on'}" data-intro="intro-fade-1" href="#"><span class="ic"><svg><use href="#${i}"/></svg></span>${n}</a>`).join('');
+  $('sizes').innerHTML = ['48 cm', '50 cm', '52 cm', '54 cm', '56 cm', '58 cm', '60 cm', '62 cm'].map((s, k) => `<span class="ptab${k === 3 ? ' on' : ''}"><i>${s.slice(0, 2)}</i>${s}</span>`).join('') + '<span class="copybtn"><svg width="14" height="14"><use href="#i-copy"/></svg></span>';
+  const spec = [
+    ['c', '# spoke road 54 — the fit we ship'], [], ['k', 'model', 's', '"Spoke Road"'], ['k', 'size', 's', '54'], [],
+    ['k', 'geometry', '', ':'], ['k', '  stack', 's', '552 mm'], ['k', '  reach', 's', '384 mm'], ['k', '  head_angle', 's', '72.5°'], ['k', '  seat_angle', 's', '73.5°'], ['k', '  chainstay', 's', '410 mm'], [],
+    ['k', 'build', '', ':'], ['k', '  groupset', 's', '"2×12, 50/34, 11–30"'], ['k', '  wheels', 's', '"alloy, 28 mm tubeless"'], ['k', '  weight', 's', '8.4 kg'], [], ['c', '# fitted before it leaves the workshop'],
+  ];
+  $('spec').innerHTML = spec.map((l, i) => `<span class="n">${i + 1}</span>${!l.length ? '' : l[0] === 'c' ? `<span class="c">${l[1]}</span>` : `<span class="k">${l[1]}</span>${l[3] ? `: <span class="s">${l[3]}</span>` : l[2]}`}`).join('\n');
+
+  // ride log lines in the test-ride card
+  $('rides').innerHTML = ['f8ea1d0b-2a6c-4172', '3222b63d-6f71-463b', '8ccc9756-44b0-404b', 'dbdd04ea-c1cc-455d'].map((id) => `RIDE 200:  { <b>"id"</b>: <b>"${id}-b84e"</b> }`).join('<br>');
+
+  // fit file code
+  const fit = ['import { Bike, Fit, Frame, Saddle, Stem } from \'fitkit\';', 'import * as React from \'react\';', '', 'const CommuterFit = ({', '  rider = \'Ana\',', '  inseam = 82,', '}: FitProps) => {', '  const saddle = inseam * 0.884;', '', '  return (', '    <Bike>', '      <Frame size={54} />', '      <Saddle height={saddle} setback={4} />', '      <Stem length={90} angle={-6} />', '      <Fit', '        reach="38.4cm"', '        stack="55.2cm"', '        bars="40cm"', '      />', '    </Bike>', '  );', '};', '', 'export default CommuterFit;'];
+  $('fitcode').innerHTML = fit.map((l, i) => `<span class="n">${i + 1}</span><span class="${/^import|export|return|const/.test(l.trim()) ? 'k' : ''}">${l.replace(/</g, '&lt;').replace(/('[^']*'|"[^"]*")/g, '<span class="s">$1</span>')}</span>`).join('\n');
+
+  // the configurator's art strip: the build in profile, chrome on black
+  (function build() {
+    const c = $('build'), x = c.getContext('2d'), W = c.width, H = c.height;
+    const g = x.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#161616'); g.addColorStop(1, '#050505'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+    const metal = x.createLinearGradient(0, 0, 0, H); metal.addColorStop(0, '#5a5a5a'); metal.addColorStop(0.5, '#cfcfcf'); metal.addColorStop(1, '#3a3a3a');
+    x.lineCap = 'round';
+    const wheel = (cx) => { x.strokeStyle = '#2a2a2a'; x.lineWidth = 9; x.beginPath(); x.arc(cx, 140, 62, 0, 7); x.stroke(); x.strokeStyle = metal; x.lineWidth = 2; x.beginPath(); x.arc(cx, 140, 54, 0, 7); x.stroke(); x.lineWidth = 0.7; for (let i = 0; i < 24; i++) { const a = i / 24 * 6.283; x.beginPath(); x.moveTo(cx, 140); x.lineTo(cx + Math.cos(a) * 54, 140 + Math.sin(a) * 54); x.stroke(); } };
+    wheel(230); wheel(450);
+    x.strokeStyle = metal; x.lineWidth = 6;
+    x.beginPath(); x.moveTo(230, 140); x.lineTo(320, 140); x.lineTo(296, 66); x.lineTo(230, 140); x.moveTo(320, 140); x.lineTo(420, 74); x.lineTo(296, 66); x.moveTo(420, 74); x.lineTo(450, 140); x.moveTo(420, 74); x.lineTo(414, 52); x.lineTo(440, 50); x.moveTo(296, 66); x.lineTo(292, 50); x.stroke();
+    x.lineWidth = 8; x.beginPath(); x.moveTo(278, 48); x.lineTo(310, 48); x.stroke();
+    x.fillStyle = '#9a9a9a'; x.beginPath(); x.arc(320, 140, 14, 0, 7); x.fill();
+    const glow = x.createRadialGradient(560, 70, 0, 560, 70, 120); glow.addColorStop(0, 'rgba(255,255,255,.18)'); glow.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = glow; x.fillRect(0, 0, W, H);
+  })();
+
+  // distance chart
+  (function dist() { const pts = [62, 78, 66, 54, 60, 48, 56, 40, 52, 36, 44, 30, 70]; const step = 900 / (pts.length - 1); const d = pts.map((y, i) => `${i ? 'L' : 'M'}${(i * step).toFixed(1)} ${y}`).join(' ');
+    $('dist').innerHTML = `<path d="${d} L900 150 L0 150Z" fill="var(--color-green-200)" opacity=".5"/><path d="${d}" fill="none" stroke="var(--color-green-700)" stroke-width="1.5" vector-effect="non-scaling-stroke"/><path d="M0 110 H900" stroke="var(--color-border-2)" stroke-dasharray="3 4" vector-effect="non-scaling-stroke"/>`; })();
+
+  // testimonials: one row of quotes, three copies, drifting left at the measured ~27px/s
+  const quotes = [
+    ['We value bikes that feel stable and well thought out. Spoke meets those expectations. It lets our riders focus on the miles rather than the maintenance that comes with a big fleet.', 'Bradley Green', 'Fleet lead at Northpeak Couriers'],
+    ['Our partnership with Spoke has been a great experience. They have made sure we can focus on what we do best: coaching riders and racing on weekends.', 'Sahil Varma', 'Head coach at Gravel Union'],
+    ['Switching over to Spoke from our old supplier was a significant improvement. We started with a small test of five bikes; within a month the whole shop rode them.', 'Thomas Lind', 'Owner of Halfwheel Cycles'],
+    ['The fit file alone was worth it. I took it to three shops and every one set the bike up the same way.', 'Ines Duarte', 'Randonneur, 600 km brevets'],
+    ['Service alerts caught a worn chain two weeks before a stage race. That never happened with any other bike we owned.', 'Kofi Mensah', 'Director at Tarmac Club'],
+    ['Spoke made cargo bikes simple for our parents. Booking a test ride took a minute and the bike arrived fitted.', 'Lena Fischer', 'Founder of School Run Co.'],
+    ['Clean frames, honest specs and a workshop that answers the phone. It is the bike company I wanted for years.', 'Arjun Rao', 'Commuter, Leeds'],
+    ['We moved our club of 300 riders to Spoke in a weekend. The ride analytics changed how we plan the season.', 'Marta Sola', 'Chair of Rouleur CC'],
+    ['Tubeless as standard, and the roadside callout actually turns up. Our flats went from weekly to rare.', 'Owen Price', 'Ops at Kilo Delivery'],
+    ['The configurator is the best I have used. I changed the bars three times and the price updated every time.', 'Hana Sato', 'Triathlete'],
+  ];
+  const ul = '<ul>' + quotes.map(([q, n, r]) => `<li class="card"><p class="text-body muted">“${q}”</p><div class="who"><span class="ph">${n.split(' ').map((w) => w[0]).join('')}</span><div><b>${n}</b><span>${r}</span></div></div></li>`).join('') + '</ul>';
+  $('track').innerHTML = ul + ul + ul;
+  const setDur = () => { const w = $('track').scrollWidth / 3; $('track').style.setProperty('--dur', (w / 27).toFixed(1) + 's'); };
+  setDur(); addEventListener('resize', setDur);
+</script>
+<script type="module" src="assets/motion.js"></script>
+</body>
+</html>

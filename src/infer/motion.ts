@@ -149,7 +149,8 @@ export function inferMotion(ev: Evidence) {
       if (trigger === 'hover' && ph.ref !== undefined && a.target >= 0 && a.target !== ph.ref) {
         let p = rows.get(a.target)?.pid, inside = false;
         for (let k = 0; p !== undefined && p >= 0 && k < 12; k++) { if (p === ph.ref) { inside = true; break; } p = rows.get(p)?.pid; }
-        if (!inside) trigger = 'state';
+        // a dropdown or tooltip opens outside the hovered element but right away; a timer fires whenever
+        if (!inside && a.t - (ph.markT ?? a.t) > 400) trigger = 'state';
       }
       const key = [trigger, source, props.sort().join(','), dur, easing, trigger === 'hover' || trigger === 'hover-exit' ? '' : fromKey + toKey, a.name].join('|');
       const target = describe(m, a.target, rows);
@@ -169,7 +170,7 @@ export function inferMotion(ev: Evidence) {
         keyframes: a.kind === 'CSSAnimation' ? ev.css.keyframes[a.name] : undefined,
       }, target, { t: a.t + (+a.delay || 0), parent: rows.get(a.target)?.pid ?? -1 });
       if (entry !== undefined) (p as any)._entries = [...((p as any)._entries || []), entry];
-      if (trigger === 'load' && a.t - loadedT < 10000) intro.push({ t: a.t - loadedT + (+a.delay || 0), desc: target, key: p.id });
+      if (trigger === 'load' && page === ev.pages[0] && a.t >= loadedT - 3000 && a.t - loadedT < 10000) intro.push({ t: a.t - loadedT + (+a.delay || 0), desc: target, key: p.id });
     }
 
     // ---- JS-driven motion the ledger never saw: fit the recorded per-frame tracks
@@ -227,13 +228,15 @@ export function inferMotion(ev: Evidence) {
           if (fit) { duration = r0(fit.duration * 1000); easing = fit.easing; }
         }
       }
+      // a value that jumps in one frame (layout height/width settling, hydration swaps) is a state flip, not motion
+      if (duration < 34 || /^steps\(1/.test(easing)) continue;
       const target = describe(m, tr.id, rows);
       const key = ['js', trigger, props.sort().join(','), Math.round(duration / 50) * 50, easing, trigger === 'scroll-linked' ? Math.round((scrollRatio || 0) * 20) : JSON.stringify(from) + JSON.stringify(to)].join('|');
       let entry: number | undefined;
       if (trigger === 'scroll' && !/fixed|sticky/.test(rows.get(tr.id)?.s.position || '')) { const e = (S[0][6] - scrollAt(ts[0])) / vh; if (e > -0.2 && e < 1.5) entry = r2(e); }
       const p = add(key, { trigger, source: 'js', props, from, to, duration, easing, delay: 0, scrollRatio, entry }, target, { t: ts[0], parent: rows.get(tr.id)?.pid ?? -1 });
       if (entry !== undefined) (p as any)._entries = [...((p as any)._entries || []), entry];
-      if (trigger === 'load' && ts[0] - loadedT < 10000) intro.push({ t: r0(ts[0] - loadedT), desc: target, key: p.id });
+      if (trigger === 'load' && page === ev.pages[0] && ts[0] >= loadedT - 3000 && ts[0] - loadedT < 10000) intro.push({ t: r0(ts[0] - loadedT), desc: target, key: p.id });
     }
 
     // ---- hover: before/during state diffs per hovered element, with the transitions that carried them
@@ -312,6 +315,7 @@ export function inferMotion(ev: Evidence) {
     easings: tally((p) => p.easing).slice(0, 10).map(([css, count]) => ({ css: String(css), count, spring: /^linear\(/.test(String(css)) })),
     patterns: list.filter((p) => p.trigger !== 'hover-exit' || p.count > 2).slice(0, 80),
     hover: hoverEffects,
-    intro: intro.slice(0, 60),
+    // times from the first thing that moves (the load event can fire after the intro has begun)
+    intro: (() => { const t0 = Math.min(0, ...intro.map((i) => i.t)); return intro.sort((a, b) => a.t - b.t).slice(0, 60).map((i) => ({ ...i, t: i.t - t0 })); })(),
   };
 }

@@ -18,7 +18,7 @@
     wheel: [],          // [t, deltaY] as the page received it
   });
   const ids = new WeakMap();
-  const MAX_ELEMENTS = 20000, MAX_ACTIVE = 200, QUIET_FRAMES = 45, MAX_SAMPLES = 600;
+  const HARD_MAX = 120000, MAX_ELEMENTS = 20000, MAX_ACTIVE = 200, QUIET_FRAMES = 45, MAX_SAMPLES = 600;
 
   function describe(el) {
     const cls = typeof el.className === 'string' ? el.className : el.getAttribute?.('class') || '';
@@ -32,10 +32,12 @@
     };
   }
   const refs = [];
-  function idOf(el) {
+  // tracking may only use MAX_ELEMENTS ids; the harvest (what the page is made of) may always id what it measures,
+  // up to a hard ceiling — on busy pages tracking used to exhaust the ids and the harvest silently lost elements
+  function idOf(el, harvest) {
     let id = ids.get(el);
     if (id === undefined) {
-      if (R.elements.length >= MAX_ELEMENTS) return -1;
+      if (R.elements.length >= (harvest ? HARD_MAX : MAX_ELEMENTS)) return -1;
       id = R.elements.length;
       ids.set(el, id);
       refs[id] = new WeakRef(el);
@@ -64,7 +66,19 @@
     if (id < 0) return;
     const tr = R.tracks.get(id);
     if (tr) { tr.quiet = 0; return; }
-    if (R.tracks.size >= MAX_ACTIVE) return;
+    if (R.tracks.size >= MAX_ACTIVE) {
+      // full: make room by dropping a track nobody can see (off screen) or the smallest one, if the newcomer is
+      // on screen and larger — busy pages used to lose every animation that started after the first 200
+      const r = el.getBoundingClientRect();
+      const onScreen = (b) => b.bottom > 0 && b.top < innerHeight && b.width > 0;
+      if (!onScreen(r)) { R.stats.dropped = (R.stats.dropped || 0) + 1; return; }
+      let victim = null, va = Infinity, off = false;
+      for (const [tid, t] of R.tracks) { const b = t.el.getBoundingClientRect(); if (!onScreen(b)) { victim = tid; off = true; break; } const a = b.width * b.height; if (a < va) { va = a; victim = tid; } }
+      // evict an off-screen track, or the smallest on-screen one if the newcomer is bigger
+      if (victim === null || (!off && va >= r.width * r.height)) { R.stats.dropped = (R.stats.dropped || 0) + 1; return; }
+      const v = R.tracks.get(victim); R.tracks.delete(victim);
+      if (v.samples.length > 2) R.done.push({ id: v.id, why: v.why, samples: v.samples });
+    }
     R.tracks.set(id, { id, why, el, samples: [[now(), ...read(el)]], quiet: 0 });
   }
   R.track = track;
@@ -186,6 +200,11 @@
   document.addEventListener('animationstart', (e) => { track(e.target, 'animation'); ledger(); }, true);
   window.addEventListener('wheel', (e) => R.wheel.push([Math.round(now()), e.deltaY]), { capture: true, passive: true });
 
+  // which drawing API each canvas uses (webgl = a live 3D scene), learned from the page's own getContext calls
+  const canvasKinds = new WeakMap();
+  const getContext = HTMLCanvasElement.prototype.getContext;
+  HTMLCanvasElement.prototype.getContext = function (type, ...rest) { const c = getContext.call(this, type, ...rest); if (c && !canvasKinds.has(this)) canvasKinds.set(this, String(type)); return c; };
+
   // WAAPI created by libraries (Framer Motion, Motion One) — tag the source
   const animate = Element.prototype.animate;
   Element.prototype.animate = function (...args) { track(this, 'waapi'); return animate.apply(this, args); };
@@ -286,13 +305,13 @@
     const rows = [];
     const all = document.body ? document.body.getElementsByTagName('*') : [];
     const vw = innerWidth, vh = innerHeight;
-    const pidOf = (el) => { const p = el.parentElement; return p && p !== document.body ? idOf(p) : -1; };
+    const pidOf = (el) => { const p = el.parentElement; return p && p !== document.body ? idOf(p, true) : -1; };
     const add = (el) => {
       const r = el.getBoundingClientRect();
       if (r.width < 1 || r.height < 1) return;
       const cs = getComputedStyle(el);
       if (cs.visibility === 'hidden' || cs.display === 'none') return;
-      const id = idOf(el);
+      const id = idOf(el, true);
       if (id < 0) return;
       let text = '', chars = 0;
       for (const n of el.childNodes) if (n.nodeType === 3) { const s = n.textContent.replace(/\s+/g, ' ').trim(); if (s) { text += (text ? ' ' : '') + s; chars += s.length; } }
@@ -309,6 +328,9 @@
         s: {},
       };
       for (const p of PROPS) row.s[p] = cs[p];
+      if (el.tagName === 'CANVAS') {
+        row.canvas = { ctx: canvasKinds.get(el) || 'none', w: el.width, h: el.height };
+      }
       if (el.tagName === 'IMG' || el.tagName === 'VIDEO' || el.tagName === 'PICTURE') {
         row.media = { src: (el.currentSrc || el.src || '').slice(0, 300), nw: el.naturalWidth || el.videoWidth || 0, nh: el.naturalHeight || el.videoHeight || 0, autoplay: el.autoplay, loop: el.loop };
       }

@@ -336,7 +336,10 @@ export function inferTypography(ev: Evidence) {
     const loaded = ev.pages[0].harvests.desktop.fonts.some((f) => f.family.toLowerCase() === family.toLowerCase() && f.status === 'loaded');
     const roles = styles.filter((s) => s.family === family).map((s) => s.name);
     const google = googleFamily(family);
-    return { family, share: r1(share), weights, roles, host: faces[0]?.host || (loaded ? 'unknown' : 'system'), google, license: google ? 'open (Google Fonts) — load it from Google Fonts or self-host' : licenseOf(family, faces[0]?.host), substitute: google ? undefined : substituteFor(family) };
+    // the site's own fallback says what kind of face it is (…, serif / …, monospace)
+    const stacks = ev.pages.flatMap((p) => p.harvests.desktop.rows.filter((r) => r.chars > 0 && primaryFamily(r.s.fontFamily || '') === family).map((r) => r.s.fontFamily || '')).slice(0, 40);
+    const kind = stacks.some((st) => /,\s*["']?serif["']?\s*$/i.test(st)) ? 'serif' : stacks.some((st) => /monospace\s*$/i.test(st)) ? 'mono' : undefined;
+    return { family, share: r1(share), weights, roles, host: faces[0]?.host || (loaded ? 'unknown' : 'system'), google, license: google ? 'open (Google Fonts) — load it from Google Fonts or self-host' : licenseOf(family, faces[0]?.host), substitute: google ? undefined : substituteFor(family, kind) };
   });
 
   const sizes = [...new Set(styles.map((s) => s.size))].sort((a, b) => a - b);
@@ -356,7 +359,7 @@ function licenseOf(family: string, host?: string) {
   return 'likely commercial — do not copy the font files; license it or use the substitute';
 }
 
-function substituteFor(family: string): string | undefined {
+function substituteFor(family: string, kind?: 'serif' | 'mono'): string | undefined {
   family = baseFamily(family);
   if (OPEN.test(family)) return undefined;
   const f = family.toLowerCase();
@@ -365,12 +368,15 @@ function substituteFor(family: string): string | undefined {
     [/circular|cereal|gilroy|product sans|google sans|euclid circular|avenir|futura|brandon/, 'Plus Jakarta Sans'],
     [/gt america|gt walsheim|apercu|calibre|neue montreal|pp neue montreal|abc diatype|diatype|matter/, 'Geist'],
     [/gt super|tiempos|canela|reckless|editorial new|pp editorial|signifier|lyon/, 'Instrument Serif'],
+    // high-contrast display serifs
+    [/domaine|noe display|saol|ogg|gt sectra|freight display|chronicle display|publico headline|portrait|larken/, 'Playfair Display'],
     [/berkeley mono|sf mono|operator mono|söhne mono|gt america mono|abc diatype mono/, 'JetBrains Mono'],
     [/mabry|moderat|national|atlas grotesk|aeonik|termina|right grotesk|everett/, 'Hanken Grotesk'],
   ];
   for (const [re, sub] of table) if (re.test(f)) return sub;
   if (/mono/.test(f)) return 'Geist Mono';
-  if (/serif|garamond|caslon|baskerville|didot|bodoni/.test(f)) return 'Newsreader';
+  if (/serif|garamond|caslon|baskerville|didot|bodoni/.test(f) || kind === 'serif') return 'Newsreader';
+  if (kind === 'mono') return 'Geist Mono';
   return 'Inter';
 }
 

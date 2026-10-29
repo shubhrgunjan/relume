@@ -49,6 +49,9 @@ export function buildRecipes(patterns: MotionPattern[]): Recipe[] {
     const p0 = g[0];
     const from: Record<string, string | number> = {}, to: Record<string, string | number> = {};
     for (const p of g) { Object.assign(from, p.from); Object.assign(to, p.to); }
+    // something that fades to nothing as it loads or scrolls into view is leaving (a loader, a hint going away),
+    // not an entrance: as a reveal recipe it would make the agent's element vanish
+    if ((p0.trigger === 'scroll' || p0.trigger === 'load') && to.opacity !== undefined && +to.opacity <= 0.05 && +(from.opacity ?? 1) > +to.opacity) continue;
     const fromD = declsOf(from), toD = declsOf(to);
     const props = [...new Set(g.flatMap((p) => p.props.map(kebab)))];
     const cssProps = [...new Set([...Object.keys(fromD), ...Object.keys(toD)])];
