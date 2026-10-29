@@ -273,6 +273,8 @@ dialog.cmp::backdrop { background: rgb(10 8 11 / 0.82); backdrop-filter: blur(6p
 .install-inner { max-width: 1120px; display: grid; gap: 30px; }
 .install-inner h2 { font-size: clamp(56px, 9vw, 160px); line-height: 0.84; }
 .install-inner h2 em { font-style: normal; color: var(--volt); }
+.install-inner .hint { max-width: 640px; margin: 14px auto 0; font: 400 15px/1.5 var(--display); color: var(--dim); }
+.install-inner .hint code { font: 500 12.5px/1 var(--mono); color: var(--mute); }
 .cmd { display: flex; flex-wrap: wrap; }
 .cmd code { flex: 1 1 480px; min-width: 0; font: 500 clamp(12px, 1.2vw, 15px)/1.5 var(--mono); font-stretch: 87.5%; background: var(--paper); color: var(--ink); padding: 17px 18px; overflow-x: auto; white-space: nowrap; }
 .cmd .btn { height: auto; min-height: 54px; }
@@ -370,6 +372,7 @@ footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12
       <span class="eyebrow">one line</span>
       <h2 class="disp" data-wipe>Give your agent <em>taste</em> it can measure.</h2>
       <div class="cmd"><code id="cmd">curl -fsSL https://relume.shubhrgunjan.me/install.sh | sh</code><button class="btn solid" id="copy" type="button">copy</button></div>
+      <p class="hint">Installs what it needs (Node, git, ffmpeg, a headless browser), finds your agents — Claude Code, Codex, Gemini, Antigravity, Cursor, Windsurf, VS Code, OpenCode, Goose — and asks which to set up. <code>--agents claude,codex</code> · <code>--yes</code> · <code>--uninstall</code></p>
       <div class="tools"><span class="chip">extract_site</span><span class="chip">get_skill</span><span class="chip">get_dna</span><span class="chip">see_reference</span><span class="chip dim">check_style</span><span class="chip dim">get_pitfalls</span><span class="chip ghost">search_catalog</span><span class="chip ghost">compare_entries</span></div>
     </div>
     <canvas id="logo" aria-hidden="true"></canvas>
