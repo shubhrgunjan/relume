@@ -9,3 +9,5 @@ film/audio/*.wav
 film/studio/data/
 film/*.mp4
 film/final/
+motion/work/
+motion/mcp-out/

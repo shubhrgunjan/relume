@@ -1,0 +1,25 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@400;700&display=swap" rel="stylesheet">
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+<script src="../../runtime/collage.js"></script></head>
+<body><canvas id="c" width="1280" height="720"></canvas>
+<script>
+window.DURATION = 1;
+const g = document.getElementById('c').getContext('2d');
+window.seek = (t, f) => {
+  g.drawImage(K.paper('#efedf0', 3), 0, 0);
+  K.piece(g, K.rect(40, 40, 300, 220), K.paper('#c9c5cc', 8), { seed: 2 });
+  K.piece(g, K.rect(380, 40, 300, 220), K.hatch('#e9e7ea', '#2a272c', 4, { spacing: 4 }), { seed: 3 });
+  K.piece(g, K.rect(720, 40, 300, 220), K.charcoal('#2b282d', 5), { seed: 4 });
+  K.disc(g, 1150, 150, 110, K.drybrush('#221c2b', '#6d6188', 6), { seed: 5 });
+  K.piece(g, K.rect(40, 300, 260, 160), K.paper('#a99aa4', 9, { mottle: 0.8 }), { seed: 6, rough: 3 });
+  K.piece(g, K.rect(330, 300, 260, 160), K.paper('#6b6e5a', 10, { mottle: 0.9 }), { seed: 7, rough: 3 });
+  K.brush(g, K.spline([[650, 460], [700, 330], [800, 300], [840, 400], [760, 450], [740, 360], [900, 320], [1000, 420]]), { width: 22, seed: 4 });
+  K.box(g, { cx: 1120, cy: 420, sx: 170, sy: 170, sz: 170, yaw: 0.6, pitch: 0.45, tex: [K.paper('#8d8a8f', 12), K.charcoal('#4a474c', 13), K.charcoal('#232125', 14)] });
+  K.type(g, 'Motion.', 160, 640, { size: 110, seed: 2 });
+  K.type(g, 'cut on the beat, hold for two', 720, 620, { size: 22, font: "400 22px 'Courier New', monospace", wear: 0.25 });
+  K.vignette(g); K.filmGrain(g, f);
+};
+document.fonts.ready.then(() => seek(0, 0));
+</script></body></html>

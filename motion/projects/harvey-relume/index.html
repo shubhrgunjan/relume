@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>relume motion · launch film (clone of Harvey II's style)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@400;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@400;500;600&family=Courier+Prime&display=swap" rel="stylesheet">
+<style>
+/* Clone of the Harvey II film's style for relume motion. Every frame is a pure function of the frame number:
+   the collage draws on #c (canvas), the product UI lives in #ui (DOM) above it, grain and vignette go over all. */
+html, body { margin: 0; width: 1280px; height: 720px; overflow: hidden; background: #000; }
+#stage { position: relative; width: 1280px; height: 720px; overflow: hidden; }
+canvas { position: absolute; inset: 0; }
+#ui { position: absolute; inset: 0; font-family: Inter, sans-serif; color: #1d1b1f; }
+#ui > div { position: absolute; display: none; transform-origin: 50% 50%; }
+.win { background: #fbfbfc; border-radius: 10px; box-shadow: 0 18px 40px rgb(30 25 35 / .16), 0 0 0 1px rgb(30 25 35 / .06); overflow: hidden; }
+.serif { font-family: Newsreader, serif; font-weight: 400; letter-spacing: -0.01em; }
+.side { position: absolute; left: 0; top: 0; bottom: 0; background: #161417; color: #e9e6ea; }
+.chipui { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 9px; background: #fff; box-shadow: 0 6px 16px rgb(30 25 35 / .1), 0 0 0 1px rgb(30 25 35 / .06); font-size: 13px; white-space: nowrap; }
+.panel { background: #fff; border-radius: 9px; box-shadow: 0 8px 20px rgb(30 25 35 / .12), 0 0 0 1px rgb(30 25 35 / .06); overflow: hidden; font-size: 12px; }
+.panel .hd { background: #161417; color: #f2f0f3; padding: 9px 14px; font-weight: 500; font-size: 13px; font-family: Newsreader, serif; }
+.panel .row { display: flex; align-items: center; gap: 10px; padding: 7px 14px; border-top: 1px solid #efedf0; white-space: nowrap; }
+.tag { font-size: 10px; padding: 2px 7px; border-radius: 6px; background: #e5f0e7; color: #3d6b4a; }
+.tag.b { background: #e6ebf5; color: #3d5585; } .tag.y { background: #f6efd9; color: #7b6526; }
+.ico { width: 22px; height: 22px; border-radius: 5px; background: #161417; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; padding: 4px; box-sizing: border-box; }
+.ico i { background: #c0f63c; } .ico i.o { background: transparent; }
+</style>
+<script src="timeline.js"></script>
+<script src="../../runtime/collage.js"></script>
+</head>
+<body>
+<div id="stage">
+  <canvas id="c" width="1280" height="720"></canvas>
+  <div id="ui"></div>
+  <canvas id="fx" width="1280" height="720"></canvas>
+</div>
+<script src="scenes.js"></script>
+</body>
+</html>

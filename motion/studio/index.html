@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>relume motion · studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Martian+Mono:wght@300..600&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+<style>
+:root { --ink: #0c0b0d; --panel: #141216; --line: rgb(255 255 255 / .08); --paper: #f2efe8; --dim: #8a838f; --volt: #c0f63c; --warn: #ee9070; --sky: #3fa0e8; }
+* { box-sizing: border-box; margin: 0; }
+body { background: var(--ink); color: var(--paper); font: 400 14px/1.45 'Bricolage Grotesque', sans-serif; min-height: 100vh; }
+.mono { font-family: 'Martian Mono', monospace; }
+header { display: flex; align-items: center; gap: 16px; padding: 14px 22px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: rgb(12 11 13 / .92); backdrop-filter: blur(12px); z-index: 5; }
+.mark { width: 22px; height: 22px; display: grid; grid-template-columns: repeat(8, 1fr); gap: 1px; }
+.mark i { background: var(--volt); border-radius: 1px; } .mark i.o { background: transparent; }
+h1 { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; }
+h1 em { font: italic 400 19px 'Instrument Serif'; color: var(--volt); }
+.live { display: flex; align-items: center; gap: 8px; margin-left: auto; font: 400 12px 'Martian Mono'; color: var(--dim); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--volt); box-shadow: 0 0 10px var(--volt); animation: pulse 1.6s infinite; }
+.dot.stale { background: var(--dim); box-shadow: none; animation: none; }
+@keyframes pulse { 50% { opacity: .35; } }
+.now { font: 500 13px 'Martian Mono'; color: var(--volt); }
+main { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 18px; padding: 18px 22px 40px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+.ttl { font: 500 11px 'Martian Mono'; letter-spacing: .06em; text-transform: uppercase; color: var(--dim); padding: 12px 14px 0; display: flex; justify-content: space-between; }
+.players { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px; }
+.pl { position: relative; aspect-ratio: 16 / 9; background: #000; border-radius: 10px; overflow: hidden; }
+.pl video { width: 100%; height: 100%; display: block; object-fit: contain; }
+.pl .lab { position: absolute; left: 10px; top: 8px; font: 500 11px 'Martian Mono'; padding: 4px 8px; border-radius: 6px; background: rgb(0 0 0 / .6); }
+.pl .empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--dim); font: 400 12px 'Martian Mono'; text-align: center; padding: 20px; }
+.wipe { grid-column: 1 / -1; display: none; }
+.wipe .pl video { position: absolute; inset: 0; }
+.wipe .bar { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--volt); box-shadow: 0 0 12px var(--volt); pointer-events: none; }
+.ctrl { display: flex; align-items: center; gap: 12px; padding: 0 12px 12px; }
+.ctrl button { background: #232027; color: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; font: 500 12px 'Martian Mono'; cursor: pointer; }
+.ctrl button.on { background: var(--volt); color: var(--ink); }
+.ctrl input[type=range] { flex: 1; accent-color: var(--volt); }
+.ctrl .tc { font: 400 12px 'Martian Mono'; color: var(--dim); min-width: 110px; text-align: right; }
+.shots { display: flex; gap: 8px; overflow-x: auto; padding: 12px; scrollbar-width: thin; }
+.shot { flex: 0 0 auto; width: 132px; cursor: pointer; border-radius: 8px; padding: 4px; border: 1px solid transparent; }
+.shot:hover, .shot.cur { border-color: var(--volt); }
+.shot .im { display: grid; grid-template-rows: 1fr 1fr; gap: 2px; }
+.shot img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 4px; display: block; background: #222; }
+.shot .meta { display: flex; justify-content: space-between; font: 400 10px 'Martian Mono'; color: var(--dim); margin-top: 4px; }
+.shot .sc { font-weight: 600; }
+.score { padding: 14px; display: flex; align-items: flex-end; gap: 10px; }
+.score .big { font: 800 64px/0.9 'Bricolage Grotesque'; letter-spacing: -0.04em; }
+.score .of { font: 400 13px 'Martian Mono'; color: var(--dim); padding-bottom: 8px; }
+.dims { padding: 0 14px 14px; display: grid; gap: 9px; }
+.dim { display: grid; grid-template-columns: 82px 1fr 34px; align-items: center; gap: 10px; font: 400 12px 'Martian Mono'; }
+.dim .tr { height: 6px; border-radius: 3px; background: rgb(255 255 255 / .07); overflow: hidden; }
+.dim .tr i { display: block; height: 100%; border-radius: 3px; transition: width .6s cubic-bezier(.2,.8,.2,1); }
+.dim b { text-align: right; font-weight: 500; }
+.hist { padding: 0 14px 14px; }
+.hist svg { width: 100%; height: 70px; display: block; }
+.phases { padding: 10px 14px 14px; display: grid; gap: 8px; }
+.ph { display: grid; grid-template-columns: 16px 1fr; gap: 10px; font-size: 13px; }
+.ph i { width: 10px; height: 10px; margin-top: 4px; border-radius: 50%; border: 2px solid #4a4450; }
+.ph.done i { background: var(--volt); border-color: var(--volt); }
+.ph.active i { border-color: var(--volt); animation: pulse 1.2s infinite; }
+.ph .d { color: var(--dim); font-size: 12px; }
+.log { max-height: 420px; overflow-y: auto; padding: 10px 14px 14px; display: grid; gap: 6px; scrollbar-width: thin; }
+.ev { display: grid; grid-template-columns: 54px 1fr; gap: 10px; font: 400 12px/1.5 'Martian Mono'; color: #cfc9d3; }
+.ev time { color: var(--dim); }
+.ev.phase { color: var(--volt); } .ev.score { color: var(--sky); } .ev.warn { color: var(--warn); }
+.its { padding: 10px 14px 14px; display: grid; gap: 6px; max-height: 260px; overflow-y: auto; }
+.it { display: grid; grid-template-columns: 34px 42px 1fr; gap: 8px; align-items: baseline; cursor: pointer; font: 400 12px 'Martian Mono'; padding: 6px 8px; border-radius: 8px; }
+.it:hover, .it.cur { background: #1f1c23; }
+.it b { font-weight: 600; }
+.it span { color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.findings { padding: 10px 14px 14px; display: grid; gap: 8px; }
+.fd { font: 400 12px/1.5 'Martian Mono'; color: #cfc9d3; padding-left: 12px; border-left: 2px solid var(--warn); }
+.side { display: grid; gap: 18px; align-content: start; min-width: 0; }
+/* the shot strip is wider than the page: the column must not grow to fit it, the strip scrolls instead */
+.stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; align-content: start; min-width: 0; }
+.stack > .card { min-width: 0; overflow: hidden; }
+.players { max-height: calc(100vh - 230px); }
+.pl { max-height: calc((100vh - 230px)); }
+@media (max-width: 1100px) { main { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="mark" id="mark"></div>
+  <h1>relume motion <em>studio</em></h1>
+  <span class="mono" id="proj" style="color:var(--dim);font-size:12px"></span>
+  <span class="now" id="now"></span>
+  <div class="live"><span class="dot" id="dot"></span><span id="upd">connecting…</span></div>
+</header>
+<main>
+  <div class="stack">
+    <section class="card">
+      <div class="ttl"><span>reference · clone</span><span id="itlab"></span></div>
+      <div class="players" id="players">
+        <div class="pl"><video id="vr" muted playsinline preload="auto"></video><span class="lab">reference</span></div>
+        <div class="pl"><video id="vc" muted playsinline preload="auto"></video><span class="lab" style="color:var(--volt)">clone</span><div class="empty" id="cempty">no render yet<br>the first clone appears here</div></div>
+        <div class="wipe" id="wipe"><div class="pl" id="wpl"><video id="wr" muted playsinline></video><video id="wc" muted playsinline></video><div class="bar" id="wbar"></div><span class="lab">wipe: reference ◂ ▸ clone</span></div></div>
+      </div>
+      <div class="ctrl">
+        <button id="play">play</button><button id="snd">sound off</button><button id="mode">side by side</button>
+        <input type="range" id="scrub" min="0" max="1000" value="0"><span class="tc" id="tc">0.00 / 0.00</span>
+      </div>
+    </section>
+    <section class="card">
+      <div class="ttl"><span>shots · reference above, clone below</span><span id="shotn"></span></div>
+      <div class="shots" id="shots"></div>
+    </section>
+    <section class="card">
+      <div class="ttl"><span>what is off, worst first</span></div>
+      <div class="findings" id="findings"><div class="fd" style="border-color:#4a4450;color:var(--dim)">appears after the first comparison</div></div>
+    </section>
+  </div>
+  <div class="side">
+    <section class="card">
+      <div class="ttl"><span>clone score</span><span id="scoreat"></span></div>
+      <div class="score"><span class="big" id="overall">–</span><span class="of">/ 100</span></div>
+      <div class="dims" id="dims"></div>
+      <div class="hist"><svg id="hist" viewBox="0 0 320 70" preserveAspectRatio="none"></svg></div>
+    </section>
+    <section class="card"><div class="ttl"><span>plan</span></div><div class="phases" id="phases"></div></section>
+    <section class="card"><div class="ttl"><span>iterations</span></div><div class="its" id="its"><span class="mono" style="color:var(--dim);font-size:12px">none yet</span></div></section>
+    <section class="card"><div class="ttl"><span>live log</span></div><div class="log" id="log"></div></section>
+  </div>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+// the mark: the Dither r
+['11011110', '11111111', '11100011', '11000000', '11000000', '11000000', '11000000', '11000000'].forEach((r) => [...r].forEach((v) => { const i = document.createElement('i'); if (v === '0') i.className = 'o'; $('mark').appendChild(i); }));
+const DIMS = ['rhythm', 'layout', 'tone', 'colour', 'texture', 'motion', 'audio'];
+const col = (v) => (v >= 80 ? 'var(--volt)' : v >= 60 ? '#f5e14a' : 'var(--warn)');
+const fmt = (s) => `${Math.floor(s / 60)}:${(s % 60).toFixed(2).padStart(5, '0')}`;
+const ago = (t) => { const s = Math.round(Date.now() / 1000 - t); return s < 60 ? `${s}s` : s < 3600 ? `${Math.round(s / 60)}m` : `${Math.round(s / 3600)}h`; };
+let S = null, sel = null, lastKey = '';
+
+// ---- players: one clock, two (or wipe: two stacked) videos
+const vr = $('vr'), vc = $('vc'), wr = $('wr'), wc = $('wc');
+let wipeMode = false, playing = false, sound = false;
+const master = () => (wipeMode ? wr : vr), follow = () => (wipeMode ? [wc] : [vc]);
+function sync() { const m = master(); for (const v of follow()) if (v.src && Math.abs(v.currentTime - m.currentTime) > 0.06) v.currentTime = m.currentTime; }
+function tick() { const m = master(); if (m.duration) { $('scrub').value = (m.currentTime / m.duration) * 1000; $('tc').textContent = `${fmt(m.currentTime)} / ${fmt(m.duration)}`; markShot(m.currentTime); } if (playing) sync(); requestAnimationFrame(tick); }
+requestAnimationFrame(tick);
+$('play').onclick = () => { playing = !playing; $('play').textContent = playing ? 'pause' : 'play'; const all = [master(), ...follow()].filter((v) => v.src); playing ? all.forEach((v) => v.play()) : all.forEach((v) => v.pause()); };
+$('snd').onclick = () => { sound = !sound; $('snd').textContent = sound ? 'sound: ref' : 'sound off'; master().muted = !sound; };
+$('scrub').oninput = (e) => seekAll((e.target.value / 1000) * (master().duration || 0));
+function seekAll(t) { [vr, vc, wr, wc].forEach((v) => { if (v.src) v.currentTime = t; }); }
+$('mode').onclick = () => {
+  const t = master().currentTime; wipeMode = !wipeMode; $('mode').textContent = wipeMode ? 'wipe' : 'side by side'; $('mode').classList.toggle('on', wipeMode);
+  [...$('players').children].forEach((c) => (c.style.display = c.id === 'wipe' ? (wipeMode ? 'block' : 'none') : wipeMode ? 'none' : 'block'));
+  seekAll(t);
+};
+$('wpl').onmousemove = (e) => { const r = e.currentTarget.getBoundingClientRect(), x = (e.clientX - r.left) / r.width; wc.style.clipPath = `inset(0 0 0 ${x * 100}%)`; $('wbar').style.left = x * 100 + '%'; };
+wc.style.clipPath = 'inset(0 0 0 50%)'; $('wbar').style.left = '50%';
+vr.src = wr.src = '/work/refs/harvey.mp4';
+
+function setClone(it) {
+  if (!it || !it.video) return;
+  const src = '/work/' + it.video.replace(/^work\//, '') + '?v=' + it.n;
+  if (vc.dataset.src === src) return;
+  const t = master().currentTime; vc.dataset.src = src; vc.src = wc.src = src; vc.onloadeddata = () => { vc.currentTime = t; wc.currentTime = t; };
+  $('cempty').style.display = 'none'; $('itlab').textContent = `iteration ${it.n}`;
+}
+
+// ---- shots
+function markShot(t) { if (!S?.ref?.shots) return; const i = S.ref.shots.findIndex((s) => t >= s.t && t < s.t + s.dur); document.querySelectorAll('.shot').forEach((e, j) => e.classList.toggle('cur', j === i)); }
+function renderShots(it) {
+  const shots = S.ref?.shots || []; $('shotn').textContent = shots.length ? `${shots.length} shots` : '';
+  const per = Object.fromEntries((it?.shots || []).map((s) => [s.i, s]));
+  $('shots').innerHTML = shots.map((s) => { const c = per[s.i]; return `<div class="shot" data-t="${s.t}"><div class="im"><img src="/work/${s.thumb}" loading="lazy">${c?.thumb ? `<img src="/work/${c.thumb}?v=${it.n}" loading="lazy">` : '<img>'}</div><div class="meta"><span>#${s.i} ${s.t.toFixed(1)}s</span><span class="sc" style="color:${c ? col(c.score) : 'var(--dim)'}">${c ? c.score : '–'}</span></div></div>`; }).join('');
+  document.querySelectorAll('.shot').forEach((e) => (e.onclick = () => seekAll(+e.dataset.t + 0.02)));
+}
+
+// ---- scores
+function renderScores(it, its) {
+  $('overall').textContent = it?.overall ?? '–'; $('overall').style.color = it ? col(it.overall) : '';
+  $('scoreat').textContent = it ? `iteration ${it.n}` : '';
+  $('dims').innerHTML = DIMS.map((d) => { const v = it?.scores?.[d]; return `<div class="dim"><span>${d}</span><span class="tr"><i style="width:${v ?? 0}%;background:${v != null ? col(v) : 'transparent'}"></i></span><b>${v ?? '–'}</b></div>`; }).join('');
+  const pts = its.map((x) => x.overall).filter((v) => v != null);
+  if (pts.length > 1) { const X = (i) => (i / (pts.length - 1)) * 316 + 2, Y = (v) => 66 - (v / 100) * 62; $('hist').innerHTML = `<polyline fill="none" stroke="#c0f63c" stroke-width="2" points="${pts.map((v, i) => `${X(i)},${Y(v)}`).join(' ')}"/>` + pts.map((v, i) => `<circle cx="${X(i)}" cy="${Y(v)}" r="2.5" fill="#c0f63c"/>`).join(''); }
+  else $('hist').innerHTML = '';
+  $('its').innerHTML = its.length ? its.slice().reverse().map((x) => `<div class="it ${sel === x.n ? 'cur' : ''}" data-n="${x.n}"><b>#${x.n}</b><b style="color:${col(x.overall)}">${x.overall}</b><span title="${x.note || ''}">${x.note || ''}</span></div>`).join('') : '<span class="mono" style="color:var(--dim);font-size:12px">none yet</span>';
+  document.querySelectorAll('.it').forEach((e) => (e.onclick = () => { sel = +e.dataset.n; lastKey = ''; draw(); }));
+  const f = it?.findings || [];
+  if (f.length) $('findings').innerHTML = f.slice(0, 12).map((x) => `<div class="fd">${x}</div>`).join('');
+}
+
+function draw() {
+  const its = S.iterations || [], it = its.find((x) => x.n === sel) || its[its.length - 1];
+  setClone(it);
+  renderScores(it, its); renderShots(it);
+}
+
+async function poll() {
+  try {
+    S = await (await fetch('/api/state')).json();
+    const p = S.project || {};
+    $('proj').textContent = p.title || '';
+    const act = (S.phases || []).find((x) => x.state === 'active');
+    $('now').textContent = act ? `▶ ${act.title}` : '';
+    $('phases').innerHTML = (S.phases || []).map((x) => `<div class="ph ${x.state}"><i></i><div>${x.title}${x.detail ? `<div class="d">${x.detail}</div>` : ''}</div></div>`).join('');
+    $('log').innerHTML = (S.events || []).slice(0, 200).map((e) => `<div class="ev ${e.kind}"><time>${ago(e.t)}</time><span>${e.msg}</span></div>`).join('');
+    const fresh = S.updated && Date.now() / 1000 - Math.max(S.updated, S.events?.[0]?.t || 0) < 600;
+    $('dot').classList.toggle('stale', !fresh); $('upd').textContent = S.events?.[0] ? `updated ${ago(S.events[0].t)} ago` : 'waiting';
+    const key = JSON.stringify([S.iterations?.length, S.ref?.shots?.length, S.iterations?.[S.iterations.length - 1]?.t, sel]);
+    if (key !== lastKey) { lastKey = key; draw(); }
+  } catch { $('upd').textContent = 'offline'; $('dot').classList.add('stale'); }
+  setTimeout(poll, 1500);
+}
+poll();
+</script>
+</body>
+</html>
