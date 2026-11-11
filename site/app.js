@@ -157,7 +157,7 @@ reg('tunnel', (p) => {
   setEcho(tEcho, String(Math.min(N, Math.round(cam) + 1)).padStart(2, '0'));
 });
 
-// =========== 3. CATALOGUE: drag-to-compare pairs and the synced live comparison
+// =========== 3. CATALOGUE: preview pairs and the live comparison
 const pairsEl = document.getElementById('pairs');
 const hostOf = (d) => new URL(d.source.url).hostname.replace(/^www\./, '');
 const recHref = (d) => /^https?:/.test(d.recreationPath) ? d.recreationPath : d.recreationPath.startsWith('/recreations/') ? d.recreationPath.slice(1) : `recreations/${d.recreationPath.replace(/^\//, '')}/`;

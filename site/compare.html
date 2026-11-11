@@ -26,9 +26,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..750&family=Martian+Mono:wdth,wght@75..112.5,400..500&display=swap" rel="stylesheet">
 <style>
-/* A quiet reading room: two full pages side by side, scrolling together section by section. */
+/* Two interactive live sites, with independent scrolling. */
 :root { color-scheme: dark; --ink: #141115; --ink-2: #1c181d; --ink-3: #252027; --line: #2e2930; --paper: #f2f0f3; --mute: #b9b2be; --dim: #857d8a; --volt: #c0f63c; --salmon: #ee9070;
-  --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif; --mono: "Martian Mono", ui-monospace, monospace; --top: 104px; }
+  --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif; --mono: "Martian Mono", ui-monospace, monospace; --top: 144px; }
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--ink); color: var(--paper); font: 400 15px/1.5 var(--display); -webkit-font-smoothing: antialiased; }
 a { color: inherit; text-decoration: none; }
@@ -60,20 +60,17 @@ header { position: fixed; z-index: 10; inset: 0 0 auto; background: rgb(20 17 21
 .dim i { font-style: normal; font: 500 11px/1 var(--mono); font-stretch: 87.5%; color: var(--paper); }
 .dim.low i { color: var(--salmon); }
 @media (max-width: 760px) { .from, .row1 .btn.open { display: none; } }
+.live-note { margin: 0; padding: 9px 20px; border-top: 1px solid var(--line); color: var(--mute); font-size: 12px; }
 
 .view { position: fixed; inset: var(--top) 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); }
-.col { position: relative; overflow: hidden; background: #000; }
-.col img { position: absolute; left: 0; top: 0; width: 100%; will-change: transform; user-select: none; }
-.cap { position: absolute; z-index: 2; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; background: linear-gradient(transparent, rgb(0 0 0 / 0.75)); font: 500 12px/1 var(--display); color: var(--mute); pointer-events: none; }
+.col { position: relative; overflow: hidden; background: #fff; display: grid; grid-template-rows: auto minmax(0, 1fr); min-width: 0; min-height: 0; }
+.col iframe { width: 100%; height: 100%; min-height: 0; border: 0; display: block; background: #fff; }
+.cap { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 12px 14px; background: var(--ink-2); font: 500 12px/1.3 var(--display); color: var(--mute); }
 .cap b { color: var(--paper); font-weight: 600; }
+.cap a { flex: none; text-decoration: underline; text-underline-offset: 3px; }
+.cap a:hover { color: var(--paper); }
 .rec .cap b { color: var(--volt); }
-.track { position: absolute; z-index: 3; top: 0; bottom: 0; right: 0; width: 3px; background: rgb(255 255 255 / 0.06); }
-.track i { position: absolute; left: 0; right: 0; background: var(--volt); }
-.sec { position: fixed; z-index: 11; left: 50%; top: calc(var(--top) + 14px); transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 7px 12px; background: rgb(20 17 21 / 0.9); backdrop-filter: blur(10px); box-shadow: 0 0 0 1px var(--line); font: 500 13px/1 var(--display); white-space: nowrap; }
-.sec .n { font: 500 11px/1 var(--mono); font-stretch: 87.5%; color: var(--dim); }
-.sec .ok { width: 8px; height: 8px; background: var(--volt); }
-.sec .ok.miss { background: var(--salmon); }
-.spacer { width: 1px; }
+@media (max-width: 560px) { .cap { padding: 10px 8px; flex-wrap: wrap; } .cap b { width: 100%; overflow: hidden; text-overflow: ellipsis; } }
 
 .motion { position: fixed; z-index: 12; left: 50%; bottom: 16px; transform: translate(-50%, 140%); width: min(1100px, calc(100vw - 32px)); background: var(--ink); box-shadow: 0 0 0 1px var(--line), 0 30px 80px rgb(0 0 0 / 0.6); padding: 14px; display: grid; gap: 12px; transition: transform 500ms cubic-bezier(0.19, 1, 0.22, 1); }
 .motion.on { transform: translate(-50%, 0); }
@@ -102,14 +99,13 @@ header { position: fixed; z-index: 10; inset: 0 0 auto; background: rgb(20 17 21
     <span class="grow"></span>
     <button class="btn" id="motionBtn" type="button" aria-pressed="false">Watch motion</button>
   </div>
+  <p class="live-note">Live sites · Scroll and interact with each page independently. If a site blocks embedding, use its “Open site” link.</p>
 </header>
 
-<div class="view" aria-live="polite">
-  <div class="col src"><img id="imgA" alt=""><div class="cap"><b id="tagA"></b><span>the original, measured</span></div><div class="track"><i id="trA"></i></div></div>
-  <div class="col rec"><img id="imgB" alt=""><div class="cap"><b id="tagB"></b><span>built from its relume skill</span></div><div class="track"><i id="trB"></i></div></div>
-</div>
-<div class="sec" id="sec"><span class="n" id="secN"></span><span id="secK"></span><span class="ok" id="secOk"></span></div>
-<div class="spacer" id="spacer"></div>
+<main class="view" aria-label="Live site comparison">
+  <section class="col src" aria-label="Reference site"><div class="cap"><b id="tagA"></b><a id="frameOpenSrc" target="_blank" rel="noopener">Open site ↗</a></div><iframe id="siteA" title="Live reference site" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox" allow="fullscreen"></iframe></section>
+  <section class="col rec" aria-label="Recreation site"><div class="cap"><b id="tagB"></b><a id="frameOpenRec" target="_blank" rel="noopener">Open site ↗</a></div><iframe id="siteB" title="Live recreation site" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox" allow="fullscreen"></iframe></section>
+</main>
 
 <section class="motion" id="motion" aria-label="Motion recordings">
   <div class="bar"><span>Both recorded by relume with the same scripted visit: load, wheel test, scroll pass, hover pass.</span><span class="grow"></span><button class="btn" id="close" type="button">Close</button></div>
@@ -143,50 +139,20 @@ const recHref = /^https?:/.test(d.recreationPath) ? d.recreationPath : d.recreat
 document.getElementById('openRec').href = recHref;
 document.getElementById('tagA').textContent = host;
 document.getElementById('tagB').textContent = name;
-const imgA = document.getElementById('imgA'), imgB = document.getElementById('imgB');
-imgA.src = `media/${d.id}-source-full.jpg`; imgA.alt = `${host}, full page`;
-imgB.src = `media/${d.id}-recreation-full.jpg`; imgB.alt = `${name}, full page`;
+const sourceHref = d.source.page || d.source.url;
+document.getElementById('frameOpenSrc').href = sourceHref;
+document.getElementById('frameOpenRec').href = recHref;
+const siteA = document.getElementById('siteA'), siteB = document.getElementById('siteB');
+siteA.title = `${host} · live reference site`;
+siteB.title = `${name} · live recreation site`;
+siteA.src = sourceHref;
+siteB.src = recHref;
 
-// section-aligned scroll: the left page scrolls with the window; the right page shows the same relative
-// position inside its matching section, so like sits beside like
-const A = d.pages.source, B = d.pages.recreation;
-const n = Math.min(A.sections.length, B.sections.length);
-const seg = (P) => { const s = P.sections.slice(0, n).map((x) => [x.y, x.y + x.h]); s.unshift([0, s[0][0]]); s.push([s[s.length - 1][1], P.height]); return s; };
-const sa = seg(A), sb = seg(B);
-const map = (y) => { for (let i = 0; i < sa.length; i++) { const [a0, a1] = sa[i]; if (y < a1 || i === sa.length - 1) { const t = Math.min(1, Math.max(0, (y - a0) / Math.max(1, a1 - a0))); const [b0, b1] = sb[i]; return { i, y: b0 + t * (b1 - b0) }; } } return { i: 0, y: 0 }; };
-const top = () => document.querySelector('header').offsetHeight;
-const spacer = document.getElementById('spacer');
-let scale = 1;
-function layout() {
-  document.documentElement.style.setProperty('--top', top() + 'px');
-  scale = imgA.parentElement.clientWidth / 1440;
-  spacer.style.height = (A.height * scale + top()) + 'px';
-}
-[imgA, imgB].forEach((i) => i.addEventListener('load', layout));
-addEventListener('resize', layout); layout();
-const secN = document.getElementById('secN'), secK = document.getElementById('secK'), secOk = document.getElementById('secOk');
-const trA = document.getElementById('trA'), trB = document.getElementById('trB');
-const short = (k) => (k || '').replace(/^hero.*/, 'hero').replace(/^feature.*/, 'feature');
-let last = -1;
-function frame() {
-  const y = scrollY / scale, vh = innerHeight - top();
-  const m = map(y + vh / scale * 0.35);
-  const yb = Math.max(0, m.y - vh / scale * 0.35);
-  imgA.style.transform = `translateY(${-y * scale}px)`;
-  imgB.style.transform = `translateY(${-yb * scale}px)`;
-  trA.style.top = (y / A.height * 100) + '%'; trA.style.height = (vh / scale / A.height * 100) + '%';
-  trB.style.top = (yb / B.height * 100) + '%'; trB.style.height = (vh / scale / B.height * 100) + '%';
-  if (m.i !== last) {
-    last = m.i;
-    const si = m.i - 1, a = A.sections[si], b = B.sections[si];
-    secN.textContent = si >= 0 && si < n ? `${String(si + 1).padStart(2, '0')} / ${String(A.sections.length).padStart(2, '0')}` : si < 0 ? 'top' : 'end';
-    secK.textContent = a ? (b && short(a.kind) !== short(b.kind) ? `${a.kind} · rebuilt as ${b.kind}` : a.kind) : '';
-    secOk.classList.toggle('miss', !!(a && b && short(a.kind) !== short(b.kind)));
-    secOk.hidden = !(a && b);
-  }
-  requestAnimationFrame(frame);
-}
-requestAnimationFrame(frame);
+// The reference is cross-origin, so each live page owns its scrolling and interactions.
+const header = document.querySelector('header');
+const layout = () => document.documentElement.style.setProperty('--top', `${header.offsetHeight}px`);
+new ResizeObserver(layout).observe(header);
+layout();
 
 // motion recordings, on request
 const panel = document.getElementById('motion'), btn = document.getElementById('motionBtn'), vA = document.getElementById('vA'), vB = document.getElementById('vB');
