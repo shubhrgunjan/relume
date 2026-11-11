@@ -64,13 +64,27 @@ header { position: fixed; z-index: 10; inset: 0 0 auto; background: rgb(20 17 21
 
 .view { position: fixed; inset: var(--top) 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); }
 .col { position: relative; overflow: hidden; background: #fff; display: grid; grid-template-rows: auto minmax(0, 1fr); min-width: 0; min-height: 0; }
+[hidden] { display: none !important; }
 .col iframe { width: 100%; height: 100%; min-height: 0; border: 0; display: block; background: #fff; }
 .cap { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 12px 14px; background: var(--ink-2); font: 500 12px/1.3 var(--display); color: var(--mute); }
 .cap b { color: var(--paper); font-weight: 600; }
+.cap .source-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.cap button { padding: 0; border: 0; background: none; color: inherit; cursor: pointer; font: inherit; text-decoration: underline; text-underline-offset: 3px; }
 .cap a { flex: none; text-decoration: underline; text-underline-offset: 3px; }
 .cap a:hover { color: var(--paper); }
 .rec .cap b { color: var(--volt); }
 @media (max-width: 560px) { .cap { padding: 10px 8px; flex-wrap: wrap; } .cap b { width: 100%; overflow: hidden; text-overflow: ellipsis; } }
+
+.site-body { position: relative; min-height: 0; overflow: hidden; }
+.site-body iframe { position: absolute; inset: 0; }
+.embed-state { height: 100%; overflow: auto; display: grid; align-content: center; gap: 18px; padding: clamp(24px, 5vw, 72px); background: var(--ink); }
+.embed-state .eyebrow { color: var(--volt); font: 500 11px/1.4 var(--mono); text-transform: uppercase; letter-spacing: .08em; }
+.embed-state h1 { margin: 0; max-width: 15ch; font-size: clamp(26px, 3.2vw, 48px); line-height: 1.1; letter-spacing: -.03em; overflow-wrap: anywhere; }
+.embed-state p { max-width: 42ch; margin: 0; color: var(--mute); }
+.window-actions { display: grid; justify-items: start; gap: 10px; }
+.window-actions .btn { min-height: 40px; height: auto; padding-block: 10px; white-space: normal; }
+.window-actions .primary { color: var(--ink); background: var(--volt); box-shadow: none; }
+.embed-state small { color: var(--dim); max-width: 46ch; }
 
 .motion { position: fixed; z-index: 12; left: 50%; bottom: 16px; transform: translate(-50%, 140%); width: min(1100px, calc(100vw - 32px)); background: var(--ink); box-shadow: 0 0 0 1px var(--line), 0 30px 80px rgb(0 0 0 / 0.6); padding: 14px; display: grid; gap: 12px; transition: transform 500ms cubic-bezier(0.19, 1, 0.22, 1); }
 .motion.on { transform: translate(-50%, 0); }
@@ -99,11 +113,26 @@ header { position: fixed; z-index: 10; inset: 0 0 auto; background: rgb(20 17 21
     <span class="grow"></span>
     <button class="btn" id="motionBtn" type="button" aria-pressed="false">Watch motion</button>
   </div>
-  <p class="live-note">Live sites · Scroll and interact with each page independently. If a site blocks embedding, use its “Open site” link.</p>
+  <p class="live-note">Live sites · Scroll and interact independently. References that block embedding open in separate windows.</p>
 </header>
 
 <main class="view" aria-label="Live site comparison">
-  <section class="col src" aria-label="Reference site"><div class="cap"><b id="tagA"></b><a id="frameOpenSrc" target="_blank" rel="noopener">Open site ↗</a></div><iframe id="siteA" title="Live reference site" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox" allow="fullscreen"></iframe></section>
+  <section class="col src" aria-label="Reference site">
+    <div class="cap"><b id="tagA"></b><div class="source-actions"><button id="windowMode" type="button">Compare in windows</button><a id="frameOpenSrc" target="_blank" rel="noopener">Open site ↗</a></div></div>
+    <div class="site-body">
+      <iframe id="siteA" title="Live reference site" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox" allow="fullscreen" hidden></iframe>
+      <div class="embed-state" id="embedState" role="status">
+        <span class="eyebrow">Live comparison</span>
+        <h1 id="embedTitle">Checking live reference…</h1>
+        <p id="embedMessage"></p>
+        <div class="window-actions" id="windowActions" hidden>
+          <a class="btn primary" id="sourceWindow" target="_blank" rel="noopener">1. Open reference window ↗</a>
+          <a class="btn" id="recreationWindow" target="_blank" rel="noopener">2. Open recreation window ↗</a>
+        </div>
+        <small id="windowHint" hidden>Open each window separately. On desktop, we request a window on each half of your screen; your browser may use tabs or different positions.</small>
+      </div>
+    </div>
+  </section>
   <section class="col rec" aria-label="Recreation site"><div class="cap"><b id="tagB"></b><a id="frameOpenRec" target="_blank" rel="noopener">Open site ↗</a></div><iframe id="siteB" title="Live recreation site" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox" allow="fullscreen"></iframe></section>
 </main>
 
@@ -145,8 +174,60 @@ document.getElementById('frameOpenRec').href = recHref;
 const siteA = document.getElementById('siteA'), siteB = document.getElementById('siteB');
 siteA.title = `${host} · live reference site`;
 siteB.title = `${name} · live recreation site`;
-siteA.src = sourceHref;
 siteB.src = recHref;
+
+const embedState = document.getElementById('embedState');
+const embedTitle = document.getElementById('embedTitle');
+const embedMessage = document.getElementById('embedMessage');
+const windowMode = document.getElementById('windowMode');
+const sourceWindowLink = document.getElementById('sourceWindow');
+const recreationWindowLink = document.getElementById('recreationWindow');
+sourceWindowLink.href = sourceHref;
+recreationWindowLink.href = recHref;
+let referenceWindow;
+let windowsSelected = false;
+function showWindows(blocked = false) {
+  siteA.hidden = true;
+  siteA.removeAttribute('src');
+  embedState.hidden = false;
+  windowMode.hidden = true;
+  embedTitle.textContent = `${host} opens in its own window.`;
+  embedMessage.textContent = blocked
+    ? `${host} doesn't allow other websites to embed its live pages. Open both sites in separate windows to compare them live.`
+    : 'Open both sites in separate windows to compare their live pages, scrolling and animations.';
+  document.getElementById('windowActions').hidden = false;
+  document.getElementById('windowHint').hidden = false;
+}
+windowMode.addEventListener('click', () => { windowsSelected = true; showWindows(); });
+// Each link has its own click: browsers require a user gesture for each new window.
+for (const [link, side] of [[sourceWindowLink, 0], [recreationWindowLink, 1]]) {
+  link.addEventListener('click', (event) => {
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button) return;
+    const width = Math.max(320, Math.floor(screen.availWidth / 2));
+    const height = Math.max(320, screen.availHeight - 80);
+    const left = (screen.availLeft || 0) + side * width;
+    const top = screen.availTop || 0;
+    if (side && referenceWindow && !referenceWindow.closed) referenceWindow.focus();
+    const opened = window.open('', '_blank', `popup,width=${width},height=${height},left=${left},top=${top}`);
+    if (!opened) return; // Keep the real link's normal new-tab fallback.
+    event.preventDefault();
+    opened.opener = null;
+    opened.location.href = link.href;
+    if (!side) referenceWindow = opened;
+  });
+}
+// Do not navigate the frame until the reference's measured framing policy allows it.
+// Unknown or missing policy uses real windows, rather than a browser error page.
+fetch('data/frame-policies.json').then(r => { if (!r.ok) throw new Error('Policy unavailable'); return r.json(); })
+  .then(policies => {
+    if (windowsSelected) return;
+    const policy = policies[d.id];
+    if (policy?.url === sourceHref && policy.embeddable === true) {
+      embedState.hidden = true;
+      siteA.hidden = false;
+      siteA.src = sourceHref;
+    } else showWindows(policy?.url === sourceHref && policy.embeddable === false);
+  }).catch(() => { if (!windowsSelected) showWindows(); });
 
 // The reference is cross-origin, so each live page owns its scrolling and interactions.
 const header = document.querySelector('header');
