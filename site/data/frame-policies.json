@@ -1,0 +1,42 @@
+{
+  "muse": {
+    "url": "https://www.cosmos.so",
+    "embeddable": true,
+    "checkedAt": "2026-11-11T16:06:50.562Z"
+  },
+  "gateswar": {
+    "url": "https://groww.in",
+    "embeddable": false,
+    "checkedAt": "2026-11-11T16:06:50.518Z"
+  },
+  "drift": {
+    "url": "https://lenis.dev",
+    "embeddable": false,
+    "checkedAt": "2026-11-11T16:06:50.554Z"
+  },
+  "tessera": {
+    "url": "https://linear.app",
+    "embeddable": false,
+    "checkedAt": "2026-11-11T16:06:51.511Z"
+  },
+  "fitment-labs": {
+    "url": "https://openhorizon.so",
+    "embeddable": true,
+    "checkedAt": "2026-11-11T16:06:50.596Z"
+  },
+  "spoke": {
+    "url": "https://resend.com",
+    "embeddable": false,
+    "checkedAt": "2026-11-11T16:06:50.862Z"
+  },
+  "ledgerline": {
+    "url": "https://stripe.com/in",
+    "embeddable": false,
+    "checkedAt": "2026-11-11T16:06:50.958Z"
+  },
+  "northwind-edge": {
+    "url": "https://vercel.com",
+    "embeddable": false,
+    "checkedAt": "2026-11-11T16:06:50.602Z"
+  }
+}
